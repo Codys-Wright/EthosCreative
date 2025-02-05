@@ -1,0 +1,84 @@
+---
+title: UI Components
+description: Documentation for the shared UI component library
+---
+
+# UI Components
+
+The `@repo/ui` package provides a set of reusable components built on top of Radix UI primitives and styled with Tailwind CSS.
+
+## Setup
+
+1. Install the package:
+```json
+{
+  "dependencies": {
+    "@repo/ui": "workspace:*"
+  }
+}
+```
+
+2. Import styles in your root layout:
+```tsx
+import "@repo/ui/globals.css";
+```
+
+3. Configure Tailwind CSS:
+```ts
+// tailwind.config.ts
+import baseConfig from "@repo/ui/tailwind.config";
+
+export default {
+  content: [
+    "./src/**/*.{js,ts,jsx,tsx,mdx}",
+    "../../node_modules/@repo/ui/src/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  presets: [baseConfig],
+}
+```
+
+## Available Components
+
+### Button
+```tsx
+import { Button } from "@repo/ui";
+
+<Button variant="default">Click me</Button>
+```
+
+### Badge
+```tsx
+import { Badge } from "@repo/ui";
+
+<Badge>New</Badge>
+```
+
+### Dialog
+```tsx
+import { Dialog, DialogTrigger, DialogContent } from "@repo/ui";
+
+<Dialog>
+  <DialogTrigger>Open</DialogTrigger>
+  <DialogContent>Content</DialogContent>
+</Dialog>
+```
+
+## Styling
+
+Components use CSS variables for theming that can be customized in your CSS:
+
+```css
+:root {
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --primary: 240 5.9% 10%;
+  --primary-foreground: 0 0% 98%;
+  /* ... other variables ... */
+}
+
+.dark {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  /* ... dark theme variables ... */
+}
+``` 
