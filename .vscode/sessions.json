@@ -1,0 +1,42 @@
+{
+  "$schema": "https://cdn.statically.io/gh/nguyenngoclongdev/cdn/main/schema/v10/terminal-keeper.json",
+  "theme": "tribe",
+  "active": "default",
+  "activateOnStartup": true,
+  "keepExistingTerminals": false,
+  "sessions": {
+    "default": [
+      {
+        "name": "Turbo Dev",
+        "autoExecuteCommands": true,
+        "icon": "person",
+        "color": "terminal.ansiGreen",
+        "commands": [
+          "pnpm dev"
+        ]
+      },
+      [
+        {
+          "name": "pg database",
+          "commands": [
+            "docker compose up -d"
+          ]
+        },
+        {
+          "name": "drizzle studio",
+          "commands": [
+            "pnpm db:studio"
+          ]
+        }
+      ]
+    ],
+    "saved-session": [
+      {
+        "name": "connect",
+        "commands": [
+          ""
+        ]
+      }
+    ]
+  }
+}
