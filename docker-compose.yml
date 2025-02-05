@@ -1,0 +1,19 @@
+services:
+  db:
+    platform: linux/amd64
+    image: postgres:latest
+    container_name: repo-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: database-password
+      POSTGRES_DB: postgres
+    volumes:
+      - chips-db-data:/var/lib/postgresql/data
+    ports:
+      - '5433:5432'
+    networks:
+      - app_network
+networks:
+  app_network:
+volumes:
+  chips-db-data:
