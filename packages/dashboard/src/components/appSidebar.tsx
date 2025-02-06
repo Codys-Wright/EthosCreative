@@ -314,7 +314,12 @@ export function AppSidebar({
             <div className="mt-auto pt-6 border-t border-neutral-200 dark:border-neutral-700">
               <SidebarLink
                 link={{
-                  label: user.name,
+                  label: (
+                    <div className="flex flex-col -my-1">
+                      <span className="leading-none">{user.name}</span>
+                      <span className="text-xs text-neutral-500 dark:text-neutral-400 leading-none mt-1">{user.email}</span>
+                    </div>
+                  ),
                   href: "/dashboard/profile",
                   icon: user.image ? (
                     <Image
