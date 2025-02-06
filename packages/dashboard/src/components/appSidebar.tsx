@@ -62,7 +62,7 @@ interface CustomBadge {
 type Badge = BadgePreset | CustomBadge;
 
 export interface NavLink {
-  label: string;
+  label: string | React.ReactElement;
   href: string;
   icon: React.ReactElement;
   badge?: Badge;
@@ -167,6 +167,7 @@ function SidebarItem({ item, setOpen }: SidebarItemProps) {
           ),
           href: item.muted ? "#" : item.href,
           icon: React.cloneElement(item.icon, {
+            // @ts-ignore
             className: cn(
               "h-5 w-5 flex-shrink-0",
               item.muted 
@@ -242,7 +243,7 @@ export function AppSidebar({
                               className="absolute inset-0 flex items-center justify-center"
                             >
                               <span className="text-[10px] font-medium text-neutral-400 dark:text-neutral-500 bg-gray-100 dark:bg-neutral-800 px-2">
-                                {navLinks.top[index + 1].label}
+                                {navLinks.top[index + 1]?.label}
                               </span>
                             </motion.div>
                           </div>

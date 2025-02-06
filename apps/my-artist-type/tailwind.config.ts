@@ -8,6 +8,7 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
     "../../packages/ui/src/**/*.{js,ts,jsx,tsx,mdx}",
     "../../packages/dashboard/src/**/*.{js,ts,jsx,tsx,mdx}",
+    "../../packages/widgets/src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
