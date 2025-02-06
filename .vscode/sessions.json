@@ -7,28 +7,46 @@
   "sessions": {
     "default": [
       {
-        "name": "Turbo Dev",
+        "name": "Dev",
         "autoExecuteCommands": true,
-        "icon": "person",
+        "icon": "rocket",
         "color": "terminal.ansiGreen",
         "commands": [
           "pnpm dev"
         ]
       },
-      [
-        {
-          "name": "pg database",
-          "commands": [
-            "docker compose up -d"
-          ]
-        },
-        {
-          "name": "drizzle studio",
-          "commands": [
-            "pnpm db:studio"
-          ]
-        }
-      ]
+      {
+        "name": "Install",
+        "icon": "package",
+        "color": "terminal.ansiYellow",
+        "commands": [
+          "echo 'Run: pnpm install --auto-accept-peers to install dependencies'"
+        ]
+      },
+      {
+        "name": "Database",
+        "icon": "database",
+        "color": "terminal.ansiBlue",
+        "commands": [
+          "echo 'Ready for drizzle commands'"
+        ]
+      },
+      {
+        "name": "Docker",
+        "icon": "container",
+        "color": "terminal.ansiCyan",
+        "commands": [
+          "echo 'Ready for docker commands'"
+        ]
+      },
+      {
+        "name": "Git",
+        "icon": "git-branch",
+        "color": "terminal.ansiMagenta",
+        "commands": [
+          "echo 'Ready for git commands'"
+        ]
+      }
     ],
     "saved-session": [
       {

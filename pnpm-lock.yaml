@@ -72,6 +72,15 @@ importers:
 
   apps/my-artist-type:
     dependencies:
+      '@repo/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@repo/dashboard':
+        specifier: workspace:*
+        version: link:../../packages/dashboard
+      '@repo/feature-flags':
+        specifier: workspace:*
+        version: link:../../packages/feature-flags
       '@repo/quiz':
         specifier: workspace:*
         version: link:../../packages/quiz
@@ -87,6 +96,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.66.0
         version: 5.66.0(react@19.0.0)
+      better-auth:
+        specifier: ^1.1.15
+        version: 1.1.15
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -172,6 +184,9 @@ importers:
       '@repo/email':
         specifier: workspace:*
         version: link:../email
+      '@tanstack/react-query':
+        specifier: ^5.66.0
+        version: 5.66.0(react@19.0.0)
       better-auth:
         specifier: ^1.1.15
         version: 1.1.15
@@ -182,6 +197,49 @@ importers:
       '@types/node':
         specifier: ^22.13.1
         version: 22.13.1
+      '@types/react':
+        specifier: ^19.0.8
+        version: 19.0.8
+
+  packages/dashboard:
+    dependencies:
+      '@repo/auth':
+        specifier: workspace:*
+        version: link:../auth
+      '@repo/database':
+        specifier: workspace:*
+        version: link:../database
+      '@repo/email':
+        specifier: workspace:*
+        version: link:../email
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@repo/quiz':
+        specifier: workspace:*
+        version: link:../quiz
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@repo/ui':
+        specifier: workspace:*
+        version: link:../ui
+      '@tabler/icons-react':
+        specifier: ^3.29.0
+        version: 3.29.0(react@19.0.0)
+      framer-motion:
+        specifier: ^12.3.1
+        version: 12.3.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      next:
+        specifier: ^15.1.6
+        version: 15.1.6(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sass@1.77.4)
+      react:
+        specifier: ^19.0.0
+        version: 19.0.0
+      zustand:
+        specifier: ^5.0.3
+        version: 5.0.3(@types/react@19.0.8)(react@19.0.0)
+    devDependencies:
       '@types/react':
         specifier: ^19.0.8
         version: 19.0.8
@@ -292,6 +350,21 @@ importers:
       typescript-eslint:
         specifier: ^8.22.0
         version: 8.22.0(eslint@9.19.0(jiti@2.4.2))(typescript@5.7.3)
+
+  packages/feature-flags:
+    dependencies:
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@repo/ui':
+        specifier: workspace:*
+        version: link:../ui
+      '@tanstack/react-query':
+        specifier: ^5.66.0
+        version: 5.66.0(react@19.0.0)
 
   packages/quiz:
     dependencies:

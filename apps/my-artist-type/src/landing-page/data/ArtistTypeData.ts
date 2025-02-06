@@ -59,5 +59,4 @@ export const ArtistTypeData = [
       "The Solo Artist is the epitome of the serious, introspective, and thoughtful artist. Their work is highly personal and they likely consider it to be a direct extension of who they are inside. They're not only comfortable working alone, but tend to prefer it over collaborations. Their core goal is to create work that is a direct reflection of their own tastes and perspectives.",
     image: "/artist-type-coins/10-solo.svg",
   },
-]
-
+];
