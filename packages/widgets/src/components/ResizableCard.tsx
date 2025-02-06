@@ -24,6 +24,7 @@ import {
 } from "./CourseWidgets"
 import { RecentCoursesWidget } from "./RecentCoursesWidget"
 import { useWidgetStore } from "./widget-store"
+import { WIDGET_CONFIGS, type WidgetType } from "./widget-config"
 
 
 interface ResizableCardProps {
@@ -169,6 +170,11 @@ export function ResizableCard({
     6: "row-span-6",
   }
 
+  // Get max size from widget config
+  const widgetConfig = WIDGET_CONFIGS[type as WidgetType]
+  const maxCols = widgetConfig?.maxSize.width ?? 6
+  const maxRows = widgetConfig?.maxSize.height ?? 6
+
   return (
     <>
       <ContextMenu>
@@ -202,9 +208,13 @@ export function ResizableCard({
             <ContextMenuSubContent className="w-[280px] p-2">
               <div className="flex flex-col gap-2">
                 <div className="grid grid-cols-6 gap-1">
-                  {Array.from({ length: 36 }).map((_, index) => {
-                    const row = Math.floor(index / 6) + 1
-                    const col = (index % 6) + 1
+                  {Array.from({ length: maxCols * maxRows }).map((_, index) => {
+                    const row = Math.floor(index / maxCols) + 1
+                    const col = (index % maxCols) + 1
+                    
+                    // Skip rendering if beyond max dimensions
+                    if (row > maxRows || col > maxCols) return null
+
                     const isSelected = col === colSpan && row === rowSpan
                     const isHovered =
                       hoveredSize &&
@@ -245,7 +255,7 @@ export function ResizableCard({
                 <div className="mt-2 text-xs text-muted-foreground">
                   {hoveredSize
                     ? `${hoveredSize.col} × ${hoveredSize.row}`
-                    : "Select size"}
+                    : `Max size: ${maxCols} × ${maxRows}`}
                 </div>
               </div>
             </ContextMenuSubContent>

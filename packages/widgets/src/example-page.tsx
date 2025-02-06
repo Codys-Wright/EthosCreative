@@ -246,7 +246,25 @@ export function WidgetExamplePage() {
                 items={visibleItems.map((item) => item.id)}
                 strategy={rectSortingStrategy}
               >
-                <div className="min-h-full grid auto-rows-[110px] grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 [grid-auto-flow:dense] pb-8">
+                <div 
+                  className={cn(
+                    "min-h-full grid auto-rows-[110px] gap-4 [grid-auto-flow:dense] pb-8 w-full",
+                    "grid-cols-2",
+                    "md:grid-cols-3",
+                    "lg:grid-cols-4",
+                    "xl:grid-cols-5",
+                    "2xl:grid-cols-8",
+                    "3xl:grid-cols-10",
+                    "4xl:grid-cols-12",
+                    "5xl:grid-cols-14",
+                    "6xl:grid-cols-16",
+                    "7xl:grid-cols-18",
+                    "8xl:grid-cols-20",
+                    "9xl:grid-cols-22",
+                    "10xl:grid-cols-24"
+                  )}
+                  style={{ gridAutoColumns: "1fr" }}
+                >
                   {visibleItems.map((item) => {
                     const itemClassName = cn(
                       item.colSpan && `col-span-${item.colSpan}`,
