@@ -13,10 +13,71 @@ import { cn } from "@repo/ui/lib/utils";
 import { usePathname } from "next/navigation";
 import { useIsMobile } from "@repo/ui";
 
-interface NavLink {
+// Badge variants
+export const BADGE_VARIANTS = {
+  default: "default",
+  success: "success",
+  warning: "warning",
+  error: "error",
+  info: "info",
+} as const;
+
+export type BadgeVariant = keyof typeof BADGE_VARIANTS;
+
+// Badge presets
+export const BADGE_PRESETS = {
+  new: {
+    content: "New",
+    variant: "success" as const,
+  },
+  comingSoon: {
+    content: "Coming Soon",
+    variant: "info" as const,
+  },
+  beta: {
+    content: "Beta",
+    variant: "warning" as const,
+  },
+  hidden: {
+    content: "Hidden",
+    variant: "default" as const,
+  },
+  developer: {
+    content: "Developer",
+    variant: "error" as const,
+  },
+  admin: {
+    content: "Admin",
+    variant: "error" as const,
+  },
+} as const;
+
+export type BadgePreset = keyof typeof BADGE_PRESETS;
+
+interface CustomBadge {
+  content: string;
+  variant?: BadgeVariant;
+}
+
+type Badge = BadgePreset | CustomBadge;
+
+export interface NavLink {
   label: string;
   href: string;
   icon: React.ReactElement;
+  badge?: Badge;
+  muted?: boolean;
+}
+
+export interface NavGroup {
+  label: string;
+  links: NavLink[];
+}
+
+export interface NavLinks {
+  top?: NavGroup[] | NavGroup;
+  main?: NavGroup;
+  bottom?: NavGroup;
 }
 
 interface User {
@@ -25,10 +86,9 @@ interface User {
   image?: string;
 }
 
-interface AppSidebarProps {
+export interface AppSidebarProps {
   children: React.ReactNode;
-  mainLinks?: NavLink[];
-  bottomLinks?: NavLink[];
+  navLinks?: NavLinks;
   user?: User;
   logo?: React.ReactNode;
   domain?: string;
@@ -39,31 +99,88 @@ interface SidebarItemProps {
   setOpen: (open: boolean) => void;
 }
 
+function SidebarGroup({ group, setOpen, open }: { group: NavGroup; setOpen: (open: boolean) => void; open: boolean }) {
+  return (
+    <div className="flex flex-col gap-2 px-[0.15rem]">
+      {group.links.map((item, idx) => (
+        <SidebarItem
+          key={idx}
+          item={item}
+          setOpen={setOpen}
+        />
+      ))}
+    </div>
+  );
+}
+
 function SidebarItem({ item, setOpen }: SidebarItemProps) {
   const pathname = usePathname();
   const isMobile = useIsMobile();
   const isActive = pathname === item.href;
 
   const handleClick = () => {
-    if (isMobile) {
+    if (isMobile && !item.muted) {
       setOpen(false);
     }
   };
 
+  const getBadgeColor = (variant: string = "default") => {
+    switch (variant) {
+      case "success":
+        return "bg-green-500/10 text-green-500 dark:bg-green-500/20";
+      case "warning":
+        return "bg-yellow-500/10 text-yellow-500 dark:bg-yellow-500/20";
+      case "error":
+        return "bg-red-500/10 text-red-500 dark:bg-red-500/20";
+      case "info":
+        return "bg-blue-500/10 text-blue-500 dark:bg-blue-500/20";
+      default:
+        return "bg-neutral-500/10 text-neutral-500 dark:bg-neutral-500/20";
+    }
+  };
+
+  const getBadgeContent = (badge: Badge) => {
+    if (typeof badge === "string") {
+      return BADGE_PRESETS[badge];
+    }
+    return badge;
+  };
+
   return (
-    <div onClick={handleClick}>
+    <div onClick={handleClick} className={cn(item.muted && "pointer-events-none")}>
       <SidebarLink
         link={{
-          label: item.label,
-          href: item.href,
+          label: (
+            <div className="flex items-center w-full min-h-[20px]">
+              <span className={cn(item.muted && "text-neutral-400 dark:text-neutral-600")}>
+                {item.label}
+              </span>
+              {item.badge && (
+                <span className={cn(
+                  "text-[10px] leading-[1.2] px-1.5 py-[0.15rem] rounded-full font-medium ml-2 flex-shrink-0",
+                  getBadgeColor(getBadgeContent(item.badge).variant)
+                )}>
+                  {getBadgeContent(item.badge).content}
+                </span>
+              )}
+            </div>
+          ),
+          href: item.muted ? "#" : item.href,
           icon: React.cloneElement(item.icon, {
             className: cn(
               "h-5 w-5 flex-shrink-0",
-              isActive ? "text-blue-600" : "text-neutral-700 dark:text-neutral-200"
+              item.muted 
+                ? "text-neutral-400 dark:text-neutral-600" 
+                : isActive 
+                  ? "text-blue-600" 
+                  : "text-neutral-700 dark:text-neutral-200"
             ),
           }),
         }}
-        className={cn(isActive && "text-blue-600 dark:text-blue-400")}
+        className={cn(
+          isActive && !item.muted && "text-blue-600 dark:text-blue-400",
+          item.muted && "pointer-events-none"
+        )}
       />
     </div>
   );
@@ -71,13 +188,15 @@ function SidebarItem({ item, setOpen }: SidebarItemProps) {
 
 export function AppSidebar({ 
   children, 
-  mainLinks = [], 
-  bottomLinks = [], 
+  navLinks = {},
   user,
   logo = <div className="h-5 w-6 bg-black dark:bg-white rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />,
   domain = "App"
 }: AppSidebarProps) {
   const [open, setOpen] = useState(false);
+
+  // Check if multiple groups exist
+  const hasMultipleGroups = [navLinks.top, navLinks.main, navLinks.bottom].filter(Boolean).length > 1;
 
   return (
     <div
@@ -104,32 +223,95 @@ export function AppSidebar({
                 </motion.span>
               )}
             </Link>
-            <div className="mt-8 flex flex-col gap-6">
-              <div className="flex flex-col gap-2">
-                {mainLinks.map((item, idx) => (
-                  <SidebarItem
-                    key={`main-${idx}`}
-                    item={item}
-                    setOpen={setOpen}
-                  />
-                ))}
-              </div>
-              {bottomLinks.length > 0 && (
-                <div className="flex flex-col gap-2">
-                  <div className="h-px bg-neutral-200 dark:bg-neutral-700 mx-2" />
-                  {bottomLinks.map((item, idx) => (
-                    <SidebarItem
-                      key={`bottom-${idx}`}
-                      item={item}
-                      setOpen={setOpen}
-                    />
-                  ))}
+            <div className="flex flex-col flex-1 mt-8">
+              {/* Top Group */}
+              {navLinks.top && (
+                <div className="flex-shrink-0">
+                  {Array.isArray(navLinks.top) ? (
+                    navLinks.top.map((group, index) => (
+                      <React.Fragment key={index}>
+                        <SidebarGroup group={group} setOpen={setOpen} open={open} />
+                        {Array.isArray(navLinks.top) && index < navLinks.top.length - 1 && (
+                          <div className="relative h-px my-6">
+                            <div className="absolute inset-0 flex items-center">
+                              <div className="w-full h-px bg-neutral-200 dark:bg-neutral-700" />
+                            </div>
+                            <motion.div
+                              initial={false}
+                              animate={{ opacity: open ? 1 : 0 }}
+                              className="absolute inset-0 flex items-center justify-center"
+                            >
+                              <span className="text-[10px] font-medium text-neutral-400 dark:text-neutral-500 bg-gray-100 dark:bg-neutral-800 px-2">
+                                {navLinks.top[index + 1].label}
+                              </span>
+                            </motion.div>
+                          </div>
+                        )}
+                      </React.Fragment>
+                    ))
+                  ) : (
+                    <SidebarGroup group={navLinks.top} setOpen={setOpen} open={open} />
+                  )}
+                </div>
+              )}
+              
+              {/* Spacer */}
+              <div className="flex-1" />
+              
+              {/* Center Group */}
+              {navLinks.main && (
+                <div className="flex-shrink-0">
+                  <div className="w-full">
+                    {hasMultipleGroups && navLinks.top && (
+                      <div className="relative h-px my-6">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full h-px bg-neutral-200 dark:bg-neutral-700" />
+                        </div>
+                        <motion.div
+                          initial={false}
+                          animate={{ opacity: open ? 1 : 0 }}
+                          className="absolute inset-0 flex items-center justify-center"
+                        >
+                          <span className="text-[10px] font-medium text-neutral-400 dark:text-neutral-500 bg-gray-100 dark:bg-neutral-800 px-2">
+                            {navLinks.main.label}
+                          </span>
+                        </motion.div>
+                      </div>
+                    )}
+                    <SidebarGroup group={navLinks.main} setOpen={setOpen} open={open} />
+                  </div>
+                </div>
+              )}
+              
+              {/* Spacer */}
+              <div className="flex-1" />
+              
+              {/* Bottom Group */}
+              {navLinks.bottom && (
+                <div className="flex-shrink-0 pb-4">
+                  {hasMultipleGroups && (navLinks.top || navLinks.main) && (
+                    <div className="relative h-px my-6">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full h-px bg-neutral-200 dark:bg-neutral-700" />
+                      </div>
+                      <motion.div
+                        initial={false}
+                        animate={{ opacity: open ? 1 : 0 }}
+                        className="absolute inset-0 flex items-center justify-center"
+                      >
+                        <span className="text-[10px] font-medium text-neutral-400 dark:text-neutral-500 bg-gray-100 dark:bg-neutral-800 px-2">
+                          {navLinks.bottom.label}
+                        </span>
+                      </motion.div>
+                    </div>
+                  )}
+                  <SidebarGroup group={navLinks.bottom} setOpen={setOpen} open={open} />
                 </div>
               )}
             </div>
           </div>
           {user && (
-            <div>
+            <div className="mt-auto pt-6 border-t border-neutral-200 dark:border-neutral-700">
               <SidebarLink
                 link={{
                   label: user.name,
