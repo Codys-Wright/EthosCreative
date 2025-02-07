@@ -1,32 +1,42 @@
-import React from 'react'
-import { Card } from '@repo/ui' 
-import { Button } from '@repo/ui'
-import { PlayCircle } from 'lucide-react'
-import Link from 'next/link'
+import { Card, CardContent, CardHeader, CardTitle } from "@repo/ui"
+import { useWidgetStore } from "./widget-context"
+import { ArrowRight } from "lucide-react"
+import type { WidgetSize } from "./widget-registry"
 
-interface NextConceptWidgetProps {
-  nextConcept: {
-    title: string
-    href: string
-  } | null
+interface WidgetProps {
+  size: WidgetSize
+  id: string
+  compact?: boolean
 }
 
-export function NextConceptWidget({ nextConcept }: NextConceptWidgetProps) {
-  if (!nextConcept) return null
+const nextConcept = {
+  name: "Color Theory Basics",
+  description: "Learn about color wheels, harmonies, and their psychological impact",
+  duration: "25 min",
+  category: "Art Fundamentals"
+}
 
+export function NextConceptWidget({ size, id, compact = false }: WidgetProps) {
   return (
-    <Card className="p-4">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h3 className="font-medium">Next Up</h3>
-          <p className="text-sm text-muted-foreground">{nextConcept.title}</p>
+    <Card className="h-full">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">Next Concept</CardTitle>
+        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          <h3 className={compact ? "text-sm font-medium" : "text-base font-medium"}>
+            {nextConcept.name}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {nextConcept.description}
+          </p>
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>{nextConcept.category}</span>
+            <span>{nextConcept.duration}</span>
+          </div>
         </div>
-        <Link href={nextConcept.href}>
-          <Button size="icon" variant="ghost">
-            <PlayCircle className="h-5 w-5" />
-          </Button>
-        </Link>
-      </div>
+      </CardContent>
     </Card>
   )
 }

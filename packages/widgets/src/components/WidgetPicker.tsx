@@ -8,102 +8,17 @@ import {
   DialogTitle,
   ScrollArea,
   Input,
-  cn
+  cn,
 } from "@repo/ui"
-import { Search, GraduationCap, ShieldCheck, Wrench } from "lucide-react"
-
-interface Widget {
-  id: string
-  name: string
-  description: string
-  type: string
-  size: { width: number; height: number }
-}
-
-interface Category {
-  name: string
-  icon: React.ComponentType<{ className?: string }>
-  widgets: Widget[]
-}
+import { Search } from "lucide-react"
+import { useWidgets } from "./widget-context"
+import { getWidgetsByCategory, widgetCategories } from "./widget-registry"
+import type { WidgetDefinition, WidgetCategory } from "./widget-registry"
 
 interface WidgetPickerProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSelectWidget: (
-    widgetType: string,
-    size: { width: number; height: number }
-  ) => void
-}
-
-// Define widget categories and their widgets
-const widgetCategories: Record<string, Category> = {
-  courses: {
-    name: "My Courses",
-    icon: GraduationCap,
-    widgets: [
-      {
-        id: "recent-courses",
-        name: "Recent Courses",
-        description: "Shows the recent courses you've interacted with",
-        type: "recent-courses",
-        size: { width: 2, height: 2 },
-      },
-      {
-        id: "next-concept",
-        name: "Next Concept",
-        description: "Shows your next lesson in the current course curriculum",
-        type: "next-concept",
-        size: { width: 2, height: 1 },
-      },
-      {
-        id: "course-progress",
-        name: "Course Progress",
-        description: "Shows your overall progress in the current course",
-        type: "course-progress",
-        size: { width: 2, height: 1 },
-      },
-    ],
-  },
-  admin: {
-    name: "Admin",
-    icon: ShieldCheck,
-    widgets: [
-      {
-        id: "user-stats",
-        name: "User Statistics",
-        description: "View user engagement and activity metrics",
-        type: "user-stats",
-        size: { width: 2, height: 2 },
-      },
-      {
-        id: "system-health",
-        name: "System Health",
-        description: "Monitor system performance and health metrics",
-        type: "system-health",
-        size: { width: 2, height: 1 },
-      },
-    ],
-  },
-  developer: {
-    name: "Developer",
-    icon: Wrench,
-    widgets: [
-      {
-        id: "api-metrics",
-        name: "API Metrics",
-        description: "Monitor API performance and usage statistics",
-        type: "api-metrics",
-        size: { width: 2, height: 2 },
-      },
-      {
-        id: "error-logs",
-        name: "Error Logs",
-        description: "View recent system errors and warnings",
-        type: "error-logs",
-        size: { width: 2, height: 2 },
-      },
-    ],
-  },
+  onSelectWidget: (type: string, size: { width: number; height: number }) => void
 }
 
 export function WidgetPicker({
@@ -113,25 +28,26 @@ export function WidgetPicker({
 }: WidgetPickerProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const { getWidget } = useWidgets()
+  const allWidgets = getWidgetsByCategory()
 
-  const filteredCategories = Object.entries(widgetCategories).reduce(
-    (acc, [key, category]) => {
-      const filteredWidgets = category.widgets.filter(
+  // Filter widgets based on search query
+  const filteredCategories = Object.entries(allWidgets).reduce(
+    (acc, [key, widgets]) => {
+      const filteredWidgets = widgets.filter(
         (widget) =>
-          widget.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          widget.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
           widget.description.toLowerCase().includes(searchQuery.toLowerCase())
       )
       if (filteredWidgets.length > 0) {
-        acc[key] = { ...category, widgets: filteredWidgets }
+        acc[key] = filteredWidgets
       }
       return acc
     },
-    {} as Record<string, Category>
+    {} as Record<string, Array<WidgetDefinition<unknown> & { type: string }>>
   )
 
-  const displayCategories = searchQuery
-    ? filteredCategories
-    : widgetCategories
+  const displayCategories = searchQuery ? filteredCategories : allWidgets
   const currentCategory = selectedCategory
     ? { [selectedCategory]: displayCategories[selectedCategory] }
     : displayCategories
@@ -159,7 +75,7 @@ export function WidgetPicker({
               placeholder="Search widgets..."
               className="pl-8"
               value={searchQuery}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </DialogHeader>
@@ -202,30 +118,35 @@ export function WidgetPicker({
                   </p>
                 </div>
 
-                {Object.entries(currentCategory).map(([key, category]) => (
-                  <div key={key}>
-                    <h3 className="font-semibold mb-3 flex items-center gap-2">
-                      {category?.icon && <category.icon className="h-4 w-4" />}
-                      {category?.name}
-                    </h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {category?.widgets.map((widget) => (
-                        <button
-                          key={widget.id}
-                          onClick={() => onSelectWidget(widget.id, widget.size)}
-                          className="group rounded-lg border p-4 hover:border-primary hover:bg-accent/50 transition-colors text-left"
-                        >
-                          <h4 className="font-medium group-hover:text-primary">
-                            {widget.name}
-                          </h4>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {widget.description}
-                          </p>
-                        </button>
-                      ))}
+                {Object.entries(currentCategory).map(([key, widgets]) => {
+                  const category = widgetCategories[key]
+                  if (!category || !widgets) return null
+
+                  return (
+                    <div key={key}>
+                      <h3 className="font-semibold mb-3 flex items-center gap-2">
+                        {category.icon && <category.icon className="h-4 w-4" />}
+                        {category.name}
+                      </h3>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {widgets.map((widget) => (
+                          <button
+                            key={widget.id}
+                            onClick={() => onSelectWidget(widget.type, widget.defaultSize)}
+                            className="group rounded-lg border p-4 hover:border-primary hover:bg-accent/50 transition-colors text-left"
+                          >
+                            <h4 className="font-medium group-hover:text-primary">
+                              {widget.label}
+                            </h4>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {widget.description}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </ScrollArea>
           </div>

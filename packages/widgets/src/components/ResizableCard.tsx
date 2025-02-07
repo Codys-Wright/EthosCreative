@@ -23,8 +23,9 @@ import {
   CourseProgressWidget,
 } from "./CourseWidgets"
 import { RecentCoursesWidget } from "./RecentCoursesWidget"
-import { useWidgetStore } from "./widget-store"
+import { useWidgets } from "./widget-context"
 import { WIDGET_CONFIGS, type WidgetType } from "./widget-config"
+import { getWidget, matchesBreakpoint } from "./widget-registry"
 
 
 interface ResizableCardProps {
@@ -62,19 +63,25 @@ export function ResizableCard({
   hideInLarge: initialHideInLarge = false,
   hideInMedium: initialHideInMedium = false,
   hideInSmall: initialHideInSmall = false,
+  children,
   type = "empty",
   id,
 }: ResizableCardProps) {
-  const setWidgetSize = useWidgetStore((state) => state.setWidgetSize)
+  const { useStore, getWidget } = useWidgets()
+  const store = useStore()
 
   // Update widget size in store whenever it changes
   React.useEffect(() => {
     if (id) {
       const size = { width: colSpan, height: rowSpan }
-      // console.log("Setting widget size in store:", { id, size })
-      setWidgetSize(id, size)
+      store.setState((state) => ({
+        widgetSizes: {
+          ...state.widgetSizes,
+          [id]: size
+        }
+      }))
     }
-  }, [id, colSpan, rowSpan, setWidgetSize])
+  }, [id, colSpan, rowSpan, store])
 
   // All hooks must be called before any conditional returns
   const [effectiveColSpan, setEffectiveColSpan] = React.useState(colSpan)
@@ -102,22 +109,22 @@ export function ResizableCard({
 
   const getWidgetComponent = () => {
     const size = { width: colSpan, height: rowSpan }
-    // console.log("ResizableCard rendering widget:", { id, type, size })
-
-    switch (type) {
-      case "recent-courses":
-        return <RecentCoursesWidget size={size} id={id} />
-      case "next-concept":
-        return <NextConceptWidget size={size} id={id} />
-      case "course-progress":
-        return <CourseProgressWidget size={size} id={id} />
-      default:
-        return (
-          <div className="p-4">
-            <h3 className="font-semibold">{type}</h3>
-          </div>
-        )
+    const widgetDef = getWidget(type)
+    
+    if (!widgetDef) {
+      return (
+        <div className="p-4">
+          <h3 className="font-semibold">Unknown Widget: {type}</h3>
+        </div>
+      )
     }
+
+    // Find the first matching breakpoint view
+    const matchingView = widgetDef.views.find(view => matchesBreakpoint(view.breakpoint))
+    
+    // Use matching view or fall back to default
+    const ViewComponent = matchingView?.component ?? widgetDef.defaultView
+    return <ViewComponent size={size} id={id} />
   }
 
   const handleVisibilityChange = (
@@ -151,29 +158,55 @@ export function ResizableCard({
     setIsWidgetPickerOpen(false)
   }
 
-  // Column span class mapping
-  const colSpanClass: Record<number, string> = {
-    1: "",
-    2: "col-span-2",
-    3: "col-span-3",
-    4: "col-span-4",
-    5: "col-span-5",
-    6: "col-span-6",
-  }
+  // Update max size calculation
+  const widgetDef = getWidget(type)
+  const maxCols = widgetDef?.maxSize.width ?? 1
+  const maxRows = widgetDef?.maxSize.height ?? 1
 
-  const rowSpanClass: Record<number, string> = {
-    1: "",
-    2: "row-span-2",
-    3: "row-span-3",
-    4: "row-span-4",
-    5: "row-span-5",
-    6: "row-span-6",
-  }
+  // Generate grid cells based on maxSize
+  const gridCells = Array.from({ length: maxCols * maxRows }).map((_, index) => {
+    const row = Math.floor(index / maxCols) + 1
+    const col = (index % maxCols) + 1
+    
+    // Skip rendering if beyond max dimensions
+    if (row > maxRows || col > maxCols) return null
 
-  // Get max size from widget config
-  const widgetConfig = WIDGET_CONFIGS[type as WidgetType]
-  const maxCols = widgetConfig?.maxSize.width ?? 6
-  const maxRows = widgetConfig?.maxSize.height ?? 6
+    const isSelected = col === colSpan && row === rowSpan
+    const isHovered =
+      hoveredSize &&
+      col <= hoveredSize.col &&
+      row <= hoveredSize.row
+    const isDirectlyHovered =
+      hoveredSize &&
+      col === hoveredSize.col &&
+      row === hoveredSize.row
+
+    return (
+      <ContextMenuItem
+        key={index}
+        className={cn(
+          "w-full p-0 m-0 focus:bg-transparent relative",
+          "before:content-[''] before:pt-[100%] before:block",
+          "after:absolute after:inset-0 after:rounded-sm after:transition-all after:duration-150",
+          isSelected
+            ? cn(
+                "after:bg-primary",
+                isHovered
+                  ? "after:brightness-110"
+                  : "hover:after:brightness-110"
+              )
+            : "after:bg-muted hover:after:bg-primary/50",
+          !isSelected && isHovered && "after:bg-primary/50",
+          isDirectlyHovered && "after:scale-110 after:z-10"
+        )}
+        onClick={() => {
+          handleResize(col, row)
+        }}
+        onMouseEnter={() => setHoveredSize({ col, row })}
+        onMouseLeave={() => setHoveredSize(null)}
+      />
+    )
+  })
 
   return (
     <>
@@ -184,10 +217,12 @@ export function ResizableCard({
             initial={false}
             className={cn(
               "w-full h-full min-w-[100px]",
-              colSpanClass[effectiveColSpan],
-              rowSpanClass[rowSpan],
               className
             )}
+            style={{
+              gridColumn: `span ${effectiveColSpan} / span ${effectiveColSpan}`,
+              gridRow: `span ${rowSpan} / span ${rowSpan}`
+            }}
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
@@ -205,52 +240,16 @@ export function ResizableCard({
               {colSpan !== effectiveColSpan &&
                 `(Limited to ${effectiveColSpan})`}
             </ContextMenuSubTrigger>
-            <ContextMenuSubContent className="w-[280px] p-2">
+            <ContextMenuSubContent className="w-auto p-2">
               <div className="flex flex-col gap-2">
-                <div className="grid grid-cols-6 gap-1">
-                  {Array.from({ length: maxCols * maxRows }).map((_, index) => {
-                    const row = Math.floor(index / maxCols) + 1
-                    const col = (index % maxCols) + 1
-                    
-                    // Skip rendering if beyond max dimensions
-                    if (row > maxRows || col > maxCols) return null
-
-                    const isSelected = col === colSpan && row === rowSpan
-                    const isHovered =
-                      hoveredSize &&
-                      col <= hoveredSize.col &&
-                      row <= hoveredSize.row
-                    const isDirectlyHovered =
-                      hoveredSize &&
-                      col === hoveredSize.col &&
-                      row === hoveredSize.row
-
-                    return (
-                      <ContextMenuItem
-                        key={index}
-                        className={cn(
-                          "w-full p-0 m-0 focus:bg-transparent relative",
-                          "before:content-[''] before:pt-[100%] before:block",
-                          "after:absolute after:inset-0 after:rounded-sm after:transition-all after:duration-150",
-                          isSelected
-                            ? cn(
-                                "after:bg-primary",
-                                isHovered
-                                  ? "after:brightness-110"
-                                  : "hover:after:brightness-110"
-                              )
-                            : "after:bg-muted hover:after:bg-primary/50",
-                          !isSelected && isHovered && "after:bg-primary/50",
-                          isDirectlyHovered && "after:scale-110 after:z-10"
-                        )}
-                        onClick={() => {
-                          handleResize(col, row)
-                        }}
-                        onMouseEnter={() => setHoveredSize({ col, row })}
-                        onMouseLeave={() => setHoveredSize(null)}
-                      />
-                    )
-                  })}
+                <div 
+                  className="grid auto-rows-[2rem] gap-1"
+                  style={{
+                    gridTemplateColumns: `repeat(${maxCols}, 2rem)`,
+                    width: 'fit-content'
+                  }}
+                >
+                  {gridCells}
                 </div>
                 <div className="mt-2 text-xs text-muted-foreground">
                   {hoveredSize
