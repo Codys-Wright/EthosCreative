@@ -78,14 +78,14 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
   addQuestion: (question) => set((state) => ({
     quiz: {
       ...state.quiz,
-      questions: [...state.quiz.questions, { ...question, id: Math.random().toString(36).slice(2) }]
+      questions: [...state.quiz.questions, { ...question, id: Math.random().toString(36).slice(2) } as Question]
     }
   })),
   updateQuestion: (id, updates) => set((state) => ({
     quiz: {
       ...state.quiz,
       questions: state.quiz.questions.map((q) => 
-        q.id === id ? { ...q, ...updates } : q
+        q.id === id ? { ...q, ...updates } as Question : q
       )
     }
   })),
