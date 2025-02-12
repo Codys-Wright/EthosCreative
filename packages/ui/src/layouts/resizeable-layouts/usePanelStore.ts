@@ -3,43 +3,25 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
-type PanelPosition = 'left' | 'middle' | 'right' | 'top' | 'bottom' | 'bottom-left' | 'bottom-middle' | 'bottom-right'
+type PanelPosition = 'left' | 'middle' | 'right'
 type PanelId = string
 
 interface PanelState {
   // Panel visibility and sizes
-  topVisible: boolean
   leftVisible: boolean
   rightVisible: boolean
-  bottomVisible: boolean
-  bottomLeftVisible: boolean
-  bottomMiddleVisible: boolean
-  bottomRightVisible: boolean
-  
-  topSize: number
   leftSize: number
   middleSize: number
   rightSize: number
-  bottomSize: number
-  bottomLeftSize: number
-  bottomMiddleSize: number
-  bottomRightSize: number
-
   activeIds: Record<PanelPosition, PanelId>
   isMobileLayout: boolean
   activeMobilePanel: PanelPosition
   isHydrated: boolean
 
   // Panel actions
-  setTopVisible: (visible: boolean) => void
   setLeftVisible: (visible: boolean) => void
   setRightVisible: (visible: boolean) => void
-  setBottomVisible: (visible: boolean) => void
-  setBottomLeftVisible: (visible: boolean) => void
-  setBottomMiddleVisible: (visible: boolean) => void
-  setBottomRightVisible: (visible: boolean) => void
-  
-  setPanelSizes: (sizes: Partial<Record<PanelPosition, number>>) => void
+  setPanelSizes: (left: number, middle: number, right: number) => void
   setActiveId: (position: PanelPosition, id: PanelId) => void
   setIsMobileLayout: (isMobile: boolean) => void
   setActiveMobilePanel: (panel: PanelPosition) => void
@@ -47,32 +29,15 @@ interface PanelState {
 }
 
 const defaultState = {
-  topVisible: true,
   leftVisible: true,
   rightVisible: true,
-  bottomVisible: true,
-  bottomLeftVisible: true,
-  bottomMiddleVisible: true,
-  bottomRightVisible: true,
-
-  topSize: 10,
   leftSize: 20,
   middleSize: 60,
   rightSize: 20,
-  bottomSize: 30,
-  bottomLeftSize: 30,
-  bottomMiddleSize: 30,
-  bottomRightSize: 30,
-
   activeIds: {
-    top: '',
     left: '',
     middle: '',
-    right: '',
-    bottom: '',
-    'bottom-left': '',
-    'bottom-middle': '',
-    'bottom-right': ''
+    right: ''
   },
   isMobileLayout: false,
   activeMobilePanel: 'middle' as PanelPosition,
@@ -96,10 +61,6 @@ const createPanelStore = (storeId: string) => {
         ...defaultState,
 
         // Actions
-        setTopVisible: (visible) => {
-          if (!get().isHydrated) return
-          set({ topVisible: visible })
-        },
         setLeftVisible: (visible) => {
           if (!get().isHydrated) return
           set({ leftVisible: visible })
@@ -108,54 +69,14 @@ const createPanelStore = (storeId: string) => {
           if (!get().isHydrated) return
           set({ rightVisible: visible })
         },
-        setBottomVisible: (visible) => {
-          if (!get().isHydrated) return
-          set({ bottomVisible: visible })
-        },
-        setBottomLeftVisible: (visible) => {
-          if (!get().isHydrated) return
-          set({ bottomLeftVisible: visible })
-        },
-        setBottomMiddleVisible: (visible) => {
-          if (!get().isHydrated) return
-          set({ bottomMiddleVisible: visible })
-        },
-        setBottomRightVisible: (visible) => {
-          if (!get().isHydrated) return
-          set({ bottomRightVisible: visible })
-        },
-        setPanelSizes: (sizes) => {
+        setPanelSizes: (left, middle, right) => {
           const state = get()
           if (!state.isHydrated) {
             console.log('Skipping panel size update - store not hydrated')
             return
           }
-          console.log('Setting panel sizes in store:', sizes)
-          
-          // Determine if this is a horizontal or vertical update based on the properties present
-          const isHorizontalUpdate = 'left' in sizes || 'middle' in sizes || 'right' in sizes
-          const isVerticalUpdate = 'top' in sizes || 'bottom' in sizes || 'bottom-left' in sizes || 'bottom-middle' in sizes || 'bottom-right' in sizes
-          
-          // Create new state object preserving existing sizes
-          const newState = {
-            ...state,
-            // Only update horizontal sizes if this is a horizontal update
-            ...(isHorizontalUpdate ? {
-              leftSize: sizes.left ?? state.leftSize,
-              middleSize: sizes.middle ?? state.middleSize,
-              rightSize: sizes.right ?? state.rightSize,
-            } : {}),
-            // Only update vertical sizes if this is a vertical update
-            ...(isVerticalUpdate ? {
-              topSize: sizes.top ?? state.topSize,
-              bottomSize: sizes.bottom ?? state.bottomSize,
-              bottomLeftSize: sizes['bottom-left'] ?? state.bottomLeftSize,
-              bottomMiddleSize: sizes['bottom-middle'] ?? state.bottomMiddleSize,
-              bottomRightSize: sizes['bottom-right'] ?? state.bottomRightSize,
-            } : {})
-          }
-          
-          set(newState)
+          console.log('Setting panel sizes in store:', { left, middle, right })
+          set({ leftSize: left, middleSize: middle, rightSize: right })
         },
         setActiveId: (position, id) => {
           if (!get().isHydrated) return
@@ -190,6 +111,7 @@ const createPanelStore = (storeId: string) => {
           return (state) => {
             if (!state) return
             console.log(`Rehydrated store ${storeId}:`, state)
+            // Set hydrated state in the next tick to avoid React state updates during render
             queueMicrotask(() => {
               state.setHydrated(true)
             })
