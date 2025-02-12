@@ -13,7 +13,7 @@ export default function LandingPageLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-background flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-background">
       <Navbar navItems={HeroData.navItems} />
       {children}
     </div>
