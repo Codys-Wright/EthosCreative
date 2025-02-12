@@ -6,28 +6,15 @@ import { usePanelStore } from './usePanelStore'
 import { TopBar } from './TopBar'
 import { LucideIcon } from 'lucide-react'
 import { cn } from '@repo/ui'
-
-type PanelPosition = 'left' | 'middle' | 'right' | 'top' | 'bottom' | 'bottom-left' | 'bottom-middle' | 'bottom-right'
-type PanelId = string
-
-interface PanelConfig {
-  id: PanelId
-  label: string
-  icon: LucideIcon
-  position: PanelPosition
-  shortcut?: {
-    key: string
-    ctrl?: boolean
-    shift?: boolean
-    alt?: boolean
-  }
-  defaultSize?: number
-  minSize?: number
-  maxSize?: number
-  resizable?: boolean
-  collapsible?: boolean
-  render: (props: { activeIds: Record<PanelPosition, PanelId> }) => React.ReactNode
-}
+import {
+  PanelConfig,
+  PanelPosition,
+  PanelId,
+  DEFAULT_SIZES,
+  DEFAULT_MIN_SIZES,
+  DEFAULT_MAX_SIZES,
+  PANEL_POSITIONS
+} from './types'
 
 interface ResizableLayoutProps {
   storeId: string
@@ -38,39 +25,6 @@ interface ResizableLayoutProps {
   onCourseClick?: () => void
   topBarToggleable?: boolean
 }
-
-export const DEFAULT_SIZES = {
-  top: 10,
-  left: 20,
-  middle: 60,
-  right: 20,
-  bottom: 30,
-  'bottom-left': 30,
-  'bottom-middle': 30,
-  'bottom-right': 30,
-} as const
-
-const DEFAULT_MIN_SIZES = {
-  top: 5,
-  left: 15,
-  middle: 30,
-  right: 15,
-  bottom: 15,
-  'bottom-left': 15,
-  'bottom-middle': 15,
-  'bottom-right': 15,
-} as const
-
-const DEFAULT_MAX_SIZES = {
-  top: 50,
-  left: 40,
-  middle: 80,
-  right: 40,
-  bottom: 50,
-  'bottom-left': 40,
-  'bottom-middle': 50,
-  'bottom-right': 40,
-} as const
 
 export default function ResizableLayout({
   storeId,
