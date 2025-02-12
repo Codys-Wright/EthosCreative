@@ -67,7 +67,7 @@ export const useQuizStore = create<QuizStore>((set, get) => ({
         content: 'Rate your agreement with this statement:',
         minLabel: 'Strongly Disagree',
         maxLabel: 'Strongly Agree',
-        min: 1,
+        min: 0,
         max: 10
       }
     ]

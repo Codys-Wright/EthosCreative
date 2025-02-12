@@ -53,19 +53,79 @@ const questions = [
   "I find inspiration in scientific concepts"
 ]
 
+const getTitleFromContent = (content: string) => {
+  // Map of content keywords to concise two-word titles
+  const titleMap: { [key: string]: string } = {
+    "structured, organized environment": "Structure",
+    "experimenting with new techniques": "Experimenting",
+    "inspiration in nature": "Nature",
+    "plan my projects": "Planning",
+    "multiple projects simultaneously": "Multitasking",
+    "working alone": "Solo",
+    "bold, vibrant colors": "Color",
+    "precision and technical excellence": "Precision",
+    "breaking traditional rules": "Tradition",
+    "abstract concepts": "Abstract",
+    "complete one project": "Focus",
+    "current trends": "Trends",
+    "digital tools": "Digital",
+    "traditional mediums": "Traditional",
+    "urban environments": "Urban",
+    "problem-solving aspects": "Problem",
+    "spontaneous creation": "Spontaneous",
+    "minimalist aesthetics": "Minimalist",
+    "text or typography": "Typography",
+    "historical art": "History",
+    "quiet, solitary environment": "Quiet",
+    "collaborative creative projects": "Collaboration",
+    "influenced by music": "Music",
+    "symmetry and balance": "Balance",
+    "unconventional materials": "Materials",
+    "personal experiences": "Personal",
+    "large scale": "Scale",
+    "detailed, intricate work": "Detail",
+    "monochromatic color": "Monochrome",
+    "social issues": "Social",
+    "limited color palette": "Palette",
+    "mixed media": "Mixed",
+    "cultural traditions": "Culture",
+    "commissioned projects": "Commission",
+    "series or collections": "Series",
+    "dreams and imagination": "Dreams",
+    "natural light": "Light",
+    "functional art": "Function",
+    "geometric patterns": "Geometry",
+    "inspiration in literature": "Literature",
+    "specific medium": "Medium",
+    "experimental techniques": "Experiment",
+    "emotional states": "Emotion",
+    "small-scale projects": "Small",
+    "narrative works": "Narrative",
+    "architectural forms": "Architecture",
+    "organic shapes": "Organic",
+    "interactive art": "Interactive",
+    "texture and tactile": "Texture",
+    "scientific concepts": "Science"
+  }
+
+  // Find the matching key in the titleMap
+  const matchingKey = Object.keys(titleMap).find(key => content.toLowerCase().includes(key.toLowerCase()))
+  return matchingKey ? titleMap[matchingKey] : "General Question"
+}
+
 export const defaultQuiz: Quiz = {
   title: "Artist Type Assessment",
   version: "1.0.0",
   questions: questions.map((content, index) => ({
     id: `q${index + 1}`,
     type: "rating",
-    title: `Question ${index + 1}`,
+    title: getTitleFromContent(content),
     content,
     points: 1,
     timeLimit: 30,
     minLabel: "Strongly Disagree",
     maxLabel: "Strongly Agree",
-    min: 1,
+    min: 0,
     max: 10
   }))
 } 

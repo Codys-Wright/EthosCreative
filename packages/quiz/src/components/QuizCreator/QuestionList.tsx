@@ -88,11 +88,14 @@ export function QuestionList() {
                   : "bg-muted hover:bg-accent hover:text-accent-foreground"
               )}
             >
-              <div className="flex justify-between items-center">
-                <span className="font-medium">{question.title}</span>
-                <span className="text-xs text-muted-foreground">{question.type}</span>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <span className="text-sm text-muted-foreground flex-shrink-0 w-6">{quiz.questions.indexOf(question) + 1}.</span>
+                  <span className="font-medium truncate block">{question.title}</span>
+                </div>
+                <span className="text-xs text-muted-foreground flex-shrink-0">{question.type}</span>
               </div>
-              <p className="text-sm text-muted-foreground mt-1 truncate">
+              <p className="text-sm text-muted-foreground mt-1 truncate pl-8">
                 {question.content}
               </p>
             </div>
