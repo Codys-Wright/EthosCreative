@@ -319,6 +319,9 @@ importers:
       '@repo/ui':
         specifier: workspace:*
         version: link:../ui
+      framer-motion:
+        specifier: ^12.3.1
+        version: 12.3.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       lucide-react:
         specifier: ^0.330.0
         version: 0.330.0(react@19.0.0)

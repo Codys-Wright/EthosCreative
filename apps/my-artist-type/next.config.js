@@ -8,6 +8,12 @@ import "./src/env.js";
 const config = {
   images: {
     domains: ["assets.aceternity.com"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "github.com",
+      },
+    ],
   },
 };
 

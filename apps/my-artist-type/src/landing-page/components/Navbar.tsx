@@ -46,12 +46,12 @@ const DesktopNav = () => {
       >
         <span>About</span>
       </Link>
-      <Link
+      {/* <Link
         className="whitespace-nowrap text-base text-foreground transition-colors hover:text-muted-foreground"
         href="/shop"
       >
         <span>Shop</span>
-      </Link>
+      </Link> */}
       <Link
         className="z-50 whitespace-nowrap text-base text-foreground transition-colors hover:text-muted-foreground"
         href="/contact"
@@ -99,13 +99,13 @@ const MobileNavToggle = () => {
             >
               <span>About</span>
             </Link>
-            <Link
+            {/* <Link
               href="/shop"
               className="text-foreground transition-colors hover:text-muted-foreground"
               onClick={() => setOpen(false)}
             >
               <span>Shop</span>
-            </Link>
+            </Link> */}
             <Link
               href="/contact"
               className="z-100 text-foreground transition-colors hover:text-muted-foreground"
@@ -144,8 +144,11 @@ const Logo = () => {
 
 const LoginButton = () => {
   return (
-    <button className="hidden rounded-lg bg-primary px-6 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90 lg:block">
+    <Link
+      href="/dashboard"
+      className="hidden rounded-lg bg-primary px-6 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90 lg:block"
+    >
       Login
-    </button>
+    </Link>
   );
 };

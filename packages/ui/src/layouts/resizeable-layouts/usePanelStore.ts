@@ -53,8 +53,6 @@ const createPanelStore = (storeId: string) => {
     return existingStore
   }
 
-  console.log(`Creating new panel store for ${storeId}`)
-
   const store = create<PanelState>()(
     persist(
       (set, get) => ({
@@ -71,16 +69,11 @@ const createPanelStore = (storeId: string) => {
         },
         setPanelSizes: (left, middle, right) => {
           const state = get()
-          if (!state.isHydrated) {
-            console.log('Skipping panel size update - store not hydrated')
-            return
-          }
-          console.log('Setting panel sizes in store:', { left, middle, right })
+          if (!state.isHydrated) return
           set({ leftSize: left, middleSize: middle, rightSize: right })
         },
         setActiveId: (position, id) => {
           if (!get().isHydrated) return
-          console.log(`Setting active ID for ${position} to ${id}`)
           const state = get()
           set({
             activeIds: {
@@ -98,7 +91,6 @@ const createPanelStore = (storeId: string) => {
           set({ activeMobilePanel: panel })
         },
         setHydrated: (hydrated) => {
-          console.log(`Setting hydration state to: ${hydrated}`)
           set({ isHydrated: hydrated })
         },
       }),
@@ -107,10 +99,8 @@ const createPanelStore = (storeId: string) => {
         storage: createJSONStorage(() => localStorage),
         skipHydration: true,
         onRehydrateStorage: () => {
-          console.log(`Starting rehydration for store ${storeId}`)
           return (state) => {
             if (!state) return
-            console.log(`Rehydrated store ${storeId}:`, state)
             // Set hydrated state in the next tick to avoid React state updates during render
             queueMicrotask(() => {
               state.setHydrated(true)

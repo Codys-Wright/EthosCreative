@@ -1,135 +1,119 @@
-import type { Metadata } from "next";
-import "@repo/ui/globals.css";
-import { AppSidebar, NavLinks } from "@repo/ui";
+import * as React from "react";
+import { AppSidebar } from "@repo/ui";
+import type { NavLinks } from "@repo/ui";
 import {
-  IconLayoutDashboard,
-  IconSettings,
-  IconUserBolt,
-  IconDashboard,
-  IconBook2,
   IconFolder,
+  IconBook2,
+  IconUserBolt,
   IconChartBar,
   IconMessages,
   IconTarget,
   IconCalendar,
+  IconSettings,
+  IconDashboard,
+  IconUsers,
+  IconPencil,
+  IconClipboardList,
+  IconQuestionMark,
+  IconBuilding,
+  IconUser,
 } from "@tabler/icons-react";
 
-export const metadata: Metadata = {
-  title: "My Artist Type",
-  description:
-    "My Artist Type with TypeScript, Tailwind CSS, NextAuth, Prisma, tRPC, and more.",
+interface LayoutProps {
+  children: React.ReactNode;
+}
+
+type User = {
+  name: string;
+  email: string;
+  image?: string;
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const navLinks: NavLinks = {
     top: [
       {
-        label: "Quick Actions",
-        links: [
-          {
-            label: "New Project",
-            href: "/dashboard/projects/new",
-            icon: <IconFolder />,
-          },
-          {
-            label: "Start Course",
-            href: "/dashboard/courses/start",
-            icon: <IconBook2 />,
-          },
-        ],
-      },
-      {
         label: "Overview",
         links: [
           {
             label: "Dashboard",
             href: "/dashboard",
-            icon: <IconLayoutDashboard />,
-          },
-          {
-            label: "Courses",
-            href: "/dashboard/courses",
-            icon: <IconBook2 />,
-          },
-          {
-            label: "Projects",
-            href: "/dashboard/projects",
-            icon: <IconFolder />,
+            icon: <IconChartBar />,
+            badge: {
+              content: "Not Implemented",
+              variant: "default",
+            },
           },
         ],
       },
       {
-        label: "Recent",
+        label: "Quiz",
         links: [
           {
-            label: "Last Course",
-            href: "/dashboard/courses/last",
-            icon: <IconBook2 />,
+            label: "Quiz Editor",
+            href: "/dashboard/quiz",
+            icon: <IconClipboardList />,
+            badge: {
+              content: "Editor",
+              variant: "default",
+            },
+          },
+        ],
+      },
+      {
+        label: "CRM",
+        links: [
+          {
+            label: "Company",
+            href: "/dashboard/crm/company",
+            icon: <IconBuilding />,
+            badge: {
+              content: "Not Implemented",
+              variant: "default",
+            },
           },
           {
-            label: "Last Project",
-            href: "/dashboard/projects/last",
-            icon: <IconFolder />,
+            label: "Front Page",
+            href: "/dashboard/crm/front-page",
+            icon: <IconBook2 />,
+            badge: {
+              content: "Not Implemented",
+              variant: "default",
+            },
+          },
+          {
+            label: "Artist Types",
+            href: "/dashboard/crm/artist-type",
+            icon: <IconUserBolt />,
+            badge: {
+              content: "Not Implemented",
+              variant: "default",
+            },
+          },
+        ],
+      },
+      {
+        label: "Manage",
+        links: [
+          {
+            label: "Users",
+            href: "/dashboard/manage/users",
+            icon: <IconUsers />,
+            badge: {
+              content: "Not Implemented",
+              variant: "default",
+            },
           },
         ],
       },
     ],
-    main: {
-      label: "Features",
-      links: [
-        {
-          label: "Profile",
-          href: "/dashboard/profile",
-          icon: <IconUserBolt />,
-        },
-        {
-          label: "Charts",
-          href: "/dashboard/charts",
-          icon: <IconChartBar />,
-          badge: {
-            content: "check this out",
-            variant: "info",
-          },
-        },
-        {
-          label: "Messages",
-          href: "/dashboard/chats",
-          icon: <IconMessages />,
-          muted: true,
-          badge: "admin",
-        },
-        {
-          label: "Goals",
-          href: "/dashboard/tracking",
-          icon: <IconTarget />,
-        },
-        {
-          label: "Schedule",
-          href: "/dashboard/schedule",
-          icon: <IconCalendar />,
-        },
-      ],
-    },
-    bottom: {
-      label: "Settings",
-      links: [
-        {
-          label: "Settings",
-          href: "/dashboard/settings",
-          icon: <IconSettings />,
-        },
-        {
-          label: "Admin",
-          href: "/dashboard/admin",
-          icon: <IconDashboard />,
-        },
-      ],
-    },
   };
 
   const mockUser = {
     name: "John Doe",
     email: "john@example.com",
+    image:
+      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='5'/%3E%3Cpath d='M20 21a8 8 0 0 0-16 0'/%3E%3C/svg%3E",
   };
 
   return (
