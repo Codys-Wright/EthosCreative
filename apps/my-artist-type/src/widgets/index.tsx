@@ -1,9 +1,9 @@
-import type { WidgetDefinition, WidgetSize } from "@repo/widgets";
+import type { WidgetDefinition, WidgetSize } from "@repo/ui";
 import {
   RecentCoursesWidget,
   NextConceptWidget,
   CourseProgressWidget,
-} from "@repo/widgets";
+} from "@repo/ui";
 import {
   LayoutDashboard,
   GraduationCap,
@@ -91,22 +91,22 @@ export const dashboardWidgets: Record<string, WidgetDefinition<WidgetProps>> = {
               gridTemplateRows: `repeat(${size.height}, 1fr)`,
             }}
           >
-            <div className="col-span-4 rounded-lg bg-muted/50 p-4">
+            <div className="bg-muted/50 col-span-4 rounded-lg p-4">
               <h3 className="mb-2 font-medium">Course Progress</h3>
               <div className="text-3xl font-bold">75%</div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 Overall completion
               </p>
             </div>
-            <div className="col-span-4 rounded-lg bg-muted/50 p-4">
+            <div className="bg-muted/50 col-span-4 rounded-lg p-4">
               <h3 className="mb-2 font-medium">Next Up</h3>
               <p className="text-lg">Color Theory Basics</p>
-              <p className="text-sm text-muted-foreground">25 min remaining</p>
+              <p className="text-muted-foreground text-sm">25 min remaining</p>
             </div>
-            <div className="col-span-4 rounded-lg bg-muted/50 p-4">
+            <div className="bg-muted/50 col-span-4 rounded-lg p-4">
               <h3 className="mb-2 font-medium">Recent Activity</h3>
               <p className="text-lg">Completed: Perspective Drawing</p>
-              <p className="text-sm text-muted-foreground">2 hours ago</p>
+              <p className="text-muted-foreground text-sm">2 hours ago</p>
             </div>
           </div>
         ),
@@ -115,7 +115,7 @@ export const dashboardWidgets: Record<string, WidgetDefinition<WidgetProps>> = {
     defaultView: ({ size, id }) => (
       <div className="p-4">
         <h3 className="font-medium">Dashboard Overview</h3>
-        <p className="text-sm text-muted-foreground">Resize for more details</p>
+        <p className="text-muted-foreground text-sm">Resize for more details</p>
       </div>
     ),
   },
@@ -156,16 +156,16 @@ export const dashboardWidgets: Record<string, WidgetDefinition<WidgetProps>> = {
           <div className="flex flex-col gap-2 p-4">
             <h3 className="font-semibold">Quick Actions</h3>
             <div className="grid grid-cols-2 gap-2">
-              <button className="rounded-lg bg-muted p-2 hover:bg-muted/80">
+              <button className="bg-muted hover:bg-muted/80 rounded-lg p-2">
                 New Course
               </button>
-              <button className="rounded-lg bg-muted p-2 hover:bg-muted/80">
+              <button className="bg-muted hover:bg-muted/80 rounded-lg p-2">
                 Messages
               </button>
-              <button className="rounded-lg bg-muted p-2 hover:bg-muted/80">
+              <button className="bg-muted hover:bg-muted/80 rounded-lg p-2">
                 Profile
               </button>
-              <button className="rounded-lg bg-muted p-2 hover:bg-muted/80">
+              <button className="bg-muted hover:bg-muted/80 rounded-lg p-2">
                 Settings
               </button>
             </div>
@@ -177,7 +177,7 @@ export const dashboardWidgets: Record<string, WidgetDefinition<WidgetProps>> = {
       <div className="p-4">
         <h3 className="font-semibold">Quick Actions</h3>
         <div className="mt-2 space-y-2">
-          <button className="w-full rounded-lg bg-muted p-2 hover:bg-muted/80">
+          <button className="bg-muted hover:bg-muted/80 w-full rounded-lg p-2">
             Menu
           </button>
         </div>

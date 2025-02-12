@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import "@repo/ui/globals.css";
 import { Navbar } from "../../landing-page/components/Navbar";
 import { HeroData } from "../../landing-page/data/HeroData";
 
@@ -14,7 +13,7 @@ export default function LandingPageLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="bg-background flex min-h-screen flex-col">
       <Navbar navItems={HeroData.navItems} />
       {children}
     </div>

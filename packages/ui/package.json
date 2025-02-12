@@ -75,7 +75,7 @@
       "types": "./src/index.ts",
       "default": "./src/index.ts"
     },
-    "./globals.css": "./src/styles/globals.css",
+    "./globals.css": "./src/shadCn/styles/globals.css",
     "./postcss.config": "./postcss.config.mjs",
     "./tailwind.config": "./tailwind.config.ts",
     "./lib/*": "./src/lib/*.ts",

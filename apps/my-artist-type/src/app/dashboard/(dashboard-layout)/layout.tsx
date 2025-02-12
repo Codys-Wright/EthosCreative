@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "@repo/ui/globals.css";
-import { AppSidebar, NavLinks } from "@repo/dashboard";
+import { AppSidebar, NavLinks } from "@repo/ui";
 import {
   IconLayoutDashboard,
   IconSettings,

@@ -4,7 +4,7 @@ import {
   WidgetProvider,
   useRegisterWidgets,
   WidgetExamplePage,
-} from "@repo/widgets";
+} from "@repo/ui";
 import { dashboardWidgets } from "@/widgets";
 
 function DashboardContent() {
