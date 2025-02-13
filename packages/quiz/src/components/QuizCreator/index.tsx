@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { ListChecks, Eye, Settings } from 'lucide-react'
-import { ResizableLayout, type Panel } from '@repo/ui'
+import { ResizableLayout, type ResizablePanel } from '@repo/ui'
 import { QuestionList } from './QuestionList'
 import { QuizPreview } from './QuizPreview'
 import { QuestionInspector } from './QuestionInspector'
@@ -11,7 +11,7 @@ import { useEffect } from 'react'
 import type { Quiz } from './store'
 import { defaultQuiz } from './defaultQuiz'
 
-const panels: Panel[] = [
+const panels: ResizablePanel[] = [
   {
     id: 'question-list',
     label: 'Questions',
