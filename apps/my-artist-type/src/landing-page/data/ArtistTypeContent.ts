@@ -15,7 +15,8 @@ type ArtistTypes = {
 export const artistTypeContent: ArtistTypes = {
   "the-visionary-artist": {
     title: "The Visionary Artist",
-    summary: "Innovators who push boundaries and create new artistic paradigms.",
+    summary:
+      "Innovators who push boundaries and create new artistic paradigms.",
     date: "2024-02-14",
     author: "Adam Watts",
     authorImage: "/adam-watts profile.jpg",
@@ -71,11 +72,12 @@ Common career paths for Visionary Artists include:
 2. Connect with technical experts who can help realize visions
 3. Document creative processes to better communicate ideas
 4. Build a support network that understands and supports experimentation
-    `
+    `,
   },
   "the-consummate-professional": {
     title: "The Consummate Professional",
-    summary: "Masters of technique who value precision, refinement, and professional excellence.",
+    summary:
+      "Masters of technique who value precision, refinement, and professional excellence.",
     date: "2024-02-14",
     author: "Adam Watts",
     authorImage: "/adam-watts profile.jpg",
@@ -139,11 +141,12 @@ Typical career paths include:
 2. Balance structure with creative freedom
 3. Develop signature style within professional framework
 4. Share expertise through mentoring others
-    `
+    `,
   },
   "the-analytical-artist": {
     title: "The Analytical Artist",
-    summary: "Deep thinkers who approach art with a systematic, research-driven mindset.",
+    summary:
+      "Deep thinkers who approach art with a systematic, research-driven mindset.",
     date: "2024-02-14",
     author: "Adam Watts",
     authorImage: "/adam-watts profile.jpg",
@@ -207,11 +210,12 @@ Common career paths include:
 2. Explore emotional expression
 3. Combine analysis with intuition
 4. Share insights through teaching
-    `
+    `,
   },
   "the-technical-artist": {
     title: "The Technical Artist",
-    summary: "Artists who excel at combining creativity with technical expertise and innovation.",
+    summary:
+      "Artists who excel at combining creativity with technical expertise and innovation.",
     date: "2024-02-14",
     author: "Adam Watts",
     authorImage: "/adam-watts profile.jpg",
@@ -275,11 +279,12 @@ Common roles include:
 2. Balance technical and creative aspects
 3. Develop communication skills
 4. Share knowledge through teaching
-    `
+    `,
   },
   "the-entertainer-artist": {
     title: "The Entertainer Artist",
-    summary: "Dynamic creators who thrive on audience engagement and performance.",
+    summary:
+      "Dynamic creators who thrive on audience engagement and performance.",
     date: "2024-02-14",
     author: "Adam Watts",
     authorImage: "/adam-watts profile.jpg",
@@ -343,11 +348,12 @@ Common paths include:
 2. Practice private creation
 3. Build technical foundations
 4. Balance entertainment with meaning
-    `
+    `,
   },
   "the-maverick-artist": {
     title: "The Maverick Artist",
-    summary: "Independent spirits who forge their own path and challenge conventions.",
+    summary:
+      "Independent spirits who forge their own path and challenge conventions.",
     date: "2024-02-14",
     author: "Adam Watts",
     authorImage: "/adam-watts profile.jpg",
@@ -411,11 +417,12 @@ Common paths include:
 2. Develop collaboration skills
 3. Balance innovation with accessibility
 4. Document unique processes
-    `
+    `,
   },
   "the-dreamer-artist": {
     title: "The Dreamer Artist",
-    summary: "Imaginative creators who draw inspiration from their rich inner world.",
+    summary:
+      "Imaginative creators who draw inspiration from their rich inner world.",
     date: "2024-02-14",
     author: "Adam Watts",
     authorImage: "/adam-watts profile.jpg",
@@ -479,11 +486,12 @@ Common paths include:
 2. Practice project completion
 3. Balance dreams with reality
 4. Structure creative time
-    `
+    `,
   },
   "the-feeling-artist": {
     title: "The Feeling Artist",
-    summary: "Emotionally attuned creators who channel deep feelings into their work.",
+    summary:
+      "Emotionally attuned creators who channel deep feelings into their work.",
     date: "2024-02-14",
     author: "Adam Watts",
     authorImage: "/adam-watts profile.jpg",
@@ -547,11 +555,12 @@ Common paths include:
 2. Set emotional boundaries
 3. Balance feeling with structure
 4. Practice self-care
-    `
+    `,
   },
   "the-tortured-artist": {
     title: "The Tortured Artist",
-    summary: "Deep, introspective creators who transform struggle into profound art.",
+    summary:
+      "Deep, introspective creators who transform struggle into profound art.",
     date: "2024-02-14",
     author: "Adam Watts",
     authorImage: "/adam-watts profile.jpg",
@@ -615,11 +624,12 @@ Common paths include:
 2. Build support systems
 3. Balance expression with wellbeing
 4. Create healthy boundaries
-    `
+    `,
   },
-  "the-solitary-artist": {
-    title: "The Solitary Artist",
-    summary: "Independent creators who thrive in solitude and self-directed work.",
+  "the-solo-artist": {
+    title: "The Solo Artist",
+    summary:
+      "Independent creators who thrive in solitude and self-directed work.",
     date: "2024-02-14",
     author: "Adam Watts",
     authorImage: "/adam-watts profile.jpg",
@@ -627,7 +637,7 @@ Common paths include:
     content: `
 ## Overview
 
-The Solitary Artist thrives in independent creation and self-directed work. They excel at developing deep focus and personal artistic vision through solitary practice.
+The Solo Artist thrives in independent creation and self-directed work. They excel at developing deep focus and personal artistic vision through Solo practice.
 
 ### Key Characteristics
 
@@ -655,7 +665,7 @@ Areas for development:
 ## Creative Process
 
 Their process includes:
-- Solitary practice
+- Solo practice
 - Deep concentration
 - Personal exploration
 - Independent decision-making
@@ -683,6 +693,6 @@ Common paths include:
 2. Build professional networks
 3. Create sharing practices
 4. Balance solitude with connection
-    `
-  }
-}; 
+    `,
+  },
+};

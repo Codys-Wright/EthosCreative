@@ -18,7 +18,8 @@ import {
   DialogTitle,
   cn,
   Input,
-  Label
+  Label,
+  Switch
 } from '@repo/ui'
 import { ChevronLeft, ChevronRight, Clock } from 'lucide-react'
 import { useQuizTakerStore } from './store'
@@ -53,7 +54,8 @@ export function QuizTaker({ quiz, analysisEngine, onComplete }: QuizTakerProps) 
     previousQuestion,
     completeQuiz,
     canAdvanceToIndex,
-    fillWithDefaultResponses
+    fillWithDefaultResponses,
+    fillWithRandomResponses
   } = useQuizTakerStore()
 
   const [api, setApi] = React.useState<CarouselApi>()
@@ -362,6 +364,83 @@ export function QuizTaker({ quiz, analysisEngine, onComplete }: QuizTakerProps) 
                 <CardTitle className="text-lg">Admin Analytics</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Scoring Configuration */}
+                <div className="space-y-4 border-b pb-4">
+                  <h3 className="font-medium">Scoring Configuration</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Primary Points</Label>
+                      <Input
+                        type="number"
+                        value={(engine as ArtistTypeAnalysisEngine).getScoringConfig().PRIMARY_IDEAL_POINTS}
+                        onChange={(e) => {
+                          (engine as ArtistTypeAnalysisEngine).updateScoringConfig({
+                            PRIMARY_IDEAL_POINTS: Number(e.target.value)
+                          })
+                          // Force a re-render to update the points display
+                          setResponse(currentQuestion.id, currentResponse || 0)
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Secondary Points</Label>
+                      <Input
+                        type="number"
+                        value={(engine as ArtistTypeAnalysisEngine).getScoringConfig().SECONDARY_IDEAL_POINTS}
+                        onChange={(e) => {
+                          (engine as ArtistTypeAnalysisEngine).updateScoringConfig({
+                            SECONDARY_IDEAL_POINTS: Number(e.target.value)
+                          })
+                          setResponse(currentQuestion.id, currentResponse || 0)
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Point Falloff</Label>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        value={(engine as ArtistTypeAnalysisEngine).getScoringConfig().POINT_FALLOFF}
+                        onChange={(e) => {
+                          (engine as ArtistTypeAnalysisEngine).updateScoringConfig({
+                            POINT_FALLOFF: Number(e.target.value)
+                          })
+                          setResponse(currentQuestion.id, currentResponse || 0)
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Minimum Points</Label>
+                      <div className="flex items-center gap-4">
+                        <Input
+                          type="number"
+                          value={(engine as ArtistTypeAnalysisEngine).getScoringConfig().MIN_POINTS ?? 0}
+                          disabled={(engine as ArtistTypeAnalysisEngine).getScoringConfig().MIN_POINTS === null}
+                          onChange={(e) => {
+                            (engine as ArtistTypeAnalysisEngine).updateScoringConfig({
+                              MIN_POINTS: Number(e.target.value)
+                            })
+                            setResponse(currentQuestion.id, currentResponse || 0)
+                          }}
+                        />
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={(engine as ArtistTypeAnalysisEngine).getScoringConfig().MIN_POINTS !== null}
+                            onCheckedChange={(checked) => {
+                              (engine as ArtistTypeAnalysisEngine).updateScoringConfig({
+                                MIN_POINTS: checked ? 0 : null
+                              })
+                              setResponse(currentQuestion.id, currentResponse || 0)
+                            }}
+                          />
+                          <Label>Enable</Label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Existing Analytics Content */}
                 <div className="grid grid-cols-3 gap-4">
                   {/* Quiz Time */}
                   <div className="space-y-1">
@@ -407,6 +486,12 @@ export function QuizTaker({ quiz, analysisEngine, onComplete }: QuizTakerProps) 
                     onClick={() => fillWithDefaultResponses(defaultResponse)}
                   >
                     Fill All
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={fillWithRandomResponses}
+                  >
+                    Fill Random
                   </Button>
                 </div>
               </CardContent>

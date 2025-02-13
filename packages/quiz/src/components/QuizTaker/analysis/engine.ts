@@ -1,41 +1,31 @@
 import type { AnalysisEngine, IdealAnswer, QuizAnalysisResult, ArtistType } from './types'
 import type { QuizResponse } from '../store'
 
+// Scoring Configuration
+export const SCORING_CONFIG = {
+  PRIMARY_IDEAL_POINTS: 10,    // Maximum points for exact match on primary questions
+  SECONDARY_IDEAL_POINTS: 5,   // Maximum points for exact match on secondary questions
+  POINT_FALLOFF: 1,           // Points deducted per step away from ideal value
+  MIN_POINTS: -4              // Minimum points possible for any answer
+}
+
 export function calculateDistancePoints(value: number, idealAnswer: IdealAnswer): number {
-  // If the value matches any of the ideal values, return full points
+  // If the value matches any of the ideal values exactly, return full points based on primary/secondary
   if (idealAnswer.values.includes(value)) {
-    return idealAnswer.primary ? 10 : 5
+    return idealAnswer.primary ? SCORING_CONFIG.PRIMARY_IDEAL_POINTS : SCORING_CONFIG.SECONDARY_IDEAL_POINTS
   }
 
-  // Find the closest ideal value
+  // For non-exact matches, always start from SECONDARY_IDEAL_POINTS regardless of primary/secondary
   const closestIdeal = idealAnswer.values.reduce((prev, curr) => 
     Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
   )
 
-  // Calculate distance and points
+  // Calculate distance and points, always starting from SECONDARY_IDEAL_POINTS
   const distance = Math.abs(closestIdeal - value)
-  
-  // For primary answers (max 10 points)
-  if (idealAnswer.primary) {
-    if (distance === 1) return 4
-    if (distance === 2) return 3
-    if (distance === 3) return 2
-    if (distance === 4) return 1
-    if (distance === 5) return -1
-    if (distance === 6) return -2
-    if (distance === 7) return -3
-    return -4
-  }
-  
-  // For secondary answers (max 5 points)
-  if (distance === 1) return 3
-  if (distance === 2) return 2
-  if (distance === 3) return 1
-  if (distance === 4) return 0
-  if (distance === 5) return -1
-  if (distance === 6) return -2
-  if (distance === 7) return -3
-  return -4
+  const points = SCORING_CONFIG.SECONDARY_IDEAL_POINTS - (distance * SCORING_CONFIG.POINT_FALLOFF)
+
+  // Return the calculated points, but not less than MIN_POINTS
+  return Math.max(SCORING_CONFIG.MIN_POINTS, points)
 }
 
 export class DefaultAnalysisEngine implements AnalysisEngine {

@@ -1,11 +1,11 @@
 import type { AnalysisEngine, QuestionAnalysis, IdealAnswer, ArtistType, QuizAnalysisResult } from './types'
 import { artistTypeIdealAnswers, getIdealAnswer } from './artistTypeData'
 
-const specialCases = {
-  lowValueQuestions: ['42', '43'],
-  feelerLowQuestions: ['3', '12'],
-  entertainerLowQuestions: ['6', '21'],
-  maverickLowQuestions: ['4', '8', '20']
+  export const SCORING_CONFIG = {
+  PRIMARY_IDEAL_POINTS: 10,
+  SECONDARY_IDEAL_POINTS: 3,
+  POINT_FALLOFF: 0.3,
+  MIN_POINTS: 0 as number | null
 }
 
 export class ArtistTypeAnalysisEngine implements AnalysisEngine {
@@ -17,46 +17,31 @@ export class ArtistTypeAnalysisEngine implements AnalysisEngine {
     this.questionAnalysis = this.generateQuestionAnalysis(questionIds)
   }
 
+  updateScoringConfig(config: Partial<typeof SCORING_CONFIG>) {
+    Object.assign(SCORING_CONFIG, config)
+  }
+
+  getScoringConfig() {
+    return { ...SCORING_CONFIG }
+  }
+
   calculatePoints(value: number, idealAnswer: IdealAnswer): number {
-    // Check if value is within ideal range
+    // Check if value is within ideal range (exact match)
     if (idealAnswer.values.includes(value)) {
-      const points = idealAnswer.primary ? 10 : 5
-      console.log(`Exact match! Value: ${value}, Ideal values: ${idealAnswer.values}, Primary: ${idealAnswer.primary}, Points awarded: ${points}`)
-      return points
+      return idealAnswer.primary ? SCORING_CONFIG.PRIMARY_IDEAL_POINTS : SCORING_CONFIG.SECONDARY_IDEAL_POINTS
     }
 
-    // Find closest ideal value
+    // Find closest ideal value for this artist type's ideal answers
     const closestIdeal = idealAnswer.values.reduce((prev, curr) => 
       Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
     )
     const distance = Math.abs(value - closestIdeal)
 
-    // For primary answers (max 10 points)
-    if (idealAnswer.primary) {
-      let points = -4 // Base negative points for large distances
-      if (distance === 1) points = 8
-      if (distance === 2) points = 6
-      if (distance === 3) points = 4
-      if (distance === 4) points = 2
-      if (distance === 5) points = 0
-      if (distance === 6) points = -1
-      if (distance === 7) points = -2
-      if (distance >= 8) points = -4
-      console.log(`Primary answer - Value: ${value}, Closest ideal: ${closestIdeal}, Distance: ${distance}, Points awarded: ${points}`)
-      return points
-    }
+    // Calculate points based on distance from this artist type's ideal value
+    const points = SCORING_CONFIG.SECONDARY_IDEAL_POINTS - (SCORING_CONFIG.POINT_FALLOFF * distance)
     
-    // For secondary answers (max 5 points)
-    let points = -2 // Base negative points for large distances
-    if (distance === 1) points = 4
-    if (distance === 2) points = 3
-    if (distance === 3) points = 2
-    if (distance === 4) points = 1
-    if (distance === 5) points = 0
-    if (distance === 6) points = -1
-    if (distance >= 7) points = -2
-    console.log(`Secondary answer - Value: ${value}, Closest ideal: ${closestIdeal}, Distance: ${distance}, Points awarded: ${points}`)
-    return points
+    // Only apply minimum points if MIN_POINTS is not null
+    return SCORING_CONFIG.MIN_POINTS !== null ? Math.max(points, SCORING_CONFIG.MIN_POINTS) : points
   }
 
   getCurrentPoints(responses: { questionId: string; response: number | null }[]): Record<ArtistType, number> {
@@ -150,18 +135,5 @@ export class ArtistTypeAnalysisEngine implements AnalysisEngine {
     })
     console.log('Generated question analysis:', analysis)
     return analysis
-  }
-
-  private getFeelerArtistValues(questionId: string, primaryQuestions: Record<ArtistType, string[]>): number[] {
-    // Special cases for Feeler Artist
-    if (specialCases.feelerLowQuestions.includes(questionId)) {
-      return primaryQuestions['The Feeler Artist'].includes(questionId) 
-        ? [0, 1, 2, 3] // Primary questions with low values
-        : [7, 8]       // Secondary questions with normal values
-    }
-    
-    return primaryQuestions['The Feeler Artist'].includes(questionId)
-      ? [9, 10] // Normal primary questions
-      : [7, 8]  // Normal secondary questions
   }
 } 

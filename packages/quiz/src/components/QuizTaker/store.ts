@@ -35,6 +35,7 @@ interface QuizTakerState {
   resetQuiz: () => void
   canAdvanceToIndex: (targetIndex: number) => boolean
   fillWithDefaultResponses: (defaultValue: number) => void
+  fillWithRandomResponses: () => void
 }
 
 export const useQuizTakerStore = create<QuizTakerState>((set, get) => ({
@@ -252,6 +253,18 @@ export const useQuizTakerStore = create<QuizTakerState>((set, get) => ({
     const responses = quiz.questions.map(q => ({
       questionId: q.id,
       response: defaultValue
+    }))
+
+    set({ responses })
+  },
+
+  fillWithRandomResponses: () => {
+    const { quiz } = get()
+    if (!quiz) return
+
+    const responses = quiz.questions.map(q => ({
+      questionId: q.id,
+      response: Math.floor(Math.random() * 11) // Random number between 0-10
     }))
 
     set({ responses })
