@@ -44,10 +44,11 @@ const defaultState = {
   isHydrated: false,
 }
 
-// Create store instances lazily and memoize them
-const stores = new Map<string, ReturnType<typeof createPanelStore>>()
+type PanelStore = ReturnType<typeof create<PanelState>> extends (config: any) => infer R ? R : never
 
-const createPanelStore = (storeId: string) => {
+const stores = new Map<string, PanelStore>()
+
+const createPanelStore = (storeId: string): PanelStore => {
   const existingStore = stores.get(storeId)
   if (existingStore) {
     return existingStore
