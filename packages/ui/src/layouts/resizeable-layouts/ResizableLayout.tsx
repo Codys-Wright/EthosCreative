@@ -10,7 +10,7 @@ import { cn } from '@repo/ui'
 type PanelPosition = 'left' | 'middle' | 'right'
 type PanelId = string
 
-interface PanelConfig {
+interface ResizablePanel {
   id: PanelId
   label: string
   icon: LucideIcon
@@ -28,11 +28,11 @@ interface PanelConfig {
 
 interface ResizableLayoutProps {
   storeId: string
-  panels?: PanelConfig[]
-  defaultActiveIds?: Partial<Record<PanelPosition, PanelId>>
+  panels: ResizablePanel[]
   courseTitle?: string
   courseSubtitle?: string
   onCourseClick?: () => void
+  defaultActiveIds?: Record<PanelPosition, PanelId>
 }
 
 const DEFAULT_SIZES = {
@@ -49,15 +49,55 @@ const DEFAULT_MIN_SIZES = {
 
 export default function ResizableLayout({
   storeId,
-  panels = [],
-  defaultActiveIds,
+  panels,
   courseTitle,
   courseSubtitle,
-  onCourseClick
+  onCourseClick,
+  defaultActiveIds
 }: ResizableLayoutProps) {
+  const store = usePanelStore(storeId)
+  const {
+    leftVisible,
+    rightVisible,
+    leftSize,
+    middleSize,
+    rightSize,
+    activeIds,
+    isMobileLayout,
+    activeMobilePanel,
+    setLeftVisible,
+    setRightVisible,
+    setPanelSizes,
+    setActiveId,
+    setIsMobileLayout,
+    setActiveMobilePanel,
+    initializeActiveIds
+  } = store()
+
+  // Initialize active IDs with defaults on mount
+  useEffect(() => {
+    const defaultIds = defaultActiveIds ?? panels.reduce((acc, panel) => ({
+      ...acc,
+      [panel.position]: panel.defaultActive ? panel.id : ''
+    }), {} as Record<PanelPosition, PanelId>)
+
+    console.log(`[${storeId}] Initializing with default IDs:`, defaultIds)
+    initializeActiveIds(panels.map(panel => ({
+      id: panel.id,
+      position: panel.position
+    })))
+
+    // Set default active IDs
+    Object.entries(defaultIds).forEach(([position, id]) => {
+      if (id) {
+        setActiveId(position as PanelPosition, id)
+      }
+    })
+  }, [storeId, panels, defaultActiveIds, initializeActiveIds, setActiveId])
+
   // Group panels by position
   const panelsByPosition = React.useMemo(() => {
-    const grouped = new Map<PanelPosition, PanelConfig[]>()
+    const grouped = new Map<PanelPosition, ResizablePanel[]>()
     if (!panels) return grouped
 
     panels.forEach(panel => {
@@ -99,39 +139,11 @@ export default function ResizableLayout({
     })
   }, [panels, panelsByPosition])
 
-  const store = usePanelStore(storeId)
-  const { 
-    leftVisible, 
-    rightVisible, 
-    leftSize, 
-    middleSize, 
-    rightSize, 
-    activeIds,
-    isMobileLayout,
-    activeMobilePanel,
-    isHydrated,
-    setLeftVisible, 
-    setRightVisible, 
-    setPanelSizes,
-    setActiveId,
-    setIsMobileLayout,
-    setActiveMobilePanel
-  } = store()
-
   const panelRefs = {
     left: useRef<ImperativePanelHandle>(null),
     middle: useRef<ImperativePanelHandle>(null),
     right: useRef<ImperativePanelHandle>(null),
   }
-
-  // Initialize store with default active IDs
-  useEffect(() => {
-    if (defaultActiveIds && typeof window !== 'undefined') {
-      Object.entries(defaultActiveIds).forEach(([position, id]) => {
-        setActiveId(position as PanelPosition, id)
-      })
-    }
-  }, [defaultActiveIds, setActiveId])
 
   // Handle keyboard shortcuts
   useEffect(() => {
@@ -158,16 +170,9 @@ export default function ResizableLayout({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [panels, setActiveId])
 
-  // Initialize store
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      store.persist.rehydrate()
-    }
-  }, [store])
-
   // Handle initial panel sizes
   useEffect(() => {
-    if (!isMobileLayout && isHydrated) {
+    if (!isMobileLayout && panels.length > 0) {
       const sizes = {
         left: leftSize,
         middle: middleSize,
@@ -182,7 +187,7 @@ export default function ResizableLayout({
         }
       })
     }
-  }, [isMobileLayout, leftSize, middleSize, rightSize, isHydrated])
+  }, [isMobileLayout, leftSize, middleSize, rightSize, panels])
 
   // Handle window resize
   useEffect(() => {
@@ -276,7 +281,7 @@ export default function ResizableLayout({
   }
 
   const handleResize = (sizes: number[]) => {
-    if (!isMobileLayout && sizes.length === 3 && isHydrated) {
+    if (!isMobileLayout && sizes.length === 3) {
       const [left, middle, right] = sizes
       const PANEL_CLOSED_THRESHOLD = 1
 
@@ -340,7 +345,7 @@ export default function ResizableLayout({
             <Panel
               id="left"
               ref={panelRefs.left}
-              defaultSize={isHydrated ? (leftVisible ? leftSize : 0) : DEFAULT_SIZES.left}
+              defaultSize={leftSize}
               collapsible
               minSize={DEFAULT_MIN_SIZES.left}
               style={{ visibility: leftVisible ? 'visible' : 'hidden' }}
@@ -357,7 +362,7 @@ export default function ResizableLayout({
             <Panel 
               id="middle" 
               ref={panelRefs.middle}
-              defaultSize={isHydrated ? middleSize : DEFAULT_SIZES.middle}
+              defaultSize={middleSize}
               minSize={DEFAULT_MIN_SIZES.middle}
               className="overflow-hidden"
             >
@@ -375,7 +380,7 @@ export default function ResizableLayout({
             <Panel
               id="right"
               ref={panelRefs.right}
-              defaultSize={isHydrated ? (rightVisible ? rightSize : 0) : DEFAULT_SIZES.right}
+              defaultSize={rightSize}
               collapsible
               minSize={DEFAULT_MIN_SIZES.right}
               style={{ visibility: rightVisible ? 'visible' : 'hidden' }}

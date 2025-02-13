@@ -46,7 +46,10 @@ export function QuizPreview() {
       const currentIndex = api.selectedScrollSnap()
       setCurrent(currentIndex)
       // Update the currentQuestionId when carousel changes
-      setCurrentQuestionId(quiz.questions[currentIndex].id)
+      const question = quiz.questions[currentIndex]
+      if (question) {
+        setCurrentQuestionId(question.id)
+      }
     })
   }, [api, setCurrentQuestionId, quiz.questions])
 

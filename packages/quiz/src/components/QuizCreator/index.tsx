@@ -41,6 +41,12 @@ const panels: Panel[] = [
   }
 ]
 
+const defaultActiveIds = {
+  left: 'question-list',
+  middle: 'quiz-preview',
+  right: 'question-inspector'
+}
+
 interface QuizCreatorProps {
   initialQuiz?: Quiz
 }
@@ -58,6 +64,7 @@ export function QuizCreator({ initialQuiz = defaultQuiz }: QuizCreatorProps) {
     <ResizableLayout
       storeId="quiz-creator"
       panels={panels}
+      defaultActiveIds={defaultActiveIds}
       courseTitle={quiz.title}
       courseSubtitle={`Version ${quiz.version}`}
       onCourseClick={() => console.log('Edit quiz title')}
