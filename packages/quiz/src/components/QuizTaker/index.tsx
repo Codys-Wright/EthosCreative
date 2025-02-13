@@ -28,6 +28,7 @@ import type { CarouselApi } from '@repo/ui'
 import type { AnalysisEngine, QuizAnalysisResult, ArtistType } from './analysis/types'
 import { ArtistTypeAnalysisEngine } from './analysis/artistTypeEngine'
 import { DefaultAnalysisEngine } from './analysis/engine'
+import { debounce } from 'lodash'
 
 interface QuizTakerProps {
   quiz: Quiz
@@ -65,6 +66,64 @@ export function QuizTaker({ quiz, analysisEngine, onComplete }: QuizTakerProps) 
   const [engine] = React.useState(() => 
     analysisEngine || new ArtistTypeAnalysisEngine(quiz.questions.map(q => q.id))
   )
+
+  // Add state for input values
+  const [inputValues, setInputValues] = React.useState({
+    PRIMARY_IDEAL_POINTS: String((engine as ArtistTypeAnalysisEngine).getScoringConfig().PRIMARY_IDEAL_POINTS),
+    SECONDARY_IDEAL_POINTS: String((engine as ArtistTypeAnalysisEngine).getScoringConfig().SECONDARY_IDEAL_POINTS),
+    POINT_FALLOFF: String((engine as ArtistTypeAnalysisEngine).getScoringConfig().POINT_FALLOFF),
+    MIN_POINTS: String((engine as ArtistTypeAnalysisEngine).getScoringConfig().MIN_POINTS ?? 0)
+  })
+
+  // Add debounced update function
+  const updateAllResponses = React.useCallback(() => {
+    responses.forEach(response => {
+      if (response.response !== null) {
+        setResponse(response.questionId, response.response)
+      }
+    })
+  }, [responses, setResponse])
+
+  const debouncedUpdate = React.useMemo(
+    () => debounce(updateAllResponses, 300),
+    [updateAllResponses]
+  )
+
+  // Cleanup debounce on unmount
+  React.useEffect(() => {
+    return () => {
+      debouncedUpdate.cancel()
+    }
+  }, [debouncedUpdate])
+
+  const handleScoringConfigChange = React.useCallback((key: keyof typeof SCORING_CONFIG, value: string | null) => {
+    if (value === null) {
+      (engine as ArtistTypeAnalysisEngine).updateScoringConfig({
+        [key]: null
+      })
+      setInputValues(prev => ({
+        ...prev,
+        [key]: '0'
+      }))
+      debouncedUpdate()
+      return
+    }
+
+    const numValue = Number(value)
+    if (isNaN(numValue)) {
+      // Reset to current value if invalid
+      setInputValues(prev => ({
+        ...prev,
+        [key]: String((engine as ArtistTypeAnalysisEngine).getScoringConfig()[key] ?? 0)
+      }))
+      return
+    }
+
+    (engine as ArtistTypeAnalysisEngine).updateScoringConfig({
+      [key]: numValue
+    })
+    debouncedUpdate()
+  }, [engine, debouncedUpdate])
 
   const currentQuestion = quiz.questions[currentQuestionIndex]
   const progress = ((currentQuestionIndex + 1) / quiz.questions.length) * 100
@@ -371,66 +430,45 @@ export function QuizTaker({ quiz, analysisEngine, onComplete }: QuizTakerProps) 
                     <div className="space-y-2">
                       <Label>Primary Points</Label>
                       <Input
-                        type="number"
-                        value={(engine as ArtistTypeAnalysisEngine).getScoringConfig().PRIMARY_IDEAL_POINTS}
-                        onChange={(e) => {
-                          (engine as ArtistTypeAnalysisEngine).updateScoringConfig({
-                            PRIMARY_IDEAL_POINTS: Number(e.target.value)
-                          })
-                          // Force a re-render to update the points display
-                          setResponse(currentQuestion.id, currentResponse || 0)
-                        }}
+                        type="text"
+                        value={inputValues.PRIMARY_IDEAL_POINTS}
+                        onChange={(e) => setInputValues(prev => ({ ...prev, PRIMARY_IDEAL_POINTS: e.target.value }))}
+                        onBlur={(e) => handleScoringConfigChange('PRIMARY_IDEAL_POINTS', e.target.value)}
                       />
                     </div>
                     <div className="space-y-2">
                       <Label>Secondary Points</Label>
                       <Input
-                        type="number"
-                        value={(engine as ArtistTypeAnalysisEngine).getScoringConfig().SECONDARY_IDEAL_POINTS}
-                        onChange={(e) => {
-                          (engine as ArtistTypeAnalysisEngine).updateScoringConfig({
-                            SECONDARY_IDEAL_POINTS: Number(e.target.value)
-                          })
-                          setResponse(currentQuestion.id, currentResponse || 0)
-                        }}
+                        type="text"
+                        value={inputValues.SECONDARY_IDEAL_POINTS}
+                        onChange={(e) => setInputValues(prev => ({ ...prev, SECONDARY_IDEAL_POINTS: e.target.value }))}
+                        onBlur={(e) => handleScoringConfigChange('SECONDARY_IDEAL_POINTS', e.target.value)}
                       />
                     </div>
                     <div className="space-y-2">
                       <Label>Point Falloff</Label>
                       <Input
-                        type="number"
-                        step="0.1"
-                        value={(engine as ArtistTypeAnalysisEngine).getScoringConfig().POINT_FALLOFF}
-                        onChange={(e) => {
-                          (engine as ArtistTypeAnalysisEngine).updateScoringConfig({
-                            POINT_FALLOFF: Number(e.target.value)
-                          })
-                          setResponse(currentQuestion.id, currentResponse || 0)
-                        }}
+                        type="text"
+                        value={inputValues.POINT_FALLOFF}
+                        onChange={(e) => setInputValues(prev => ({ ...prev, POINT_FALLOFF: e.target.value }))}
+                        onBlur={(e) => handleScoringConfigChange('POINT_FALLOFF', e.target.value)}
                       />
                     </div>
                     <div className="space-y-2">
                       <Label>Minimum Points</Label>
                       <div className="flex items-center gap-4">
                         <Input
-                          type="number"
-                          value={(engine as ArtistTypeAnalysisEngine).getScoringConfig().MIN_POINTS ?? 0}
+                          type="text"
+                          value={inputValues.MIN_POINTS}
                           disabled={(engine as ArtistTypeAnalysisEngine).getScoringConfig().MIN_POINTS === null}
-                          onChange={(e) => {
-                            (engine as ArtistTypeAnalysisEngine).updateScoringConfig({
-                              MIN_POINTS: Number(e.target.value)
-                            })
-                            setResponse(currentQuestion.id, currentResponse || 0)
-                          }}
+                          onChange={(e) => setInputValues(prev => ({ ...prev, MIN_POINTS: e.target.value }))}
+                          onBlur={(e) => handleScoringConfigChange('MIN_POINTS', e.target.value)}
                         />
                         <div className="flex items-center gap-2">
                           <Switch
                             checked={(engine as ArtistTypeAnalysisEngine).getScoringConfig().MIN_POINTS !== null}
                             onCheckedChange={(checked) => {
-                              (engine as ArtistTypeAnalysisEngine).updateScoringConfig({
-                                MIN_POINTS: checked ? 0 : null
-                              })
-                              setResponse(currentQuestion.id, currentResponse || 0)
+                              handleScoringConfigChange('MIN_POINTS', checked ? '0' : null)
                             }}
                           />
                           <Label>Enable</Label>

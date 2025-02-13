@@ -152,7 +152,7 @@ const LoginButton = () => {
       href="/dashboard"
       className="hidden rounded-lg bg-primary px-6 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90 lg:block"
     >
-      Login
+      My Results
     </Link>
   );
 };

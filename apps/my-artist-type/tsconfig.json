@@ -32,20 +32,19 @@
     ],
     "incremental": true,
     /* Path Aliases */
-    "baseUrl": "../my-artist-type",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["../my-artist-type/src/*"]
+      "@/*": ["src/*"]
     }
   },
   "include": [
-    "../my-artist-type/**/*.cjs",
-    "../my-artist-type/**/*.js",
-    "../my-artist-type/**/*.ts",
-    "../my-artist-type/**/*.tsx",
-    "../my-artist-type/.eslintrc.cjs",
-    "../my-artist-type/.next/types/**/*.ts",
-    "../my-artist-type/next-env.d.ts",
-    ".next/types/**/*.ts"
+    "**/*.cjs",
+    "**/*.js",
+    "**/*.ts",
+    "**/*.tsx",
+    ".eslintrc.cjs",
+    ".next/types/**/*.ts",
+    "next-env.d.ts"
   ],
-  "exclude": ["../my-artist-type/node_modules"]
+  "exclude": ["node_modules"]
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Navbar } from "../../landing-page/components/Navbar";
 import { HeroData } from "../../landing-page/data/HeroData";
+import { Footer } from "../../landing-page/components/Footer";
 
 export const metadata: Metadata = {
   title: "My Artist Type",
@@ -16,6 +17,7 @@ export default function LandingPageLayout({
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar navItems={HeroData.navItems} />
       {children}
+      <Footer />
     </div>
   );
 }
