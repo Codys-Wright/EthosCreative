@@ -7,7 +7,11 @@ import Image from "next/image";
 import { useState } from "react";
 import { ThemeToggle } from "@repo/ui";
 
-export function Navbar() {
+interface NavbarProps {
+  navItems: { name: string; link: string }[];
+}
+
+export function Navbar({ navItems }: NavbarProps) {
   return (
     <div className="overflow-visible bg-card">
       <div className="relative z-[60] mx-auto grid w-full max-w-7xl grid-cols-3 items-center overflow-visible px-12 py-6">
