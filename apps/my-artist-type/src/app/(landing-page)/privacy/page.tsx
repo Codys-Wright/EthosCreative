@@ -17,13 +17,14 @@ export default function PrivacyPage() {
           <section className="mb-12">
             <h2>Information We Collect</h2>
             <p>
-              We collect information you provide directly to us when you create an account,
-              take our artist type quiz, or contact us. This may include:
+              We collect information you provide directly to us when you use our website, create an account,
+              take our quizzes, answer our questionnaires, or contact us. This may include:
             </p>
             <ul>
               <li>Name and email address</li>
               <li>Quiz responses and results</li>
               <li>Communication preferences</li>
+              <li>Public comments</li>
               <li>Any other information you choose to provide</li>
             </ul>
           </section>
@@ -44,9 +45,26 @@ export default function PrivacyPage() {
           <section className="mb-12">
             <h2>Information Sharing</h2>
             <p>
-              We do not sell, trade, or otherwise transfer your personal information to third parties.
               We may share generic aggregated demographic information not linked to any personal
               identification information with our business partners and trusted affiliates.
+            </p>
+            <p>
+              Your comments may be checked through an automated spam detection service.
+            </p>
+            <p>
+              We may allow you to share your profile, information, and quiz results on other social media
+              services for public viewing. Please review your social media service settings and the privacy policies
+              on those services.
+            </p>
+          </section>
+
+          <section className="mb-12">
+            <h2>Affiliate Disclosure</h2>
+            <p>
+              Some of the links on this website may be affiliate or referral links, which may provide compensation to
+              us from the service providers at no cost to you, if you decide to use their services. In order to credit
+              this website with traffic, these services may track that your visit originated from one of the
+              promotional links on this website.
             </p>
           </section>
 
@@ -71,13 +89,21 @@ export default function PrivacyPage() {
               <li>Object to our use of your information</li>
             </ul>
           </section>
-
+		  		  
+          <section>
+            <h2>Disclaimer</h2>
+            <p>
+              The content on this website is for informational purposes only and should not be considered financial,
+              medical, or legal advice. Consult professional advisors, as needed.
+            </p>
+          </section>
+		  
           <section>
             <h2>Contact Us</h2>
             <p>
               If you have any questions about this Privacy Policy, please contact us at{" "}
-              <a href="mailto:privacy@myartisttype.com" className="text-primary hover:underline">
-                privacy@myartisttype.com
+              <a href="mailto:contact@myartisttype.com" className="text-primary hover:underline">
+                contact@myartisttype.com
               </a>
             </p>
           </section>
