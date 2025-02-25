@@ -3,6 +3,7 @@ import UserCard from './components/user-card';
 import SignIn from './components/sign-in';
 
 
+export * from "./auth-types"
 export * from "./components/account-switch";
 export * from "./components/sign-in-btn";
 export * from "./components/sign-up";

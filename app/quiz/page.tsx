@@ -1,8 +1,8 @@
 "use client";
 
-import { QuizTaker } from "@repo/quiz";
-import { defaultQuiz } from "@repo/quiz/src/components/QuizCreator/defaultQuiz";
-import type { QuizAnalysisResult } from "@repo/quiz/src/components/QuizTaker/analysis/types";
+import { QuizTaker } from "@/features/quiz/components/QuizTaker/index"; 
+import { defaultQuiz } from "@/features/quiz/components/QuizCreator/defaultQuiz";
+import type { QuizAnalysisResult } from "@/features/quiz/components/QuizTaker/analysis/types";
 
 export default function QuizPage() {
   const handleQuizComplete = (

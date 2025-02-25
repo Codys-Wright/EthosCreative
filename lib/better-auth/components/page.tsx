@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import UserCard from "./user-card";
 import { OrganizationCard } from "./organization-card";
-import AccountSwitcher from "@/lib/auth/components/account-switch";
+import AccountSwitcher from "@/lib/better-auth/components/account-switch";
 
 export default async function DashboardPage() {
 	const [session, activeSessions, deviceSessions, organization] =

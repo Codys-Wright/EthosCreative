@@ -22,9 +22,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PasswordInput } from "@/lib/auth/components/ui/password-input";
+import { PasswordInput } from "@/lib/better-auth";
 import { authClient, signOut, useSession } from "@/lib/auth-client";
-import { Session } from "@/lib/auth/auth-types";
+import { Session } from "@/lib/better-auth";
 import { MobileIcon } from "@radix-ui/react-icons";
 import {
 	Edit,
@@ -53,7 +53,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import QRCode from "react-qr-code";
-import CopyButton from "@/lib/auth/components/ui/copy-button";
+import CopyButton from "@/lib/better-auth/components/ui/copy-button";
 
 export default function UserCard(props: {
 	session: Session | null;

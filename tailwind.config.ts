@@ -5,11 +5,11 @@ import typography from "@tailwindcss/typography"
 const config = {
   darkMode: "class",
   content: [
-    "./app/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./lib/**/*.{ts,tsx}",
-    "./landing-page/**/*.{ts,tsx}",
-    "./features/**/*.{ts,tsx}"
+    "app/**/*.{ts,tsx}",
+    "components/**/*.{ts,tsx}",
+    "lib/**/*.{ts,tsx}",
+    "landing-page/**/*.{ts,tsx}",
+    "features/**/*.{ts,tsx}"
   ],
   theme: {
     container: {
