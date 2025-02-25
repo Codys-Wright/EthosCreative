@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/command";
 import { ChevronDown, PlusCircle } from "lucide-react";
 import { Session } from "../auth-types";
-import { authClient, useSession } from "../auth-client";
+import { authClient, useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 
 export default function AccountSwitcher({

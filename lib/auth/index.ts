@@ -2,8 +2,6 @@ import AccountSwitcher from "./components/account-switch";
 import UserCard from './components/user-card';
 import SignIn from './components/sign-in';
 
-export * from "./auth";
-export * from "./auth-client";
 
 export * from "./components/account-switch";
 export * from "./components/sign-in-btn";
