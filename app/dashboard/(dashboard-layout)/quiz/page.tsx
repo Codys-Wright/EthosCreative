@@ -1,6 +1,6 @@
 "use client";
 
-import { QuizCreator } from "@repo/quiz";
+import { QuizCreator } from "@/features/quiz/components/QuizCreator";
 
 export default function QuizPage() {
   return (

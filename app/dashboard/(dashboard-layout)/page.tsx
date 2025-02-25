@@ -4,8 +4,8 @@ import {
   WidgetProvider,
   useRegisterWidgets,
   WidgetExamplePage,
-} from "@repo/ui";
-import { dashboardWidgets } from "@/widgets";
+} from "@/components/widgets";
+import { dashboardWidgets } from "@/components/widgets/widgets";
 
 function DashboardContent() {
   // Register our app-specific widgets

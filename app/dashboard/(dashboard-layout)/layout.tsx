@@ -1,6 +1,6 @@
 import * as React from "react";
-import { AppSidebar } from "@repo/ui";
-import type { NavLinks } from "@repo/ui";
+import { AppSidebar } from "@/components/layouts/dashboard";
+import type { NavLinks } from "@/components/layouts/dashboard";
 import {
   IconFolder,
   IconBook2,

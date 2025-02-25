@@ -20,7 +20,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { toast, Toaster } from "sonner";
-import { authClient } from "@/lib/auth-client";
+import { client } from "@/lib/auth-client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import {
@@ -48,15 +48,12 @@ import {
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 type User = {
 	id: string;
 	email: string;
 	name: string;
 	role: "admin" | "user";
-	image?: string;
-	banned?: boolean;
 };
 
 export default function AdminDashboard() {
@@ -80,7 +77,7 @@ export default function AdminDashboard() {
 	const { data: users, isLoading: isUsersLoading } = useQuery({
 		queryKey: ["users"],
 		queryFn: async () => {
-			const data = await authClient.admin.listUsers(
+			const data = await client.admin.listUsers(
 				{
 					query: {
 						limit: 10,
@@ -100,7 +97,7 @@ export default function AdminDashboard() {
 		e.preventDefault();
 		setIsLoading("create");
 		try {
-			await authClient.admin.createUser({
+			await client.admin.createUser({
 				email: newUser.email,
 				password: newUser.password,
 				name: newUser.name,
@@ -122,7 +119,7 @@ export default function AdminDashboard() {
 	const handleDeleteUser = async (id: string) => {
 		setIsLoading(`delete-${id}`);
 		try {
-			await authClient.admin.removeUser({ userId: id });
+			await client.admin.removeUser({ userId: id });
 			toast.success("User deleted successfully");
 			queryClient.invalidateQueries({
 				queryKey: ["users"],
@@ -137,7 +134,7 @@ export default function AdminDashboard() {
 	const handleRevokeSessions = async (id: string) => {
 		setIsLoading(`revoke-${id}`);
 		try {
-			await authClient.admin.revokeUserSessions({ userId: id });
+			await client.admin.revokeUserSessions({ userId: id });
 			toast.success("Sessions revoked for user");
 		} catch (error: any) {
 			toast.error(error.message || "Failed to revoke sessions");
@@ -149,7 +146,7 @@ export default function AdminDashboard() {
 	const handleImpersonateUser = async (id: string) => {
 		setIsLoading(`impersonate-${id}`);
 		try {
-			await authClient.admin.impersonateUser({ userId: id });
+			await client.admin.impersonateUser({ userId: id });
 			toast.success("Impersonated user");
 			router.push("/dashboard");
 		} catch (error: any) {
@@ -166,7 +163,7 @@ export default function AdminDashboard() {
 			if (!banForm.expirationDate) {
 				throw new Error("Expiration date is required");
 			}
-			await authClient.admin.banUser({
+			await client.admin.banUser({
 				userId: banForm.userId,
 				banReason: banForm.reason,
 				banExpiresIn: banForm.expirationDate.getTime() - new Date().getTime(),
@@ -345,8 +342,8 @@ export default function AdminDashboard() {
 						<Table>
 							<TableHeader>
 								<TableRow>
-									<TableHead>User</TableHead>
 									<TableHead>Email</TableHead>
+									<TableHead>Name</TableHead>
 									<TableHead>Role</TableHead>
 									<TableHead>Banned</TableHead>
 									<TableHead>Actions</TableHead>
@@ -355,26 +352,8 @@ export default function AdminDashboard() {
 							<TableBody>
 								{users?.map((user) => (
 									<TableRow key={user.id}>
-										<TableCell>
-											<div className="flex items-center gap-3">
-												<Avatar>
-													<AvatarImage src={user.image} alt={user.name || ""} />
-													<AvatarFallback>
-														{user.name
-															? user.name
-																	.split(" ")
-																	.map((n) => n[0])
-																	.join("")
-																	.toUpperCase()
-															: user.email[0].toUpperCase()}
-													</AvatarFallback>
-												</Avatar>
-												<div className="flex flex-col">
-													<span className="font-medium">{user.name}</span>
-												</div>
-											</div>
-										</TableCell>
 										<TableCell>{user.email}</TableCell>
+										<TableCell>{user.name}</TableCell>
 										<TableCell>{user.role || "user"}</TableCell>
 										<TableCell>
 											{user.banned ? (
@@ -435,7 +414,7 @@ export default function AdminDashboard() {
 														});
 														if (user.banned) {
 															setIsLoading(`ban-${user.id}`);
-															await authClient.admin.unbanUser(
+															await client.admin.unbanUser(
 																{
 																	userId: user.id,
 																},

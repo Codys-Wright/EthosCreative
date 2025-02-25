@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardTitle } from "@repo/ui";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function CompanyPage() {
   return (
