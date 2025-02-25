@@ -350,7 +350,7 @@ export default function AdminDashboard() {
 									<TableHead>Role</TableHead>
 									<TableHead>Banned</TableHead>
 									<TableHead>Actions</TableHead>
-								</TableRow>
+								</TableRow> 
 							</TableHeader>
 							<TableBody>
 								{users?.map((user) => (
