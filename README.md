@@ -6,7 +6,7 @@
 </h3>
 
 <p align="center">
-  <a href="https://github.com/FastTrackAudio/EthosCreative/releases/latest"><img src="https://img.shields.io/github/v/release/FastTrackAudio/EthosCreative?colorA=363a4f&colorB=a6da95&style=for-the-badge&logo=github&logoColor=white" alt="Release"></a>
-  <a href="https://github.com/FastTrackAudio/EthosCreative/issues"><img src="https://img.shields.io/github/issues/FastTrackAudio/EthosCreative?colorA=363a4f&colorB=f5a97f&style=for-the-badge&logo=github&logoColor=white" alt="Issues"></a>
-  <a href="https://github.com/FastTrackAudio/EthosCreative/contributors"><img src="https://img.shields.io/github/contributors/FastTrackAudio/EthosCreative?colorA=363a4f&colorB=a6da95&style=for-the-badge&logo=github&logoColor=white" alt="Contributors"></a>
+  <a href="https://github.com/FastTrackAudio/EthosCreative/releases"><img src="https://img.shields.io/badge/Release-v0.1.0-a6da95?style=for-the-badge&logo=github&logoColor=white&labelColor=363a4f" alt="Release"></a>
+  <a href="https://github.com/FastTrackAudio/EthosCreative/issues"><img src="https://img.shields.io/badge/Issues-Report-f5a97f?style=for-the-badge&logo=github&logoColor=white&labelColor=363a4f" alt="Issues"></a>
+  <a href="https://github.com/FastTrackAudio/EthosCreative/graphs/contributors"><img src="https://img.shields.io/badge/Contributors-Join_us-a6da95?style=for-the-badge&logo=github&logoColor=white&labelColor=363a4f" alt="Contributors"></a>
 </p>
