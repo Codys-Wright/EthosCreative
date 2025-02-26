@@ -201,7 +201,7 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
   if (isComplete) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Card className="w-full max-w-2xl">
+        <Card className="w-full max-w-2xl ">
           <CardHeader>
             <CardTitle>Quiz Complete!</CardTitle>
           </CardHeader>
@@ -338,7 +338,7 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
             </div>
           </div>
 
-          <div className="flex-1 overflow-hidden px-4">
+          <div className="flex-1 overflow-hidden px-6 py-20">
             <Carousel 
               className="h-full" 
               setApi={setApi}
@@ -351,7 +351,7 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
                 {quiz.questions.map((question) => (
                   <CarouselItem key={question.id}>
                     <div className="h-full flex items-center justify-center">
-                      <Card className="w-full max-w-3xl">
+                        <Card className="w-full max-w-3xl mx-auto">
                         {showQuestionTitle && (
                           <CardHeader>
                             <CardTitle className="text-lg">
@@ -359,8 +359,8 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
                             </CardTitle>
                           </CardHeader>
                         )}
-                        <CardContent>
-                          <div className="space-y-6">
+                        <CardContent className="px-6 py-6">
+                          <div className="space-y-8">
                             <p className="text-lg">{question.content}</p>
                             {question.type === 'rating' && (
                               <div className="space-y-4">
