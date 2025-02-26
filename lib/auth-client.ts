@@ -9,9 +9,10 @@ import {
   oidcClient,
 } from "better-auth/client/plugins";
 import { toast } from "sonner";
+import { env } from "@/env";
 
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_APP_URL,
+  baseURL: env.NEXT_PUBLIC_APP_URL,
   plugins: [
     organizationClient(),
     twoFactorClient({
@@ -23,7 +24,7 @@ export const authClient = createAuthClient({
     adminClient(),
     multiSessionClient(),
     oneTapClient({
-      clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
+      clientId: env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
     }),
     oidcClient(),
   ],

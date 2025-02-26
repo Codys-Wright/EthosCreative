@@ -15,14 +15,15 @@ import { nextCookies } from "better-auth/next-js";
 import { passkey } from "better-auth/plugins/passkey";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/lib/db";
+import { env } from "@/env";
 
-const from = process.env.BETTER_AUTH_EMAIL || "delivered@resend.dev";
-const to = process.env.TEST_EMAIL || "";
+const from = env.BETTER_AUTH_EMAIL || "delivered@resend.dev";
+const to = env.TEST_EMAIL || "";
 
 export const auth = betterAuth({
   appName: "Better Auth Demo",
-  baseURL: process.env.NEXT_PUBLIC_APP_URL,
-  secret: process.env.BETTER_AUTH_SECRET,
+  baseURL: env.NEXT_PUBLIC_APP_URL,
+  secret: env.BETTER_AUTH_SECRET || env.AUTH_SECRET,
   database: drizzleAdapter(db, {
     provider: "pg",
   }),
@@ -58,8 +59,8 @@ export const auth = betterAuth({
   },
   socialProviders: {
     google: {
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      clientId: env.GOOGLE_CLIENT_ID || "",
+      clientSecret: env.GOOGLE_CLIENT_SECRET || "",
     },
   },
   plugins: [
@@ -74,10 +75,7 @@ export const auth = betterAuth({
             invitedByUsername: data.inviter.user.name,
             invitedByEmail: data.inviter.user.email,
             teamName: data.organization.name,
-            inviteLink:
-              process.env.NODE_ENV === "development"
-                ? `http://localhost:3000/accept-invitation/${data.id}`
-                : `${process.env.NEXT_PUBLIC_APP_URL}/accept-invitation/${data.id}`,
+            inviteLink: `${env.NEXT_PUBLIC_APP_URL}/accept-invitation/${data.id}`,
           }),
         });
       },
