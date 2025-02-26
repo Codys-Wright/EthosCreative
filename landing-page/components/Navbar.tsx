@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/next-themes/theme-toggle";
+import { useSession, useListOrganizations } from "@/lib/auth-client";
 
 interface NavbarProps {
   navItems: { name: string; link: string }[];
@@ -68,6 +69,12 @@ const DesktopNav = () => {
 
 const MobileNavToggle = () => {
   const [open, setOpen] = useState(false);
+  const { data: session } = useSession();
+  const { data: organizations } = useListOrganizations();
+  
+  const hasMyArtistTypeOrg = organizations?.some(
+    (org) => org.name === "MyArtistType"
+  );
 
   return (
     <>
@@ -117,8 +124,23 @@ const MobileNavToggle = () => {
             >
               <span>Contact</span>
             </Link>
+            <Link
+              href="/my-results"
+              className="text-foreground transition-colors hover:text-muted-foreground"
+              onClick={() => setOpen(false)}
+            >
+              <span>My Results</span>
+            </Link>
+            {session?.session && hasMyArtistTypeOrg && (
+              <Link
+                href="/dashboard"
+                className="text-foreground transition-colors hover:text-muted-foreground"
+                onClick={() => setOpen(false)}
+              >
+                <span>Dashboard</span>
+              </Link>
+            )}
             <div className="flex items-center gap-6">
-              <LoginButton />
               <ThemeToggle />
             </div>
           </motion.div>
@@ -147,12 +169,30 @@ const Logo = () => {
 };
 
 const LoginButton = () => {
+  const { data: session } = useSession();
+  const { data: organizations } = useListOrganizations();
+  
+  const hasMyArtistTypeOrg = organizations?.some(
+    (org) => org.name === "MyArtistType"
+  );
+
   return (
-    <Link
-      href="/dashboard"
-      className="hidden rounded-lg bg-primary px-6 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90 lg:block"
-    >
-      My Results
-    </Link>
+    <>
+      <Link
+        href="/my-results"
+        className="hidden rounded-lg bg-primary px-6 py-3 text-base font-medium text-primary-foreground transition-colors hover:bg-primary/90 lg:block"
+      >
+        My Results
+      </Link>
+      
+      {session?.session && hasMyArtistTypeOrg && (
+        <Link
+          href="/dashboard"
+          className="hidden ml-2 rounded-lg bg-secondary px-6 py-3 text-base font-medium text-secondary-foreground transition-colors hover:bg-secondary/90 lg:block"
+        >
+          Dashboard
+        </Link>
+      )}
+    </>
   );
 };

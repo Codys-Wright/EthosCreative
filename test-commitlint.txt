@@ -1,2 +1,0 @@
-This is a test file to check commitlint functionality.
-Adding another line to test invalid commit message. 
