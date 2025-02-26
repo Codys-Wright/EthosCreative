@@ -1,21 +1,24 @@
 # The My Artist Type Quiz
 
 ## Overview
-The My Artist Type Quiz was developed to help artists understand themselves in much the same way as personality tests like The Enneagram, The Big 5 Aspects Test, and Myers-Briggs have helped so many in the general population understand their temperaments. What makes this quiz unique is that it's been designed specifically for artists. 
 
-Whether you're a musician, painter, actor, dancer, photographer, writer, illustrator, chef, designer, or any other kind of creator, The My Artist Type Quiz (or M.A.T. Quiz) will act as a mirror and magnifying glass to help you gain a deeper understanding of the inner workings of your artistic temperament. 
+The My Artist Type Quiz was developed to help artists understand themselves in much the same way as personality tests like The Enneagram, The Big 5 Aspects Test, and Myers-Briggs have helped so many in the general population understand their temperaments. What makes this quiz unique is that it's been designed specifically for artists.
 
-Your results will also give you a framework from which to relate to and understand other Artist Types. This is particularly helpful in the context of creative collaborations, where incredibly nuanced interpersonal and creative dynamics are at play. 
+Whether you're a musician, painter, actor, dancer, photographer, writer, illustrator, chef, designer, or any other kind of creator, The My Artist Type Quiz (or M.A.T. Quiz) will act as a mirror and magnifying glass to help you gain a deeper understanding of the inner workings of your artistic temperament.
 
-There are 10 distinct Artist Types, each with their own strengths and weaknesses. 
+Your results will also give you a framework from which to relate to and understand other Artist Types. This is particularly helpful in the context of creative collaborations, where incredibly nuanced interpersonal and creative dynamics are at play.
+
+There are 10 distinct Artist Types, each with their own strengths and weaknesses.
 
 Understanding exactly where you fall on the continuum relative to other artists is also helpful in navigating your path at the intersection of art and commerce.
 
 ## Collaborative Benefits
-It can be a lot of fun to compare and contrast your results with those of your artist friends and associates. While on a deeper level, knowing each other's Artist Types can be extremely helpful in understanding the nuanced dynamics that are often at play in creative situations. We're then setup to have more patience for each other's differences (and to value them more than we may otherwise have), and to navigate our collaborations more effectively. 
+
+It can be a lot of fun to compare and contrast your results with those of your artist friends and associates. While on a deeper level, knowing each other's Artist Types can be extremely helpful in understanding the nuanced dynamics that are often at play in creative situations. We're then setup to have more patience for each other's differences (and to value them more than we may otherwise have), and to navigate our collaborations more effectively.
 
 ## The Story
-The My Artist Type Quiz was created by 50x Platinum Songwriter, Producer, Multi-Medium Artist, Author, and Educator, Adam Watts. 
+
+The My Artist Type Quiz was created by 50x Platinum Songwriter, Producer, Multi-Medium Artist, Author, and Educator, Adam Watts.
 
 With a deep interest in interpersonal dynamics and an appreciation for personality assessments like The Enneagram and The Big 5 Aspects Test, Watts began to develop a similar assessment designed specifically for those wonderfully idiosyncratic human beings we call artists.
 
@@ -23,7 +26,7 @@ Fascinated by the notion that one's gifting combines with their personalities an
 
 The result is a quiz that can organize this identity into a Primary Artist Type.
 
-After more than two decades working behind the scenes in the entertainment business (in the music, film, tv, fine art worlds and beyond), Watts noticed profoundly distinct personality traits in the wide variety of creatives he worked with and observed. It was as if artists fell into distinct categories. They each interacted in ways that were consistent and surprisingly predictable (even, paradoxically, in their unpredictability). 
+After more than two decades working behind the scenes in the entertainment business (in the music, film, tv, fine art worlds and beyond), Watts noticed profoundly distinct personality traits in the wide variety of creatives he worked with and observed. It was as if artists fell into distinct categories. They each interacted in ways that were consistent and surprisingly predictable (even, paradoxically, in their unpredictability).
 
 *"I began to realize that artists are like their own species. I noticed that within that species, it's almost as if there are different breeds. Each with their own distinct traits and intrinsic ways of approaching the creative process.*
 
@@ -37,4 +40,5 @@ After more than two decades working behind the scenes in the entertainment busin
 
 *As I began to share the quiz, the feedback from artists has been very validating with virtually everyone expressing that their results were extremely accurate, interesting, and helpful.*
 
-*My goal has never been to pigeonhole artists or narrowly define them, but rather to give them a kind of mirror and magnifying glass to help them further understand their uniqueness relative to others so that they could have a sense of orientation and relativity not only in their inner creative worlds, but also in the context of collaborations, and in business situations."* 
+*My goal has never been to pigeonhole artists or narrowly define them, but rather to give them a kind of mirror and magnifying glass to help them further understand their uniqueness relative to others so that they could have a sense of orientation and relativity not only in their inner creative worlds, but also in the context of collaborations, and in business situations."*
+

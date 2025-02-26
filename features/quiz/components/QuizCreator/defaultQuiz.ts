@@ -114,7 +114,7 @@ const getTitleFromContent = (content: string) => {
 }
 
 export const defaultQuiz: Quiz = {
-  title: "Artist Type Assessment",
+  title: "My Artist Type Quiz",
   version: "1.0.0",
   questions: questions.map((content, index) => ({
     id: `q${index + 1}`,
