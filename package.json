@@ -2,6 +2,9 @@
   "name": "my-artist-type",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "18.x"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
@@ -57,7 +60,6 @@
     "clsx": "^2.1.1",
     "cmdk": "1.0.0",
     "date-fns": "^4.1.0",
-    "drizzle": "^1.4.0",
     "drizzle-orm": "^0.39.3",
     "embla-carousel-react": "^8.5.2",
     "framer-motion": "^12.4.7",
