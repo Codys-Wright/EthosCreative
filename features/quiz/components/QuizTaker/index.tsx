@@ -24,6 +24,8 @@ interface QuizTakerProps {
   quiz: Quiz
   analysisEngine?: AnalysisEngine
   onComplete?: (responses: { questionId: string; response: number | null }[], analysis: QuizAnalysisResult) => void
+  showQuestionTitle?: boolean
+  isAdmin?: boolean
 }
 
 function formatTime(ms: number): string {
@@ -33,7 +35,7 @@ function formatTime(ms: number): string {
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
 }
 
-export function QuizTaker({ quiz, analysisEngine, onComplete }: QuizTakerProps) {
+export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle = true, isAdmin = false }: QuizTakerProps) {
   const {
     currentQuestionIndex,
     responses,
@@ -53,6 +55,7 @@ export function QuizTaker({ quiz, analysisEngine, onComplete }: QuizTakerProps) 
   const [showResults, setShowResults] = React.useState(false)
   const [defaultResponse, setDefaultResponse] = React.useState(5)
   const [currentTime, setCurrentTime] = React.useState(0)
+  const [showAdminPanel, setShowAdminPanel] = React.useState(true)
   const [engine] = React.useState(() => 
     analysisEngine || new ArtistTypeAnalysisEngine(quiz.questions.map(q => q.id))
   )
@@ -349,11 +352,13 @@ export function QuizTaker({ quiz, analysisEngine, onComplete }: QuizTakerProps) 
                   <CarouselItem key={question.id}>
                     <div className="h-full flex items-center justify-center">
                       <Card className="w-full max-w-3xl">
-                        <CardHeader>
-                          <CardTitle className="text-lg">
-                            {question.title}
-                          </CardTitle>
-                        </CardHeader>
+                        {showQuestionTitle && (
+                          <CardHeader>
+                            <CardTitle className="text-lg">
+                              {question.title}
+                            </CardTitle>
+                          </CardHeader>
+                        )}
                         <CardContent>
                           <div className="space-y-6">
                             <p className="text-lg">{question.content}</p>
@@ -405,10 +410,25 @@ export function QuizTaker({ quiz, analysisEngine, onComplete }: QuizTakerProps) 
           </div>
         </div>
 
-        <div className="p-4 border-t">
-          <div className="grid grid-cols-2 gap-4">
-            {/* Admin Analytics Card */}
-            <Card>
+        {isAdmin && (
+          <div className="p-4 border-t">
+            <div className="flex justify-between items-center mb-4">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowAdminPanel(!showAdminPanel)}
+              >
+                {showAdminPanel ? "Hide Admin Panel" : "Show Admin Panel"}
+              </Button>
+              {!showAdminPanel && (
+                <span className="text-sm text-muted-foreground">Admin panel is hidden</span>
+              )}
+            </div>
+            
+            {showAdminPanel && (
+              <div className="grid grid-cols-2 gap-4">
+                {/* Admin Analytics Card */}
+                <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg">Admin Analytics</CardTitle>
               </CardHeader>
@@ -550,7 +570,9 @@ export function QuizTaker({ quiz, analysisEngine, onComplete }: QuizTakerProps) 
               </CardContent>
             </Card>
           </div>
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
