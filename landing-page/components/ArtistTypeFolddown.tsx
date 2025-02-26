@@ -18,25 +18,27 @@ export function ArtistTypeFolddown() {
     <div className="mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-24">
       <div className="grid gap-12 md:grid-cols-2 md:gap-16">
         <div className="flex h-full flex-col">
-          <div className="space-y-6">
-            <div className="flex items-center gap-3">
-              <IconPalette className="h-8 w-8 text-primary" strokeWidth={1.5} />
-              <h2 className="whitespace-nowrap text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-                Explore the Artist Types
-              </h2>
+          <div className="flex flex-col space-y-8">
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <IconPalette className="h-8 w-8 text-primary" strokeWidth={1.5} />
+                <h2 className="whitespace-nowrap text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+                  Explore the Artist Types
+                </h2>
+              </div>
+              <p className="text-lg leading-relaxed text-muted-foreground">
+                Discover your unique artistic personality and creative style. Each
+                type represents a distinct approach to art and creativity.
+              </p>
             </div>
-            <p className="text-lg leading-relaxed text-muted-foreground">
-              Discover your unique artistic personality and creative style. Each
-              type represents a distinct approach to art and creativity.
-            </p>
-          </div>
 
-          <div className="flex flex-1 items-center justify-center">
-            <Link href="/artist-types">
-              <Button variant="outline" size="lg" className="text-base">
-                See Full Description of Types
-              </Button>
-            </Link>
+            <div className="flex">
+              <Link href="/artist-types">
+                <Button variant="outline" size="lg" className="text-base">
+                  See Full Description of Types
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
 
