@@ -45,7 +45,6 @@ export class ArtistTypeAnalysisEngine implements AnalysisEngine {
   }
 
   getCurrentPoints(responses: { questionId: string; response: number | null }[]): Record<ArtistType, number> {
-    console.log('Getting current points for responses:', responses)
     const points: Record<ArtistType, number> = {
       'The Visionary Artist': 0,
       'The Consummate Artist': 0,
@@ -61,24 +60,19 @@ export class ArtistTypeAnalysisEngine implements AnalysisEngine {
 
     responses.forEach(response => {
       if (response.response === null) return
-      console.log(`Processing response for question ${response.questionId}, value: ${response.response}`)
 
       const analysis = this.questionAnalysis.find(qa => qa.questionId === response.questionId)
       if (!analysis) {
-        console.log(`No analysis found for question ${response.questionId}`)
         return
       }
-      console.log(`Found analysis for question ${response.questionId}:`, analysis)
 
       Object.entries(analysis.idealAnswers).forEach(([type, idealAnswer]) => {
         const artistType = type as ArtistType
         const calculatedPoints = this.calculatePoints(response.response!, idealAnswer)
         points[artistType] = (points[artistType] || 0) + calculatedPoints
-        console.log(`Added ${calculatedPoints} points to ${artistType} (total: ${points[artistType]})`)
       })
     })
 
-    console.log('Final points:', points)
     return points
   }
 
@@ -109,11 +103,9 @@ export class ArtistTypeAnalysisEngine implements AnalysisEngine {
   }
 
   private generateQuestionAnalysis(questionIds: string[]): QuestionAnalysis[] {
-    console.log('Generating question analysis for IDs:', questionIds)
     const analysis = questionIds.map(questionId => {
       // Strip the 'q' prefix from the question ID
       const normalizedId = questionId.replace('q', '')
-      console.log(`Normalized question ID ${questionId} to ${normalizedId}`)
       
       const analysis: QuestionAnalysis = {
         questionId,
@@ -125,15 +117,12 @@ export class ArtistTypeAnalysisEngine implements AnalysisEngine {
         const idealAnswer = getIdealAnswer(artistType as ArtistType, normalizedId)
         if (idealAnswer) {
           analysis.idealAnswers[artistType as ArtistType] = idealAnswer
-          console.log(`Set ideal answer for ${artistType} question ${questionId}:`, idealAnswer)
         } else {
-          console.log(`No ideal answer found for ${artistType} question ${questionId}`)
         }
       })
 
       return analysis
     })
-    console.log('Generated question analysis:', analysis)
     return analysis
   }
 } 
