@@ -1,12 +1,12 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useWidgetStore } from "./widget-context"
-import { BarChart } from "lucide-react"
-import type { WidgetSize } from "./widget-registry"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useWidgetStore } from "./widget-context";
+import { BarChart } from "lucide-react";
+import type { WidgetSize } from "./widget-registry";
 
 interface WidgetProps {
-  size: WidgetSize
-  id: string
-  compact?: boolean
+  size: WidgetSize;
+  id: string;
+  compact?: boolean;
 }
 
 const courseProgress = {
@@ -14,10 +14,14 @@ const courseProgress = {
   completedCourses: 5,
   inProgressCourses: 3,
   upcomingCourses: 4,
-  percentComplete: 42
-}
+  percentComplete: 42,
+};
 
-export function CourseProgressWidget({ size, id, compact = false }: WidgetProps) {
+export function CourseProgressWidget({
+  size,
+  id,
+  compact = false,
+}: WidgetProps) {
   return (
     <Card className="h-full">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -28,11 +32,16 @@ export function CourseProgressWidget({ size, id, compact = false }: WidgetProps)
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <p className={compact ? "text-sm font-medium" : "text-base font-medium"}>
+              <p
+                className={
+                  compact ? "text-sm font-medium" : "text-base font-medium"
+                }
+              >
                 {courseProgress.percentComplete}% Complete
               </p>
               <p className="text-xs text-muted-foreground">
-                {courseProgress.completedCourses} of {courseProgress.totalCourses} courses
+                {courseProgress.completedCourses} of{" "}
+                {courseProgress.totalCourses} courses
               </p>
             </div>
           </div>
@@ -59,5 +68,5 @@ export function CourseProgressWidget({ size, id, compact = false }: WidgetProps)
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

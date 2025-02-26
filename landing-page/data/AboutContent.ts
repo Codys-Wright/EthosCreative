@@ -73,5 +73,5 @@ After more than two decades working behind the scenes in the entertainment busin
 
 *As I began to share the quiz, the feedback from artists has been very validating with virtually everyone expressing that their results were extremely accurate, interesting, and helpful.*
 
-*My goal has never been to pigeonhole artists or narrowly define them, but rather to give them a kind of mirror and magnifying glass to help them further understand their uniqueness relative to others so that they could have a sense of orientation and relativity not only in their inner creative worlds, but also in the context of collaborations, and in business situations."*`
-}; 
+*My goal has never been to pigeonhole artists or narrowly define them, but rather to give them a kind of mirror and magnifying glass to help them further understand their uniqueness relative to others so that they could have a sense of orientation and relativity not only in their inner creative worlds, but also in the context of collaborations, and in business situations."*`,
+};

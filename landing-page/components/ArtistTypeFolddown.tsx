@@ -21,14 +21,17 @@ export function ArtistTypeFolddown() {
           <div className="flex flex-col space-y-8">
             <div className="space-y-6">
               <div className="flex items-center gap-3">
-                <IconPalette className="h-8 w-8 text-primary" strokeWidth={1.5} />
+                <IconPalette
+                  className="h-8 w-8 text-primary"
+                  strokeWidth={1.5}
+                />
                 <h2 className="whitespace-nowrap text-3xl font-bold tracking-tight text-foreground md:text-4xl">
                   Explore the Artist Types
                 </h2>
               </div>
               <p className="text-lg leading-relaxed text-muted-foreground">
-                Discover your unique artistic personality and creative style. Each
-                type represents a distinct approach to art and creativity.
+                Discover your unique artistic personality and creative style.
+                Each type represents a distinct approach to art and creativity.
               </p>
             </div>
 

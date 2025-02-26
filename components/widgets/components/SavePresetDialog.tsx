@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -6,10 +6,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import {
   Card,
@@ -17,19 +17,17 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { DashboardPreset } from "./dashboard-store"
-import { cn } from "@/lib/utils"
-import { Check, Layout, Plus } from "lucide-react"
-
-
+} from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { DashboardPreset } from "./dashboard-store";
+import { cn } from "@/lib/utils";
+import { Check, Layout, Plus } from "lucide-react";
 
 interface SavePresetDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSave: (name: string, presetId?: string) => void
-  existingPresets: DashboardPreset[]
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: (name: string, presetId?: string) => void;
+  existingPresets: DashboardPreset[];
 }
 
 export function SavePresetDialog({
@@ -38,32 +36,32 @@ export function SavePresetDialog({
   onSave,
   existingPresets,
 }: SavePresetDialogProps) {
-  const [name, setName] = useState("")
-  const [selectedPresetId, setSelectedPresetId] = useState<string>("")
-  const [mode, setMode] = useState<"new" | "existing">("new")
+  const [name, setName] = useState("");
+  const [selectedPresetId, setSelectedPresetId] = useState<string>("");
+  const [mode, setMode] = useState<"new" | "existing">("new");
 
   const handleSave = () => {
     if (mode === "new" && name.trim()) {
-      onSave(name.trim())
-      resetForm()
+      onSave(name.trim());
+      resetForm();
     } else if (mode === "existing" && selectedPresetId) {
-      const preset = existingPresets.find((p) => p.id === selectedPresetId)
+      const preset = existingPresets.find((p) => p.id === selectedPresetId);
       if (preset) {
-        onSave(preset.name, selectedPresetId)
-        resetForm()
+        onSave(preset.name, selectedPresetId);
+        resetForm();
       }
     }
-  }
+  };
 
   const resetForm = () => {
-    setName("")
-    setSelectedPresetId("")
-    setMode("new")
-    onOpenChange(false)
-  }
+    setName("");
+    setSelectedPresetId("");
+    setMode("new");
+    onOpenChange(false);
+  };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
+    const date = new Date(dateString);
     return new Intl.DateTimeFormat("en-US", {
       month: "short",
       day: "numeric",
@@ -71,8 +69,8 @@ export function SavePresetDialog({
       hour: "numeric",
       minute: "numeric",
       hour12: true,
-    }).format(date)
-  }
+    }).format(date);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -89,9 +87,9 @@ export function SavePresetDialog({
           defaultValue="new"
           value={mode}
           onValueChange={(value) => {
-            setMode(value as "new" | "existing")
-            setName("")
-            setSelectedPresetId("")
+            setMode(value as "new" | "existing");
+            setName("");
+            setSelectedPresetId("");
           }}
           className="w-full"
         >
@@ -127,7 +125,7 @@ export function SavePresetDialog({
                       onChange={(e) => setName(e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
-                          handleSave()
+                          handleSave();
                         }
                       }}
                     />
@@ -155,7 +153,7 @@ export function SavePresetDialog({
                           "flex items-center justify-between p-4 rounded-lg border transition-colors cursor-pointer",
                           selectedPresetId === preset.id
                             ? "border-primary bg-primary/5"
-                            : "hover:border-primary/50"
+                            : "hover:border-primary/50",
                         )}
                         onClick={() => setSelectedPresetId(preset.id)}
                       >
@@ -194,5 +192,5 @@ export function SavePresetDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -99,15 +99,19 @@ interface SidebarItemProps {
   setOpen: (open: boolean) => void;
 }
 
-function SidebarGroup({ group, setOpen, open }: { group: NavGroup; setOpen: (open: boolean) => void; open: boolean }) {
+function SidebarGroup({
+  group,
+  setOpen,
+  open,
+}: {
+  group: NavGroup;
+  setOpen: (open: boolean) => void;
+  open: boolean;
+}) {
   return (
     <div className="flex flex-col gap-2 px-[0.15rem]">
       {group.links.map((item, idx) => (
-        <SidebarItem
-          key={idx}
-          item={item}
-          setOpen={setOpen}
-        />
+        <SidebarItem key={idx} item={item} setOpen={setOpen} />
       ))}
     </div>
   );
@@ -147,19 +151,28 @@ function SidebarItem({ item, setOpen }: SidebarItemProps) {
   };
 
   return (
-    <div onClick={handleClick} className={cn(item.muted && "pointer-events-none")}>
+    <div
+      onClick={handleClick}
+      className={cn(item.muted && "pointer-events-none")}
+    >
       <SidebarLink
         link={{
           label: (
             <div className="flex items-center w-full min-h-[20px]">
-              <span className={cn(item.muted && "text-neutral-400 dark:text-neutral-600")}>
+              <span
+                className={cn(
+                  item.muted && "text-neutral-400 dark:text-neutral-600",
+                )}
+              >
                 {item.label}
               </span>
               {item.badge && (
-                <span className={cn(
-                  "text-[10px] leading-[1.2] px-1.5 py-[0.15rem] rounded-full font-medium ml-2 flex-shrink-0",
-                  getBadgeColor(getBadgeContent(item.badge).variant)
-                )}>
+                <span
+                  className={cn(
+                    "text-[10px] leading-[1.2] px-1.5 py-[0.15rem] rounded-full font-medium ml-2 flex-shrink-0",
+                    getBadgeColor(getBadgeContent(item.badge).variant),
+                  )}
+                >
                   {getBadgeContent(item.badge).content}
                 </span>
               )}
@@ -170,40 +183,43 @@ function SidebarItem({ item, setOpen }: SidebarItemProps) {
             // @ts-ignore
             className: cn(
               "h-5 w-5 flex-shrink-0",
-              item.muted 
-                ? "text-neutral-400 dark:text-neutral-600" 
-                : isActive 
-                  ? "text-blue-600" 
-                  : "text-neutral-700 dark:text-neutral-200"
+              item.muted
+                ? "text-neutral-400 dark:text-neutral-600"
+                : isActive
+                  ? "text-blue-600"
+                  : "text-neutral-700 dark:text-neutral-200",
             ),
           }),
         }}
         className={cn(
           isActive && !item.muted && "text-blue-600 dark:text-blue-400",
-          item.muted && "pointer-events-none"
+          item.muted && "pointer-events-none",
         )}
       />
     </div>
   );
 }
 
-export function AppSidebar({ 
-  children, 
+export function AppSidebar({
+  children,
   navLinks = {},
   user,
-  logo = <div className="h-5 w-6 bg-black dark:bg-white rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />,
-  domain = "App"
+  logo = (
+    <div className="h-5 w-6 bg-black dark:bg-white rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />
+  ),
+  domain = "App",
 }: AppSidebarProps) {
   const [open, setOpen] = useState(false);
 
   // Check if multiple groups exist
-  const hasMultipleGroups = [navLinks.top, navLinks.main, navLinks.bottom].filter(Boolean).length > 1;
+  const hasMultipleGroups =
+    [navLinks.top, navLinks.main, navLinks.bottom].filter(Boolean).length > 1;
 
   return (
     <div
       className={cn(
         "rounded-md flex flex-col md:flex-row bg-gray-100 dark:bg-neutral-800 w-full flex-1 mx-auto border border-neutral-200 dark:border-neutral-700 overflow-hidden",
-        "h-screen"
+        "h-screen",
       )}
     >
       <Sidebar open={open} setOpen={setOpen}>
@@ -231,34 +247,43 @@ export function AppSidebar({
                   {Array.isArray(navLinks.top) ? (
                     navLinks.top.map((group, index) => (
                       <React.Fragment key={index}>
-                        <SidebarGroup group={group} setOpen={setOpen} open={open} />
-                        {Array.isArray(navLinks.top) && index < navLinks.top.length - 1 && (
-                          <div className="relative h-px my-6">
-                            <div className="absolute inset-0 flex items-center">
-                              <div className="w-full h-px bg-neutral-200 dark:bg-neutral-700" />
+                        <SidebarGroup
+                          group={group}
+                          setOpen={setOpen}
+                          open={open}
+                        />
+                        {Array.isArray(navLinks.top) &&
+                          index < navLinks.top.length - 1 && (
+                            <div className="relative h-px my-6">
+                              <div className="absolute inset-0 flex items-center">
+                                <div className="w-full h-px bg-neutral-200 dark:bg-neutral-700" />
+                              </div>
+                              <motion.div
+                                initial={false}
+                                animate={{ opacity: open ? 1 : 0 }}
+                                className="absolute inset-0 flex items-center justify-center"
+                              >
+                                <span className="text-[10px] font-medium text-neutral-400 dark:text-neutral-500 bg-gray-100 dark:bg-neutral-800 px-2">
+                                  {navLinks.top[index + 1]?.label}
+                                </span>
+                              </motion.div>
                             </div>
-                            <motion.div
-                              initial={false}
-                              animate={{ opacity: open ? 1 : 0 }}
-                              className="absolute inset-0 flex items-center justify-center"
-                            >
-                              <span className="text-[10px] font-medium text-neutral-400 dark:text-neutral-500 bg-gray-100 dark:bg-neutral-800 px-2">
-                                {navLinks.top[index + 1]?.label}
-                              </span>
-                            </motion.div>
-                          </div>
-                        )}
+                          )}
                       </React.Fragment>
                     ))
                   ) : (
-                    <SidebarGroup group={navLinks.top} setOpen={setOpen} open={open} />
+                    <SidebarGroup
+                      group={navLinks.top}
+                      setOpen={setOpen}
+                      open={open}
+                    />
                   )}
                 </div>
               )}
-              
+
               {/* Spacer */}
               <div className="flex-1" />
-              
+
               {/* Center Group */}
               {navLinks.main && (
                 <div className="flex-shrink-0">
@@ -279,14 +304,18 @@ export function AppSidebar({
                         </motion.div>
                       </div>
                     )}
-                    <SidebarGroup group={navLinks.main} setOpen={setOpen} open={open} />
+                    <SidebarGroup
+                      group={navLinks.main}
+                      setOpen={setOpen}
+                      open={open}
+                    />
                   </div>
                 </div>
               )}
-              
+
               {/* Spacer */}
               <div className="flex-1" />
-              
+
               {/* Bottom Group */}
               {navLinks.bottom && (
                 <div className="flex-shrink-0 pb-4">
@@ -306,7 +335,11 @@ export function AppSidebar({
                       </motion.div>
                     </div>
                   )}
-                  <SidebarGroup group={navLinks.bottom} setOpen={setOpen} open={open} />
+                  <SidebarGroup
+                    group={navLinks.bottom}
+                    setOpen={setOpen}
+                    open={open}
+                  />
                 </div>
               )}
             </div>
@@ -318,7 +351,9 @@ export function AppSidebar({
                   label: (
                     <div className="flex flex-col -my-1">
                       <span className="leading-none">{user.name}</span>
-                      <span className="text-xs text-neutral-500 dark:text-neutral-400 leading-none mt-1">{user.email}</span>
+                      <span className="text-xs text-neutral-500 dark:text-neutral-400 leading-none mt-1">
+                        {user.email}
+                      </span>
                     </div>
                   ),
                   href: "/dashboard/profile",
@@ -332,7 +367,11 @@ export function AppSidebar({
                     />
                   ) : (
                     <div className="h-7 w-7 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium flex-shrink-0">
-                      {user.name.split(" ").map(n => n[0]).join("").toUpperCase()}
+                      {user.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase()}
                     </div>
                   ),
                 }}
@@ -375,4 +414,3 @@ const Dashboard = () => {
     </div>
   );
 };
-

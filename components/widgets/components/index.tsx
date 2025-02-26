@@ -1,1 +1,1 @@
-export { NextConceptWidget, CourseProgressWidget } from './CourseWidgets';
+export { NextConceptWidget, CourseProgressWidget } from "./CourseWidgets";

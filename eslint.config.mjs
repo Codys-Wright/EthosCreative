@@ -17,9 +17,9 @@ const eslintConfig = [
       "@typescript-eslint/no-explicit-any": "off",
       "react/no-unescaped-entities": "off",
       "@typescript-eslint/ban-ts-comment": "off",
-      "react-hooks/exhaustive-deps": "warn"
-    }
-  }
+      "react-hooks/exhaustive-deps": "warn",
+    },
+  },
 ];
 
 export default eslintConfig;

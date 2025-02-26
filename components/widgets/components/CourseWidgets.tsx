@@ -1,12 +1,12 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { useWidgetStore } from "./widget-context"
-import { BarChart, BookOpen, Clock, Target } from "lucide-react"
-import type { WidgetSize } from "./widget-registry"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { useWidgetStore } from "./widget-context";
+import { BarChart, BookOpen, Clock, Target } from "lucide-react";
+import type { WidgetSize } from "./widget-registry";
 
 interface WidgetProps {
-  size: WidgetSize
-  id: string
+  size: WidgetSize;
+  id: string;
 }
 
 export function NextConceptWidget({ size, id }: WidgetProps) {
@@ -23,7 +23,7 @@ export function NextConceptWidget({ size, id }: WidgetProps) {
         </p>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export function CourseProgressWidget({ size, id }: WidgetProps) {
@@ -45,5 +45,5 @@ export function CourseProgressWidget({ size, id }: WidgetProps) {
         <Progress value={75} className="mt-2" />
       </CardContent>
     </Card>
-  )
+  );
 }

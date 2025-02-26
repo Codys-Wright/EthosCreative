@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { ResizableCard } from "./components/ResizableCard"
-import { useState } from "react"
+import { ResizableCard } from "./components/ResizableCard";
+import { useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -12,23 +12,23 @@ import {
   useSensors,
   DragStartEvent,
   DragEndEvent,
-} from "@dnd-kit/core"
+} from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   rectSortingStrategy,
-} from "@dnd-kit/sortable"
-import { SortableItem } from "./components/SortableItem"
-import { cn } from "@/lib/utils"
-import { ChartWidget } from "./components/ChartWidget"
+} from "@dnd-kit/sortable";
+import { SortableItem } from "./components/SortableItem";
+import { cn } from "@/lib/utils";
+import { ChartWidget } from "./components/ChartWidget";
 
-import { RecentCoursesWidget } from "./components/RecentCoursesWidget"
+import { RecentCoursesWidget } from "./components/RecentCoursesWidget";
 import {
   NextConceptWidget,
   CourseProgressWidget,
-} from "./components/CourseWidgets"
-import { useMediaQuery } from "@/hooks/use-media-query"
+} from "./components/CourseWidgets";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 import {
   ContextMenu,
@@ -39,24 +39,24 @@ import {
   ContextMenuSubContent,
   ContextMenuSubTrigger,
   ContextMenuSeparator,
-} from "@/components/ui/context-menu"
-import { WidgetPicker } from "./components/WidgetPicker"
-import { SavePresetDialog } from "./components/SavePresetDialog"
-import { useDashboardStore } from "./components/dashboard-store"
-import type { DashboardItem } from "./components/dashboard-store"
+} from "@/components/ui/context-menu";
+import { WidgetPicker } from "./components/WidgetPicker";
+import { SavePresetDialog } from "./components/SavePresetDialog";
+import { useDashboardStore } from "./components/dashboard-store";
+import type { DashboardItem } from "./components/dashboard-store";
 
 export function WidgetExamplePage() {
   const { items, setItems, presets, activePresetId, savePreset, applyPreset } =
-    useDashboardStore()
+    useDashboardStore();
 
-  const [activeId, setActiveId] = useState<string | null>(null)
-  const [isWidgetPickerOpen, setIsWidgetPickerOpen] = useState(false)
-  const [isSavePresetOpen, setIsSavePresetOpen] = useState(false)
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [isWidgetPickerOpen, setIsWidgetPickerOpen] = useState(false);
+  const [isSavePresetOpen, setIsSavePresetOpen] = useState(false);
 
   // Media queries for different screen sizes
-  const isLarge = useMediaQuery("(min-width: 1024px)") // lg breakpoint
-  const isMedium = useMediaQuery("(min-width: 768px) and (max-width: 1023px)") // md breakpoint
-  const isSmall = useMediaQuery("(max-width: 767px)") // sm breakpoint
+  const isLarge = useMediaQuery("(min-width: 1024px)"); // lg breakpoint
+  const isMedium = useMediaQuery("(min-width: 768px) and (max-width: 1023px)"); // md breakpoint
+  const isSmall = useMediaQuery("(max-width: 767px)"); // sm breakpoint
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -66,40 +66,42 @@ export function WidgetExamplePage() {
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
-  )
+    }),
+  );
 
   const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id.toString())
-  }
+    setActiveId(event.active.id.toString());
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
+    const { active, over } = event;
 
     if (over && active.id !== over.id) {
       const oldIndex = items.findIndex(
-        (item) => item.id === active.id.toString()
-      )
-      const newIndex = items.findIndex((item) => item.id === over.id.toString())
+        (item) => item.id === active.id.toString(),
+      );
+      const newIndex = items.findIndex(
+        (item) => item.id === over.id.toString(),
+      );
 
-      const newItems = arrayMove(items, oldIndex, newIndex)
-      setItems(newItems)
+      const newItems = arrayMove(items, oldIndex, newIndex);
+      setItems(newItems);
     }
 
-    setActiveId(null)
-  }
+    setActiveId(null);
+  };
 
   const handleResize = (id: string, colSpan: number, rowSpan: number) => {
     const newItems = items.map((item) =>
-      item.id === id ? { ...item, colSpan, rowSpan } : item
-    )
-    setItems(newItems)
-  }
+      item.id === id ? { ...item, colSpan, rowSpan } : item,
+    );
+    setItems(newItems);
+  };
 
   const handleWidgetChange = (
     id: string,
     widgetType: string,
-    size: { width: number; height: number }
+    size: { width: number; height: number },
   ) => {
     const newItems = items.map((item) =>
       item.id === id
@@ -109,15 +111,15 @@ export function WidgetExamplePage() {
             colSpan: size.width,
             rowSpan: size.height,
           }
-        : item
-    )
-    setItems(newItems)
-  }
+        : item,
+    );
+    setItems(newItems);
+  };
 
   const handleVisibilityChange = (
     id: string,
     breakpoint: "large" | "medium" | "small",
-    hidden: boolean
+    hidden: boolean,
   ) => {
     const newItems = items.map((item) =>
       item.id === id
@@ -127,10 +129,10 @@ export function WidgetExamplePage() {
             ...(breakpoint === "medium" && { hideInMedium: hidden }),
             ...(breakpoint === "small" && { hideInSmall: hidden }),
           }
-        : item
-    )
-    setItems(newItems)
-  }
+        : item,
+    );
+    setItems(newItems);
+  };
 
   const handleResetVisibility = () => {
     const newItems = items.map((item) => ({
@@ -138,17 +140,17 @@ export function WidgetExamplePage() {
       hideInLarge: false,
       hideInMedium: false,
       hideInSmall: false,
-    }))
-    setItems(newItems)
-  }
+    }));
+    setItems(newItems);
+  };
 
   const handleAddWidget = (
     widgetType: string,
-    size: { width: number; height: number }
+    size: { width: number; height: number },
   ) => {
     const newId = (
       Math.max(...items.map((item) => parseInt(item.id)), 0) + 1
-    ).toString()
+    ).toString();
     const newItems = [
       ...items,
       {
@@ -157,34 +159,34 @@ export function WidgetExamplePage() {
         colSpan: size.width,
         rowSpan: size.height,
       },
-    ]
-    setItems(newItems)
-    setIsWidgetPickerOpen(false)
-  }
+    ];
+    setItems(newItems);
+    setIsWidgetPickerOpen(false);
+  };
 
   const handleSavePreset = (name: string, presetId?: string) => {
-    savePreset(name, items, presetId)
-  }
+    savePreset(name, items, presetId);
+  };
 
   const handleApplyPreset = (presetId: string) => {
-    applyPreset(presetId)
-  }
+    applyPreset(presetId);
+  };
 
   const handleDeleteWidget = (id: string) => {
-    const newItems = items.filter((item) => item.id !== id)
-    setItems(newItems)
-  }
+    const newItems = items.filter((item) => item.id !== id);
+    setItems(newItems);
+  };
 
   const renderWidgetContent = (item: DashboardItem) => {
-    const size = { width: item.colSpan, height: item.rowSpan }
+    const size = { width: item.colSpan, height: item.rowSpan };
 
     switch (item.type) {
       case "recent-courses":
-        return <RecentCoursesWidget size={size} id={item.id} />
+        return <RecentCoursesWidget size={size} id={item.id} />;
       case "next-concept":
-        return <NextConceptWidget size={size} id={item.id} />
+        return <NextConceptWidget size={size} id={item.id} />;
       case "course-progress":
-        return <CourseProgressWidget size={size} id={item.id} />
+        return <CourseProgressWidget size={size} id={item.id} />;
       case "chart":
         return (
           <ChartWidget
@@ -192,39 +194,39 @@ export function WidgetExamplePage() {
             height={item.rowSpan}
             className="h-full"
           />
-        )
+        );
       case "empty":
         return (
           <div className="flex items-center justify-center h-full text-muted-foreground">
             Empty Widget
           </div>
-        )
+        );
       case "calendar":
         return (
           <div className="flex items-center justify-center h-full text-muted-foreground">
             Calendar Widget
           </div>
-        )
+        );
       default:
         return (
           <div className="flex items-center justify-center h-full text-muted-foreground">
             {item.type} Widget
           </div>
-        )
+        );
     }
-  }
+  };
 
   const activeItem = activeId
     ? items.find((item) => item.id === activeId)
-    : null
+    : null;
 
   // Filter out hidden items based on current breakpoint
   const visibleItems = items.filter((item) => {
-    if (isLarge) return !item.hideInLarge
-    if (isMedium) return !item.hideInMedium
-    if (isSmall) return !item.hideInSmall
-    return true
-  })
+    if (isLarge) return !item.hideInLarge;
+    if (isMedium) return !item.hideInMedium;
+    if (isSmall) return !item.hideInSmall;
+    return true;
+  });
 
   return (
     <div className="h-full overflow-auto p-8">
@@ -246,7 +248,7 @@ export function WidgetExamplePage() {
                 items={visibleItems.map((item) => item.id)}
                 strategy={rectSortingStrategy}
               >
-                <div 
+                <div
                   className={cn(
                     "min-h-full grid auto-rows-[110px] gap-4 [grid-auto-flow:dense] pb-8 w-full",
                     "grid-cols-2",
@@ -261,15 +263,15 @@ export function WidgetExamplePage() {
                     "7xl:grid-cols-18",
                     "8xl:grid-cols-20",
                     "9xl:grid-cols-22",
-                    "10xl:grid-cols-24"
+                    "10xl:grid-cols-24",
                   )}
                   style={{ gridAutoColumns: "1fr" }}
                 >
                   {visibleItems.map((item) => {
                     const itemClassName = cn(
                       item.colSpan && `col-span-${item.colSpan}`,
-                      item.rowSpan && `row-span-${item.rowSpan}`
-                    )
+                      item.rowSpan && `row-span-${item.rowSpan}`,
+                    );
 
                     return (
                       <SortableItem
@@ -302,7 +304,7 @@ export function WidgetExamplePage() {
                           {renderWidgetContent(item)}
                         </ResizableCard>
                       </SortableItem>
-                    )
+                    );
                   })}
                 </div>
               </SortableContext>
@@ -374,7 +376,7 @@ export function WidgetExamplePage() {
               className={cn(
                 "h-full shadow-2xl opacity-50",
                 activeItem.colSpan && `col-span-${activeItem.colSpan}`,
-                activeItem.rowSpan && `row-span-${activeItem.rowSpan}`
+                activeItem.rowSpan && `row-span-${activeItem.rowSpan}`,
               )}
             >
               {renderWidgetContent(activeItem)}
@@ -383,5 +385,5 @@ export function WidgetExamplePage() {
         </DragOverlay>
       </DndContext>
     </div>
-  )
+  );
 }
