@@ -18,7 +18,7 @@ export default function ArtistTypePage(
   }
   return (
     <main className="min-h-screen w-full py-20">
-      <BlogContentWithToc blog={artistType} />
+      <BlogContentWithToc blog={artistType} showAuthor={false} />
     </main>
   );
 }

@@ -9,6 +9,7 @@ import { Blog } from "../types/Blog";
 
 interface BlogContentWithTocProps {
   blog: Blog;
+  showAuthor?: boolean;
 }
 
 function extractHeadings(content: string) {
@@ -28,7 +29,7 @@ function extractHeadings(content: string) {
   return headings;
 }
 
-export function BlogContentWithToc({ blog }: BlogContentWithTocProps) {
+export function BlogContentWithToc({ blog, showAuthor = true }: BlogContentWithTocProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -57,26 +58,30 @@ export function BlogContentWithToc({ blog }: BlogContentWithTocProps) {
           <ReactMarkdown>{blog.content}</ReactMarkdown>
         </div>
 
-        <div className="mt-10 max-w-2xl">
-          <div className="h-px w-full bg-neutral-200 dark:bg-neutral-900" />
-          <div className="h-px w-full bg-neutral-100 dark:bg-neutral-800" />
-        </div>
-        <div className="mt-10 flex items-center">
-          <Image
-            src={blog.authorImage}
-            alt={blog.author}
-            className="h-8 w-8 rounded-full"
-            height={32}
-            width={32}
-          />
-          <p className="pl-2 text-sm text-neutral-600 dark:text-neutral-400">
-            {blog.author}
-          </p>
-          <div className="mx-2 h-1 w-1 rounded-full bg-neutral-200 dark:bg-neutral-700" />
-          <p className="pl-1 text-sm text-neutral-600 dark:text-neutral-400">
-            {formattedDate}
-          </p>
-        </div>
+        {showAuthor && (
+          <>
+          <div className="mt-10 max-w-2xl">
+            <div className="h-px w-full bg-neutral-200 dark:bg-neutral-900" />
+            <div className="h-px w-full bg-neutral-100 dark:bg-neutral-800" />
+          </div>
+          <div className="mt-10 flex items-center">
+            <Image
+              src={blog.authorImage}
+              alt={blog.author}
+              className="h-8 w-8 rounded-full"
+              height={32}
+              width={32}
+            />
+            <p className="pl-2 text-sm text-neutral-600 dark:text-neutral-400">
+              {blog.author}
+            </p>
+            <div className="mx-2 h-1 w-1 rounded-full bg-neutral-200 dark:bg-neutral-700" />
+            <p className="pl-1 text-sm text-neutral-600 dark:text-neutral-400">
+              {formattedDate}
+            </p>
+          </div>
+          </>
+        )}
       </div>
 
       {/* Image - shown at top on mobile and medium, right side on desktop */}
