@@ -6,7 +6,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/next-themes/theme-toggle";
-import { useSession, useListOrganizations } from "@/lib/auth-client";
+import { useSession } from "@/lib/auth-client";
+import { useMyArtistTypeOrg } from "@/lib/hooks/useMyArtistTypeOrg";
 
 interface NavbarProps {
   navItems: { name: string; link: string }[];
@@ -69,12 +70,7 @@ const DesktopNav = () => {
 
 const MobileNavToggle = () => {
   const [open, setOpen] = useState(false);
-  const { data: session } = useSession();
-  const { data: organizations } = useListOrganizations();
-  
-  const hasMyArtistTypeOrg = organizations?.some(
-    (org) => org.name === "MyArtistType"
-  );
+  const { isAuthenticated, isMyArtistTypeOrg } = useMyArtistTypeOrg();
 
   return (
     <>
@@ -131,7 +127,7 @@ const MobileNavToggle = () => {
             >
               <span>My Results</span>
             </Link>
-            {session?.session && hasMyArtistTypeOrg && (
+            {isAuthenticated && isMyArtistTypeOrg && (
               <Link
                 href="/dashboard"
                 className="text-foreground transition-colors hover:text-muted-foreground"
@@ -169,12 +165,7 @@ const Logo = () => {
 };
 
 const LoginButton = () => {
-  const { data: session } = useSession();
-  const { data: organizations } = useListOrganizations();
-  
-  const hasMyArtistTypeOrg = organizations?.some(
-    (org) => org.name === "MyArtistType"
-  );
+  const { isAuthenticated, isMyArtistTypeOrg } = useMyArtistTypeOrg();
 
   return (
     <>
@@ -185,7 +176,7 @@ const LoginButton = () => {
         My Results
       </Link>
       
-      {session?.session && hasMyArtistTypeOrg && (
+      {isAuthenticated && isMyArtistTypeOrg && (
         <Link
           href="/dashboard"
           className="hidden ml-2 rounded-lg bg-secondary px-6 py-3 text-base font-medium text-secondary-foreground transition-colors hover:bg-secondary/90 lg:block"

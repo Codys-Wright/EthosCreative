@@ -19,6 +19,7 @@ import type { AnalysisEngine, QuizAnalysisResult, ArtistType } from './analysis/
 import { ArtistTypeAnalysisEngine } from './analysis/artistTypeEngine'
 import { DefaultAnalysisEngine } from './analysis/engine'
 import { debounce } from 'lodash'
+import { useMyArtistTypeOrg } from '@/lib/hooks/useMyArtistTypeOrg'
 
 interface QuizTakerProps {
   quiz: Quiz
@@ -50,6 +51,11 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
     fillWithDefaultResponses,
     fillWithRandomResponses
   } = useQuizTakerStore()
+
+  const { isMyArtistTypeOrg } = useMyArtistTypeOrg();
+  
+  // Only show admin panel if user is admin or part of MyArtistType organization
+  const showAdminControls = isAdmin || isMyArtistTypeOrg;
 
   const [api, setApi] = React.useState<CarouselApi>()
   const [showResults, setShowResults] = React.useState(false)
@@ -290,7 +296,7 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
   return (
     <div className={cn(
       "flex flex-col",
-      isAdmin && !showAdminPanel ? "h-auto" : "h-full"
+      showAdminControls && !showAdminPanel ? "h-auto" : "h-full"
     )}>
       <div className="px-4 py-3 border-b flex items-center justify-between">
         <h2 className="text-lg font-bold">{quiz.title}</h2>
@@ -337,7 +343,7 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
 
       <div className={cn(
         "flex-1 flex flex-col overflow-hidden",
-        isAdmin && !showAdminPanel && "h-auto"
+        showAdminControls && !showAdminPanel && "h-auto"
       )}>
         <div className="flex-1 overflow-hidden">
           <div className="p-4">
@@ -351,12 +357,12 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
 
           <div className={cn(
             "overflow-hidden px-6",
-            isAdmin && !showAdminPanel ? "py-8" : "py-20",
-            isAdmin && !showAdminPanel ? "flex-none" : "flex-1"
+            showAdminControls && !showAdminPanel ? "py-8" : "py-20",
+            showAdminControls && !showAdminPanel ? "flex-none" : "flex-1"
           )}>
             <Carousel 
               className={cn(
-                isAdmin && !showAdminPanel ? "h-auto" : "h-full"
+                showAdminControls && !showAdminPanel ? "h-auto" : "h-full"
               )} 
               setApi={setApi}
               opts={{
@@ -369,7 +375,7 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
                   <CarouselItem key={question.id}>
                     <div className={cn(
                       "flex items-center justify-center",
-                      isAdmin && !showAdminPanel ? "h-auto" : "h-full"
+                      showAdminControls && !showAdminPanel ? "h-auto" : "h-full"
                     )}>
                         <Card className="w-full max-w-3xl mx-auto">
                         {showQuestionTitle && (
@@ -430,7 +436,7 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
           </div>
         </div>
 
-        {isAdmin && (
+        {showAdminControls && (
           <div className={showAdminPanel ? "p-4 border-t" : "p-2 border-t"}>
             <div className="flex justify-between items-center">
               <Button 
