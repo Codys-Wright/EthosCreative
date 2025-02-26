@@ -24,6 +24,7 @@ interface QuizTakerProps {
   quiz: Quiz
   analysisEngine?: AnalysisEngine
   onComplete?: (responses: { questionId: string; response: number | null }[], analysis: QuizAnalysisResult) => void
+  showQuestionTitle?: boolean
 }
 
 function formatTime(ms: number): string {
@@ -33,7 +34,7 @@ function formatTime(ms: number): string {
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
 }
 
-export function QuizTaker({ quiz, analysisEngine, onComplete }: QuizTakerProps) {
+export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle = false }: QuizTakerProps) {
   const {
     currentQuestionIndex,
     responses,
@@ -349,11 +350,13 @@ export function QuizTaker({ quiz, analysisEngine, onComplete }: QuizTakerProps) 
                   <CarouselItem key={question.id}>
                     <div className="h-full flex items-center justify-center">
                       <Card className="w-full max-w-3xl">
-                        <CardHeader>
-                          <CardTitle className="text-lg">
-                            {question.title}
-                          </CardTitle>
-                        </CardHeader>
+                        {showQuestionTitle && (
+                          <CardHeader>
+                            <CardTitle className="text-lg">
+                              {question.title}
+                            </CardTitle>
+                          </CardHeader>
+                        )}
                         <CardContent>
                           <div className="space-y-6">
                             <p className="text-lg">{question.content}</p>
