@@ -7,6 +7,7 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { useThemeStore } from "../store/use-theme-store";
 import Link from "next/link";
+import { useSession } from "@/lib/auth-client";
 
 export function HeroSection() {
   const quoteWords = `"Knowing yourself is the beginning of all wisdom" - Aristotle`;
@@ -14,6 +15,8 @@ export function HeroSection() {
   const { backgroundImage, setBackgroundImage, getInitialBackgroundImage } =
     useThemeStore();
   const [mounted, setMounted] = useState(false);
+  const { data: session } = useSession();
+  const isLoggedIn = !!session?.user;
 
   useEffect(() => {
     setMounted(true);
@@ -62,10 +65,10 @@ export function HeroSection() {
           </div>
           <div className="group relative z-10">
             <Link
-              href="/quiz"
+              href={isLoggedIn ? "/results" : "/quiz"}
               className="inline-block rounded-lg bg-primary px-8 py-3 text-lg font-medium text-primary-foreground shadow-[0px_-2px_0px_0px_rgba(0,0,0,0.4)_inset] transition-colors hover:bg-primary/90 md:py-4"
             >
-              {HeroData.buttonText}
+              {isLoggedIn ? "My Results" : HeroData.buttonText}
             </Link>
           </div>
         </div>
