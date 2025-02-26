@@ -1,1 +1,8 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run tests
 pnpm test
+
+# Check if package.json and pnpm-lock.yaml are in sync
+pnpm install --frozen-lockfile || (echo "Error: Your pnpm-lock.yaml is out of sync with package.json. Run 'pnpm install' to update it." && exit 1)

@@ -53,7 +53,7 @@ export function BlogContentWithToc({ blog }: BlogContentWithTocProps) {
           {blog.title}
         </h2>
 
-        <div className="prose prose-lg dark:prose-invert prose-headings:font-bold prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-p:text-lg prose-p:leading-relaxed prose-a:text-blue-500 prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-4 prose-strong:text-blue-500 prose-em:text-neutral-600 dark:prose-em:text-neutral-400 prose-ul:list-disc prose-ul:pl-6 prose-li:my-2 prose-img:rounded-xl mt-10 max-w-none">
+        <div className="prose prose-lg dark:prose-invert prose-headings:font-bold prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-p:text-lg prose-p:leading-relaxed prose-a:text-primary prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-strong:text-primary prose-em:text-neutral-600 dark:prose-em:text-neutral-400 prose-ul:list-disc prose-ul:pl-6 prose-li:my-2 prose-img:rounded-xl mt-10 max-w-none">
           <ReactMarkdown>{blog.content}</ReactMarkdown>
         </div>
 
