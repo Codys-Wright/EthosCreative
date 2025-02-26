@@ -55,7 +55,7 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
   const [showResults, setShowResults] = React.useState(false)
   const [defaultResponse, setDefaultResponse] = React.useState(5)
   const [currentTime, setCurrentTime] = React.useState(0)
-  const [showAdminPanel, setShowAdminPanel] = React.useState(true)
+  const [showAdminPanel, setShowAdminPanel] = React.useState(false)
   const [engine] = React.useState(() => 
     analysisEngine || new ArtistTypeAnalysisEngine(quiz.questions.map(q => q.id))
   )
@@ -89,7 +89,7 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
     }
   }, [debouncedUpdate])
 
-  const handleScoringConfigChange = React.useCallback((key: keyof typeof SCORING_CONFIG, value: string | null) => {
+  const handleScoringConfigChange = React.useCallback((key: keyof typeof inputValues, value: string | null) => {
     if (value === null) {
       (engine as ArtistTypeAnalysisEngine).updateScoringConfig({
         [key]: null
@@ -105,9 +105,10 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
     const numValue = Number(value)
     if (isNaN(numValue)) {
       // Reset to current value if invalid
+      const config = (engine as ArtistTypeAnalysisEngine).getScoringConfig();
       setInputValues(prev => ({
         ...prev,
-        [key]: String((engine as ArtistTypeAnalysisEngine).getScoringConfig()[key] ?? 0)
+        [key]: String(config[key as keyof typeof config] ?? 0)
       }))
       return
     }
@@ -213,7 +214,9 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
               className="mt-4"
               onClick={() => {
                 setShowResults(true)
-                onComplete?.(responses, engine.analyze(responses))
+                // Cast engine to include analyze method
+                const engineWithAnalyze = engine as unknown as { analyze: (responses: any) => QuizAnalysisResult };
+                onComplete?.(responses, engineWithAnalyze.analyze(responses))
               }}
             >
               View Results
@@ -285,7 +288,10 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className={cn(
+      "flex flex-col",
+      isAdmin && !showAdminPanel ? "h-auto" : "h-full"
+    )}>
       <div className="px-4 py-3 border-b flex items-center justify-between">
         <h2 className="text-lg font-bold">{quiz.title}</h2>
         <div className="flex items-center gap-2">
@@ -306,7 +312,9 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
               onClick={() => {
                 completeQuiz()
                 if (allQuestionsAnswered) {
-                  const analysis = engine.analyze(responses)
+                  // Cast engine to include analyze method
+                  const engineWithAnalyze = engine as unknown as { analyze: (responses: any) => QuizAnalysisResult };
+                  const analysis = engineWithAnalyze.analyze(responses)
                   onComplete?.(responses, analysis)
                 }
               }}
@@ -327,7 +335,10 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className={cn(
+        "flex-1 flex flex-col overflow-hidden",
+        isAdmin && !showAdminPanel && "h-auto"
+      )}>
         <div className="flex-1 overflow-hidden">
           <div className="p-4">
             <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
@@ -338,9 +349,15 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
             </div>
           </div>
 
-          <div className="flex-1 overflow-hidden px-6 py-20">
+          <div className={cn(
+            "overflow-hidden px-6",
+            isAdmin && !showAdminPanel ? "py-8" : "py-20",
+            isAdmin && !showAdminPanel ? "flex-none" : "flex-1"
+          )}>
             <Carousel 
-              className="h-full" 
+              className={cn(
+                isAdmin && !showAdminPanel ? "h-auto" : "h-full"
+              )} 
               setApi={setApi}
               opts={{
                 align: "start",
@@ -350,7 +367,10 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
               <CarouselContent>
                 {quiz.questions.map((question) => (
                   <CarouselItem key={question.id}>
-                    <div className="h-full flex items-center justify-center">
+                    <div className={cn(
+                      "flex items-center justify-center",
+                      isAdmin && !showAdminPanel ? "h-auto" : "h-full"
+                    )}>
                         <Card className="w-full max-w-3xl mx-auto">
                         {showQuestionTitle && (
                           <CardHeader>
@@ -411,8 +431,8 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
         </div>
 
         {isAdmin && (
-          <div className="p-4 border-t">
-            <div className="flex justify-between items-center mb-4">
+          <div className={showAdminPanel ? "p-4 border-t" : "p-2 border-t"}>
+            <div className="flex justify-between items-center">
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -426,7 +446,7 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
             </div>
             
             {showAdminPanel && (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 mt-4">
                 {/* Admin Analytics Card */}
                 <Card>
               <CardHeader className="pb-2">

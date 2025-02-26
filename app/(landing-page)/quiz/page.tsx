@@ -26,7 +26,7 @@ export default function QuizPage() {
     (org) => org.name === "MyArtistType"
   );
   return (
-    <div className="min-h-screen">
+    <div className="">
       <QuizTaker 
         quiz={defaultQuiz} 
         onComplete={handleQuizComplete}
