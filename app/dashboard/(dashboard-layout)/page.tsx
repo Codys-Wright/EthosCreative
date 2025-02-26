@@ -9,7 +9,7 @@ import { dashboardWidgets } from "@/components/widgets/widgets";
 
 function DashboardContent() {
   // Register our app-specific widgets
-  useRegisterWidgets(dashboardWidgets);
+  useRegisterWidgets(dashboardWidgets as any);
 
   return <WidgetExamplePage />;
 }
@@ -17,7 +17,7 @@ function DashboardContent() {
 export default function DashboardPage() {
   return (
     <WidgetProvider
-      initialWidgets={dashboardWidgets}
+      initialWidgets={dashboardWidgets as any}
       storeId="my-artist-type-dashboard"
     >
       <DashboardContent />

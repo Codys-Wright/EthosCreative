@@ -33,13 +33,13 @@ import {
 	useListOrganizations,
 	useSession,
 } from "@/lib/auth-client";
-import { ActiveOrganization, Session } from "@/lib/auth-types";
+import { ActiveOrganization, Session } from "@/lib/better-auth/auth-types";
 import { ChevronDownIcon, PlusIcon } from "@radix-ui/react-icons";
 import { Loader2, MailPlus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { AnimatePresence, motion } from "framer-motion";
-import CopyButton from "@/components/ui/copy-button";
+import CopyButton from "@/lib/better-auth/components/ui/copy-button";
 import Image from "next/image";
 
 export function OrganizationCard(props: {

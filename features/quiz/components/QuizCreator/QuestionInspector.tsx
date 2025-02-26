@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuizStore } from './store'
+import { Question, RatingQuestion } from './store'
 import type { QuestionType } from './store'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
@@ -20,6 +21,14 @@ export function QuestionInspector() {
   }
 
   const handleChange = (field: keyof typeof currentQuestion) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const value = e.target.type === 'number' ? Number(e.target.value) : e.target.value
+    updateQuestion(currentQuestion.id, { [field]: value })
+  }
+
+  // Type-safe handlers for specific question types
+  const handleRatingChange = (field: keyof RatingQuestion) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const value = e.target.type === 'number' ? Number(e.target.value) : e.target.value
@@ -86,7 +95,7 @@ export function QuestionInspector() {
                       <Input
                         type="number"
                         value={currentQuestion.min}
-                        onChange={handleChange('min')}
+                        onChange={handleRatingChange('min')}
                         min={0}
                       />
                     </div>
@@ -95,7 +104,7 @@ export function QuestionInspector() {
                       <Input
                         type="number"
                         value={currentQuestion.max}
-                        onChange={handleChange('max')}
+                        onChange={handleRatingChange('max')}
                         min={1}
                       />
                     </div>
@@ -105,7 +114,7 @@ export function QuestionInspector() {
                     <label className="text-sm font-medium">Minimum Label</label>
                     <Input
                       value={currentQuestion.minLabel}
-                      onChange={handleChange('minLabel')}
+                      onChange={handleRatingChange('minLabel')}
                       placeholder="e.g., Strongly Disagree"
                     />
                   </div>
@@ -114,7 +123,7 @@ export function QuestionInspector() {
                     <label className="text-sm font-medium">Maximum Label</label>
                     <Input
                       value={currentQuestion.maxLabel}
-                      onChange={handleChange('maxLabel')}
+                      onChange={handleRatingChange('maxLabel')}
                       placeholder="e.g., Strongly Agree"
                     />
                   </div>

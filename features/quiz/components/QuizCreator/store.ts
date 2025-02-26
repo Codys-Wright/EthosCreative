@@ -47,7 +47,7 @@ interface QuizStore {
   currentQuestionId: string | null
   setCurrentQuestionId: (id: string) => void
   setQuizData: (quiz: Quiz) => void
-  addQuestion: (question: Omit<Question, 'id'>) => void
+  addQuestion: (question: Omit<RatingQuestion, 'id'> | Omit<MultipleChoiceQuestion, 'id'> | Omit<TrueFalseQuestion, 'id'> | Omit<ShortAnswerQuestion, 'id'>) => void
   updateQuestion: (id: string, updates: Partial<Question>) => void
   removeQuestion: (id: string) => void
   exportQuiz: () => Quiz

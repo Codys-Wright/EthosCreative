@@ -358,7 +358,7 @@ export default function AdminDashboard() {
 										<TableCell>
 											<div className="flex items-center gap-3">
 												<Avatar>
-													<AvatarImage src={user.image} alt={user.name || ""} />
+													<AvatarImage src={user.image || undefined} alt={user.name || ""} />
 													<AvatarFallback>
 														{user.name
 															? user.name

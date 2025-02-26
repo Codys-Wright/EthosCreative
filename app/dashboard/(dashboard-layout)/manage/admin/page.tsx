@@ -20,7 +20,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { toast, Toaster } from "sonner";
-import { client } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth-client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import {
@@ -77,7 +77,7 @@ export default function AdminDashboard() {
 	const { data: users, isLoading: isUsersLoading } = useQuery({
 		queryKey: ["users"],
 		queryFn: async () => {
-			const data = await client.admin.listUsers(
+			const data = await authClient.admin.listUsers(
 				{
 					query: {
 						limit: 10,
@@ -97,7 +97,7 @@ export default function AdminDashboard() {
 		e.preventDefault();
 		setIsLoading("create");
 		try {
-			await client.admin.createUser({
+			await authClient.admin.createUser({
 				email: newUser.email,
 				password: newUser.password,
 				name: newUser.name,
@@ -119,7 +119,7 @@ export default function AdminDashboard() {
 	const handleDeleteUser = async (id: string) => {
 		setIsLoading(`delete-${id}`);
 		try {
-			await client.admin.removeUser({ userId: id });
+			await authClient.admin.removeUser({ userId: id });
 			toast.success("User deleted successfully");
 			queryClient.invalidateQueries({
 				queryKey: ["users"],
@@ -134,7 +134,7 @@ export default function AdminDashboard() {
 	const handleRevokeSessions = async (id: string) => {
 		setIsLoading(`revoke-${id}`);
 		try {
-			await client.admin.revokeUserSessions({ userId: id });
+			await authClient.admin.revokeUserSessions({ userId: id });
 			toast.success("Sessions revoked for user");
 		} catch (error: any) {
 			toast.error(error.message || "Failed to revoke sessions");
@@ -146,7 +146,7 @@ export default function AdminDashboard() {
 	const handleImpersonateUser = async (id: string) => {
 		setIsLoading(`impersonate-${id}`);
 		try {
-			await client.admin.impersonateUser({ userId: id });
+			await authClient.admin.impersonateUser({ userId: id });
 			toast.success("Impersonated user");
 			router.push("/dashboard");
 		} catch (error: any) {
@@ -163,7 +163,7 @@ export default function AdminDashboard() {
 			if (!banForm.expirationDate) {
 				throw new Error("Expiration date is required");
 			}
-			await client.admin.banUser({
+			await authClient.admin.banUser({
 				userId: banForm.userId,
 				banReason: banForm.reason,
 				banExpiresIn: banForm.expirationDate.getTime() - new Date().getTime(),
@@ -414,7 +414,7 @@ export default function AdminDashboard() {
 														});
 														if (user.banned) {
 															setIsLoading(`ban-${user.id}`);
-															await client.admin.unbanUser(
+															await authClient.admin.unbanUser(
 																{
 																	userId: user.id,
 																},

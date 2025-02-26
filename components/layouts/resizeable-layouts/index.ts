@@ -1,3 +1,10 @@
 export { default as ResizableLayout } from './ResizableLayout'
-export * from './types'
-export * from './usePanelStore' 
+export type { 
+  Panel, 
+  PanelPosition as PanelPositionType, 
+  PanelId as PanelIdType,
+  PanelsByPosition,
+  ActivePanelIds
+} from './types'
+export { validatePanels } from './types'
+export { usePanelStore } from './usePanelStore' 

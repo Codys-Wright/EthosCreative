@@ -1,14 +1,16 @@
-"use client";
+"use client";;
+import { use } from "react";
 
 import { BlogContentWithToc } from "@/landing-page/components/BlogContentWithToc";
 import { artistTypeContent } from "@/landing-page/data/ArtistTypeContent";
 import { notFound } from "next/navigation";
 
-export default function ArtistTypePage({
-  params,
-}: {
-  params: { type: string };
-}) {
+export default function ArtistTypePage(
+  props: {
+    params: Promise<{ type: string }>;
+  }
+) {
+  const params = use(props.params);
   const artistType = artistTypeContent[params.type];
 
   if (!artistType) {

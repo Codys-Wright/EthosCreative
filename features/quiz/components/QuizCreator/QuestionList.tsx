@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuizStore } from './store'
+import { Question, RatingQuestion } from './store'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Upload, Download, Plus } from 'lucide-react'

@@ -15,6 +15,7 @@ interface ResizablePanel {
   label: string
   icon: LucideIcon
   position: PanelPosition
+  defaultActive?: boolean
   shortcut?: {
     key: string
     ctrl?: boolean
