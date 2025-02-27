@@ -1,3 +1,2 @@
-export * from "./example.service";
-export * from "./example.hooks";
-export * from "./types";
+export * from "./service";
+export * from "./presentation";

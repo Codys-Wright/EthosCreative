@@ -1,15 +1,33 @@
-import { Example, NewExample } from "./types/example.type";
-import { Effect as E, Layer } from "effect";
-import {
-  ExampleNotFoundError,
-  ExampleCreateError,
-  ExampleUpdateError,
-  ExampleDeleteError,
-} from "./errors";
+import { Example, NewExample, ExampleId } from "./types/example.type";
+import { Effect as E, Layer, Schema as S } from "effect";
 import {
   NotFoundError,
+  ValidationError,
+  DatabaseError,
   UnexpectedError,
 } from "@/features/global/lib/errors/base-errors";
+
+// Mock data for examples
+const mockExamples: Example[] = [
+  {
+    id: "example-1",
+    content: "This is the first example",
+    createdAt: new Date("2023-01-15T10:30:00Z"),
+    updatedAt: new Date("2023-01-15T10:30:00Z"),
+  },
+  {
+    id: "example-2",
+    content: "This is the second example with more details",
+    createdAt: new Date("2023-02-20T14:45:00Z"),
+    updatedAt: new Date("2023-03-05T09:15:00Z"),
+  },
+  {
+    id: "example-3",
+    content: "Third example showing how to use the database",
+    createdAt: new Date("2023-04-10T16:20:00Z"),
+    updatedAt: new Date("2023-04-10T16:20:00Z"),
+  },
+];
 
 export class ExampleService extends E.Service<ExampleService>()(
   "ExampleService",
@@ -22,10 +40,9 @@ export class ExampleService extends E.Service<ExampleService>()(
         getAll: () =>
           E.gen(function* () {
             yield* E.log("Getting all examples");
-            // Simulate fetching data
-            const examples: Example[] = []; // Replace with actual data fetching
-            yield* E.annotateCurrentSpan("examples.count", examples.length);
-            return examples;
+            // Return mock data
+            yield* E.annotateCurrentSpan("examples.count", mockExamples.length);
+            return mockExamples;
           }).pipe(E.withSpan("ExampleService.getAll.implementation")),
 
         getById: (id: string) =>
@@ -34,15 +51,16 @@ export class ExampleService extends E.Service<ExampleService>()(
             yield* E.annotateCurrentSpan("example.id", id);
 
             try {
-              // Simulate fetching data
-              const example = {}; // Replace with actual data fetching
+              // Find example in mock data
+              const example = mockExamples.find((ex) => ex.id === id);
 
               // Check if example exists
               if (!example) {
                 yield* E.annotateCurrentSpan("example.found", false);
                 return yield* E.fail(
-                  new ExampleNotFoundError({
+                  new NotFoundError({
                     message: `Example with ID ${id} not found`,
+                    entity: "Example",
                     id,
                   }),
                 );
@@ -72,6 +90,18 @@ export class ExampleService extends E.Service<ExampleService>()(
             );
 
             try {
+              // Validate data
+              if (data.content && typeof data.content !== "string") {
+                yield* E.annotateCurrentSpan("validation.error", "true");
+                return yield* E.fail(
+                  new ValidationError({
+                    message: `Invalid value for field 'content' in Example`,
+                    field: "content",
+                    value: data.content,
+                  }),
+                );
+              }
+
               // Simulate updating data
               const updatedExample = { ...data, id }; // Replace with actual update logic
 
@@ -79,8 +109,9 @@ export class ExampleService extends E.Service<ExampleService>()(
               if (!updatedExample) {
                 yield* E.annotateCurrentSpan("update.success", false);
                 return yield* E.fail(
-                  new ExampleNotFoundError({
+                  new NotFoundError({
                     message: `Example with ID ${id} not found`,
+                    entity: "Example",
                     id,
                   }),
                 );
@@ -90,12 +121,12 @@ export class ExampleService extends E.Service<ExampleService>()(
               return updatedExample;
             } catch (error) {
               yield* E.annotateCurrentSpan("error", "true");
-              yield* E.annotateCurrentSpan("error.type", "update_failed");
+              yield* E.annotateCurrentSpan("error.type", "database_error");
               return yield* E.fail(
-                new ExampleUpdateError({
-                  message: `Failed to update example with ID ${id}`,
-                  id,
-                  data,
+                new DatabaseError({
+                  message: `Database error during update operation on Example`,
+                  operation: "update",
+                  entity: "Example",
                   cause: error,
                 }),
               );
@@ -111,6 +142,18 @@ export class ExampleService extends E.Service<ExampleService>()(
             );
 
             try {
+              // Validate data
+              if (data.content && typeof data.content !== "string") {
+                yield* E.annotateCurrentSpan("validation.error", "true");
+                return yield* E.fail(
+                  new ValidationError({
+                    message: `Invalid value for field 'content' in Example`,
+                    field: "content",
+                    value: data.content,
+                  }),
+                );
+              }
+
               // Simulate creating data
               const newId = `example-${Date.now()}`;
               const newExample = {
@@ -125,11 +168,12 @@ export class ExampleService extends E.Service<ExampleService>()(
               return newExample;
             } catch (error) {
               yield* E.annotateCurrentSpan("error", "true");
-              yield* E.annotateCurrentSpan("error.type", "create_failed");
+              yield* E.annotateCurrentSpan("error.type", "database_error");
               return yield* E.fail(
-                new ExampleCreateError({
-                  message: `Failed to create example`,
-                  input: data,
+                new DatabaseError({
+                  message: `Database error during create operation on Example`,
+                  operation: "create",
+                  entity: "Example",
                   cause: error,
                 }),
               );
@@ -149,8 +193,9 @@ export class ExampleService extends E.Service<ExampleService>()(
               if (!success) {
                 yield* E.annotateCurrentSpan("delete.success", false);
                 return yield* E.fail(
-                  new ExampleNotFoundError({
+                  new NotFoundError({
                     message: `Example with ID ${id} not found`,
+                    entity: "Example",
                     id,
                   }),
                 );
@@ -160,11 +205,12 @@ export class ExampleService extends E.Service<ExampleService>()(
               return { success: true, id };
             } catch (error) {
               yield* E.annotateCurrentSpan("error", "true");
-              yield* E.annotateCurrentSpan("error.type", "delete_failed");
+              yield* E.annotateCurrentSpan("error.type", "database_error");
               return yield* E.fail(
-                new ExampleDeleteError({
-                  message: `Failed to delete example with ID ${id}`,
-                  id,
+                new DatabaseError({
+                  message: `Database error during delete operation on Example`,
+                  operation: "delete",
+                  entity: "Example",
                   cause: error,
                 }),
               );
@@ -173,6 +219,4 @@ export class ExampleService extends E.Service<ExampleService>()(
       };
     }),
   },
-) {
-  //
-}
+) {}
