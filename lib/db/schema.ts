@@ -170,3 +170,10 @@ export const crmObject = pgTable("crm_object", {
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at"),
 });
+
+export const example = pgTable("example", {
+  id: text("id").primaryKey(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
+});

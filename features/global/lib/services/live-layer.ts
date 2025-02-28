@@ -1,6 +1,6 @@
 import { NetworkMonitor } from "./network-monitor";
 import { Layer, Logger, ManagedRuntime, pipe } from "effect";
-import { ExampleService } from "@/features/example/service";
+import { ExampleService } from "@/features/example";
 import { SpansExportLive } from "./tracing";
 
 // Create a layer with all services and tracing

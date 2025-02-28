@@ -7,7 +7,7 @@ import {
   useCreate,
   useUpdate,
   useDelete,
-} from "../../service/example.hooks";
+} from "../../example.hooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,7 +19,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
-import type { Example } from "../../service/types/example.type";
+import type { Example } from "../../types/example.type";
 
 export const ExampleComponent = () => {
   const [content, setContent] = useState("");
