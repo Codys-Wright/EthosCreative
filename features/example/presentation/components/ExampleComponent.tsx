@@ -1018,373 +1018,267 @@ export const ExampleComponent = () => {
   };
 
   return (
-    <div className="space-y-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Create New Example</CardTitle>
-          <CardDescription>Add a new example to the database</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4">
-            <div>
-              <label htmlFor="title" className="text-sm font-medium block mb-1.5">
-                Title <span className="text-muted-foreground">(optional)</span>
-              </label>
-              <Input
-                id="title"
-                placeholder="Enter title"
-                value={title}
-                onChange={(e) => handleInputChange(e, setTitle)}
-              />
-            </div>
-            <div>
-              <label htmlFor="subtitle" className="text-sm font-medium block mb-1.5">
-                Subtitle <span className="text-muted-foreground">(optional)</span>
-              </label>
-              <Input
-                id="subtitle"
-                placeholder="Enter subtitle"
-                value={subtitle}
-                onChange={(e) => handleInputChange(e, setSubtitle)}
-              />
-            </div>
-            <div>
-              <label htmlFor="content" className="text-sm font-medium block mb-1.5">
-                Content <span className="text-muted-foreground">(required)</span>
-              </label>
-              <Input
-                id="content"
-                ref={contentInputRef}
-                placeholder="Enter content"
-                value={content}
-                onChange={(e) => handleInputChange(e, setContent)}
-              />
-            </div>
-            <div>
-              <Button onClick={handleCreate} disabled={createMutation.isPending || !content.trim()} className="w-full">
-                {createMutation.isPending ? "Creating..." : "Create Example"}
-              </Button>
-            </div>
+    <div className="container mx-auto py-8 max-w-7xl">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Examples</h1>
+            <p className="text-muted-foreground mt-1">
+              Manage and view all examples in the database
+            </p>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Manage Example</CardTitle>
-          <CardDescription>
-            Update or delete an existing example
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <Input
-              placeholder="Enter example ID"
-              value={exampleId}
-              onChange={(e) => handleInputChange(e, setExampleId)}
-            />
-            <Button onClick={handleFetchById} disabled={isLoadingSingle}>
-              {isLoadingSingle ? "Loading..." : "Fetch"}
-            </Button>
-          </div>
-
-          {singleExample && isExample(singleExample) && (
-            <div className="p-4 border rounded-md bg-muted">
-              <p>
-                <strong>ID:</strong> {singleExample.id}
-              </p>
-              <p>
-                <strong>Title:</strong> {singleExample.title}
-              </p>
-              <p>
-                <strong>Subtitle:</strong> {singleExample.subtitle || "—"}
-              </p>
-              <p>
-                <strong>Content:</strong> {singleExample.content}
-              </p>
-              <p>
-                <strong>Created:</strong> {formatDate(singleExample.createdAt)}
-              </p>
-              <p>
-                <strong>Updated:</strong> {formatDate(singleExample.updatedAt)}
-              </p>
-            </div>
-          )}
-
-          <div className="grid gap-4">
-            <div>
-              <label htmlFor="update-title" className="text-sm font-medium block mb-1.5">
-                Title <span className="text-muted-foreground">(optional)</span>
-              </label>
-              <Input
-                id="update-title"
-                placeholder="New title"
-                value={title}
-                onChange={(e) => handleInputChange(e, setTitle)}
-              />
-            </div>
-            <div>
-              <label htmlFor="update-subtitle" className="text-sm font-medium block mb-1.5">
-                Subtitle <span className="text-muted-foreground">(optional)</span>
-              </label>
-              <Input
-                id="update-subtitle"
-                placeholder="New subtitle"
-                value={subtitle}
-                onChange={(e) => handleInputChange(e, setSubtitle)}
-              />
-            </div>
-            <div>
-              <label htmlFor="update-content" className="text-sm font-medium block mb-1.5">
-                Content <span className="text-muted-foreground">(required)</span>
-              </label>
-              <Input
-                id="update-content"
-                placeholder="New content"
-                value={content}
-                onChange={(e) => handleInputChange(e, setContent)}
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button onClick={handleUpdate} disabled={updateMutation.isPending} className="flex-1">
-                {updateMutation.isPending ? "Updating..." : "Update"}
-              </Button>
+          
+          {/* New Example Dialog */}
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
               <Button
-                onClick={handleDelete}
-                disabled={deleteMutation.isPending}
-                variant="destructive"
-                className="flex-1"
+                variant="default"
+                size="default"
+                className="gap-2"
               >
-                {deleteMutation.isPending ? "Deleting..." : "Delete"}
+                <Plus className="h-4 w-4" /> New Example
               </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Create New Example</DialogTitle>
+                <DialogDescription>
+                  Add a new example to the database.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="modal-title" className="text-right text-sm font-medium">
+                    Title <span className="text-muted-foreground text-xs">(optional)</span>
+                  </label>
+                  <Input
+                    id="modal-title"
+                    placeholder="Enter title"
+                    value={newExampleTitle}
+                    onChange={(e) => handleInputChange(e, setNewExampleTitle)}
+                    className="col-span-3"
+                    autoFocus
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="modal-subtitle" className="text-right text-sm font-medium">
+                    Subtitle <span className="text-muted-foreground text-xs">(optional)</span>
+                  </label>
+                  <Input
+                    id="modal-subtitle"
+                    placeholder="Enter subtitle"
+                    value={newExampleSubtitle}
+                    onChange={(e) => handleInputChange(e, setNewExampleSubtitle)}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="modal-content" className="text-right text-sm font-medium">
+                    Content <span className="text-muted-foreground text-xs">(required)</span>
+                  </label>
+                  <Input
+                    id="modal-content"
+                    placeholder="Enter content"
+                    value={newExampleContent}
+                    onChange={(e) => handleInputChange(e, setNewExampleContent)}
+                    className="col-span-3"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button 
+                  type="submit" 
+                  onClick={handleCreateFromModal}
+                  disabled={createMutation.isPending}
+                >
+                  {createMutation.isPending ? "Creating..." : "Create Example"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>All Examples</CardTitle>
-          <CardDescription>
-            List of all examples in the database
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoadingExamples ? (
-            <p>Loading examples...</p>
-          ) : (
-            <div className="w-full">
-              <div className="flex items-center py-4 justify-between">
-                <div className="flex items-center gap-2">
-                  <Input
-                    placeholder="Filter by content..."
-                    value={(table.getColumn("content")?.getFilterValue() as string) ?? ""}
-                    onChange={(event) => {
-                      const column = table.getColumn("content");
-                      if (column) {
-                        handleFilterChange(event, (value) => column.setFilterValue(value));
-                      }
-                    }}
-                    className="max-w-sm"
-                  />
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline">
-                        Columns <ChevronDown className="ml-2 h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {table
-                        .getAllColumns()
-                        .filter((column) => column.getCanHide())
-                        .map((column) => {
-                          return (
-                            <DropdownMenuCheckboxItem
-                              key={column.id}
-                              className="capitalize"
-                              checked={column.getIsVisible()}
-                              onCheckedChange={(value) =>
-                                column.toggleVisibility(!!value)
-                              }
-                            >
-                              {column.id}
-                            </DropdownMenuCheckboxItem>
-                          )
-                        })}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-                
-                {/* Global search bar */}
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search all fields..."
-                    value={globalFilter ?? ""}
-                    onChange={(event) => {
-                      handleFilterChange(event, setGlobalFilter);
-                    }}
-                    className="pl-8 w-[250px]"
-                  />
-                </div>
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>All Examples</CardTitle>
+                <CardDescription>
+                  View and manage your examples
+                </CardDescription>
               </div>
-              <div className="rounded-md border">
-                <Table className="table-fixed">
-                  <TableHeader>
-                    {table.getHeaderGroups().map((headerGroup) => (
-                      <TableRow key={headerGroup.id}>
-                        {headerGroup.headers.map((header) => {
-                          return (
-                            <TableHead key={header.id}>
-                              {header.isPlaceholder
-                                ? null
-                                : flexRender(
-                                    header.column.columnDef.header,
-                                    header.getContext()
-                                  )}
-                            </TableHead>
-                          )
-                        })}
-                      </TableRow>
-                    ))}
-                  </TableHeader>
-                  <TableBody>
-                    {table.getRowModel().rows?.length ? (
-                      table.getRowModel().rows.map((row) => (
-                        <TableRow
-                          key={row.id}
-                          data-state={row.getIsSelected() && "selected"}
-                        >
-                          {row.getVisibleCells().map((cell) => (
-                            <TableCell 
-                              key={cell.id} 
-                              style={{ 
-                                maxWidth: `${cell.column.getSize()}px`,
-                                width: `${cell.column.getSize()}px`
-                              }}
-                              className="overflow-hidden whitespace-nowrap text-ellipsis"
-                            >
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext()
-                              )}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell
-                          colSpan={columns.length}
-                          className="h-24 text-center"
-                        >
-                          No examples found.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-              <div className="flex items-center justify-end space-x-2 py-4">
-                <div className="flex-1 text-sm text-muted-foreground">
-                  {table.getFilteredSelectedRowModel().rows.length} of{" "}
-                  {table.getFilteredRowModel().rows.length} row(s) selected.
-                </div>
-                <div className="space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => table.previousPage()}
-                    disabled={!table.getCanPreviousPage()}
-                  >
-                    Previous
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => table.nextPage()}
-                    disabled={!table.getCanNextPage()}
-                  >
-                    Next
-                  </Button>
-                  
-                  {/* New Example Dialog */}
-                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="default"
-                        size="sm"
-                        className="ml-4"
-                      >
-                        <Plus className="mr-2 h-4 w-4" /> New Example
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
-                      <DialogHeader>
-                        <DialogTitle>Create New Example</DialogTitle>
-                        <DialogDescription>
-                          Add a new example to the database.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <label htmlFor="modal-title" className="text-right text-sm font-medium">
-                            Title <span className="text-muted-foreground text-xs">(optional)</span>
-                          </label>
-                          <Input
-                            id="modal-title"
-                            placeholder="Enter title"
-                            value={newExampleTitle}
-                            onChange={(e) => handleInputChange(e, setNewExampleTitle)}
-                            className="col-span-3"
-                            autoFocus
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <label htmlFor="modal-subtitle" className="text-right text-sm font-medium">
-                            Subtitle <span className="text-muted-foreground text-xs">(optional)</span>
-                          </label>
-                          <Input
-                            id="modal-subtitle"
-                            placeholder="Enter subtitle"
-                            value={newExampleSubtitle}
-                            onChange={(e) => handleInputChange(e, setNewExampleSubtitle)}
-                            className="col-span-3"
-                          />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <label htmlFor="modal-content" className="text-right text-sm font-medium">
-                            Content <span className="text-muted-foreground text-xs">(required)</span>
-                          </label>
-                          <Input
-                            id="modal-content"
-                            placeholder="Enter content"
-                            value={newExampleContent}
-                            onChange={(e) => handleInputChange(e, setNewExampleContent)}
-                            className="col-span-3"
-                          />
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button 
-                          type="submit" 
-                          onClick={handleCreateFromModal}
-                          disabled={createMutation.isPending}
-                        >
-                          {createMutation.isPending ? "Creating..." : "Create Example"}
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => refetchExamples()}
+                  className="gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-refresh-cw"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
+                  Refresh
+                </Button>
               </div>
             </div>
-          )}
-        </CardContent>
-        <CardFooter>
-          <Button onClick={() => refetchExamples()}>Refresh List</Button>
-        </CardFooter>
-      </Card>
+          </CardHeader>
+          <CardContent>
+            {isLoadingExamples ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="flex flex-col items-center gap-2">
+                  <svg className="animate-spin h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <p className="text-sm text-muted-foreground">Loading examples...</p>
+                </div>
+              </div>
+            ) : (
+              <div className="w-full">
+                <div className="flex items-center py-4 justify-between">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      placeholder="Filter by content..."
+                      value={(table.getColumn("content")?.getFilterValue() as string) ?? ""}
+                      onChange={(event) => {
+                        const column = table.getColumn("content");
+                        if (column) {
+                          handleFilterChange(event, (value) => column.setFilterValue(value));
+                        }
+                      }}
+                      className="max-w-sm"
+                    />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline">
+                          Columns <ChevronDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {table
+                          .getAllColumns()
+                          .filter((column) => column.getCanHide())
+                          .map((column) => {
+                            return (
+                              <DropdownMenuCheckboxItem
+                                key={column.id}
+                                className="capitalize"
+                                checked={column.getIsVisible()}
+                                onCheckedChange={(value) =>
+                                  column.toggleVisibility(!!value)
+                                }
+                              >
+                                {column.id}
+                              </DropdownMenuCheckboxItem>
+                            )
+                          })}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  
+                  {/* Global search bar */}
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search all fields..."
+                      value={globalFilter ?? ""}
+                      onChange={(event) => {
+                        handleFilterChange(event, setGlobalFilter);
+                      }}
+                      className="pl-8 w-[250px]"
+                    />
+                  </div>
+                </div>
+                <div className="rounded-md border">
+                  <Table className="table-fixed">
+                    <TableHeader>
+                      {table.getHeaderGroups().map((headerGroup) => (
+                        <TableRow key={headerGroup.id}>
+                          {headerGroup.headers.map((header) => {
+                            return (
+                              <TableHead key={header.id}>
+                                {header.isPlaceholder
+                                  ? null
+                                  : flexRender(
+                                      header.column.columnDef.header,
+                                      header.getContext()
+                                    )}
+                              </TableHead>
+                            )
+                          })}
+                        </TableRow>
+                      ))}
+                    </TableHeader>
+                    <TableBody>
+                      {table.getRowModel().rows?.length ? (
+                        table.getRowModel().rows.map((row) => (
+                          <TableRow
+                            key={row.id}
+                            data-state={row.getIsSelected() && "selected"}
+                          >
+                            {row.getVisibleCells().map((cell) => (
+                              <TableCell 
+                                key={cell.id} 
+                                style={{ 
+                                  maxWidth: `${cell.column.getSize()}px`,
+                                  width: `${cell.column.getSize()}px`
+                                }}
+                                className="overflow-hidden whitespace-nowrap text-ellipsis"
+                              >
+                                {flexRender(
+                                  cell.column.columnDef.cell,
+                                  cell.getContext()
+                                )}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell
+                            colSpan={columns.length}
+                            className="h-24 text-center"
+                          >
+                            <div className="flex flex-col items-center justify-center py-8 gap-2">
+                              <div className="rounded-full bg-muted p-3">
+                                <Search className="h-6 w-6 text-muted-foreground" />
+                              </div>
+                              <p className="text-muted-foreground font-medium">No examples found</p>
+                              <p className="text-sm text-muted-foreground">Try adjusting your search or filters</p>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+                <div className="flex items-center justify-between space-x-2 py-4">
+                  <div className="flex-1 text-sm text-muted-foreground">
+                    {table.getFilteredSelectedRowModel().rows.length} of{" "}
+                    {table.getFilteredRowModel().rows.length} row(s) selected.
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => table.previousPage()}
+                      disabled={!table.getCanPreviousPage()}
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => table.nextPage()}
+                      disabled={!table.getCanNextPage()}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Full Edit Dialog */}
       <Dialog open={isFullEditOpen} onOpenChange={setIsFullEditOpen}>
