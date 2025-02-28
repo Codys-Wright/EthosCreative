@@ -178,4 +178,5 @@ export const example = pgTable("example", {
   content: text("content").notNull(),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
+  deletedAt: timestamp("deleted_at"),
 });

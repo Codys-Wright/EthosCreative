@@ -102,6 +102,9 @@ export const ExampleComponent = () => {
   const [fullEditSubtitle, setFullEditSubtitle] = useState("");
   const [fullEditContent, setFullEditContent] = useState("");
   const [fullEditTab, setFullEditTab] = useState("content");
+  // Add debouncing for auto-search
+  const [debouncedExampleId, setDebouncedExampleId] = useState("");
+  const [isAutoSearching, setIsAutoSearching] = useState(false);
 
   // Get all examples
   const {
@@ -127,6 +130,25 @@ export const ExampleComponent = () => {
   const deleteMutation = useDelete();
 
   const queryClient = useQueryClient();
+
+  // Debounce the example ID for auto-search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedExampleId(exampleId);
+    }, 500); // 500ms debounce time
+
+    return () => clearTimeout(timer);
+  }, [exampleId]);
+
+  // Auto-search when debounced ID changes
+  useEffect(() => {
+    if (debouncedExampleId.trim()) {
+      setIsAutoSearching(true);
+      refetchSingle().finally(() => {
+        setIsAutoSearching(false);
+      });
+    }
+  }, [debouncedExampleId, refetchSingle]);
 
   const handleCreate = () => {
     if (!content) {
@@ -1276,6 +1298,132 @@ export const ExampleComponent = () => {
                 </div>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Search Example by ID Card */}
+        <Card className="shadow-sm mt-6">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Find Example by ID</CardTitle>
+                <CardDescription>
+                  Search for a specific example using its ID
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <Input
+                    placeholder="Enter example ID"
+                    value={exampleId}
+                    onChange={(e) => setExampleId(e.target.value)}
+                    className="w-full"
+                    aria-label="Search for example by ID"
+                  />
+                </div>
+                {isAutoSearching && (
+                  <div className="flex items-center">
+                    <svg className="animate-spin h-5 w-5 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </div>
+                )}
+              </div>
+              
+              <div className="text-xs text-muted-foreground">
+                Start typing an ID to automatically search
+              </div>
+              
+              {isLoadingSingle && !isAutoSearching && (
+                <div className="flex justify-center items-center py-8">
+                  <div className="flex flex-col items-center gap-2">
+                    <svg className="animate-spin h-6 w-6 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p className="text-sm text-muted-foreground">Searching...</p>
+                  </div>
+                </div>
+              )}
+              
+              {!isLoadingSingle && singleExample && isExample(singleExample) && (
+                <div className="rounded-md border p-4 mt-4">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="text-lg font-semibold">
+                          {singleExample.title || "Untitled Example"}
+                        </h3>
+                        {singleExample.subtitle && (
+                          <p className="text-sm text-muted-foreground">{singleExample.subtitle}</p>
+                        )}
+                      </div>
+                      <Badge variant="outline" className="font-mono text-xs py-1">
+                        {singleExample.id}
+                      </Badge>
+                    </div>
+                    
+                    <div className="p-4 rounded-md bg-muted">
+                      <p className="whitespace-pre-wrap break-words">{singleExample.content}</p>
+                    </div>
+                    
+                    <div className="flex justify-between items-center text-sm text-muted-foreground">
+                      <div>Created: {formatDate(singleExample.createdAt)}</div>
+                      <div>Updated: {formatDate(singleExample.updatedAt)}</div>
+                    </div>
+                    
+                    <div className="flex justify-end gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(singleExample.id);
+                          toast.success("ID copied to clipboard");
+                        }}
+                        className="gap-1"
+                      >
+                        <Copy className="h-3 w-3" /> Copy ID
+                      </Button>
+                      
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(singleExample.content);
+                          toast.success("Content copied to clipboard");
+                        }}
+                        className="gap-1"
+                      >
+                        <Copy className="h-3 w-3" /> Copy Content
+                      </Button>
+                      
+                      <Button 
+                        size="sm"
+                        onClick={() => handleOpenFullEdit(singleExample)}
+                        className="gap-1"
+                      >
+                        <Edit className="h-3 w-3" /> Edit
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {!isLoadingSingle && exampleId && !singleExample && (
+                <div className="rounded-md border border-destructive p-4 mt-4 bg-destructive/5 text-center">
+                  <div className="flex flex-col items-center gap-2 py-4">
+                    <X className="h-6 w-6 text-destructive" />
+                    <p className="font-medium">Example not found</p>
+                    <p className="text-sm text-muted-foreground">No example found with ID: {exampleId}</p>
+                  </div>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>

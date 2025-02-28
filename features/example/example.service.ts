@@ -16,154 +16,81 @@ export class ExampleService extends E.Service<ExampleService>()(
 
     effect: E.gen(function* () {
       const db = yield* Database;
-      
+
       return {
         getAll: () =>
           E.gen(function* () {
-            yield* E.log("Getting all examples");
-            yield* E.annotateCurrentSpan("examples.count", "fetching");
-
-            const examples = yield* db.findMany("example");
-
-            yield* E.annotateCurrentSpan("examples.count", examples.length);
-            return examples;
+            // Fetch all examples
+            const response = yield* db.findMany("example");
+            
+            // Validate all examples
+            const validatedExamples = response.map((ex) =>
+              S.decodeSync(Example)(ex as any)
+            );
+            
+            // Filter out examples with deletedAt not null
+            const activeExamples = validatedExamples.filter(example => 
+              example.deletedAt === null
+            );
+            
+            return activeExamples;
           }).pipe(E.withSpan("ExampleService.getAll.implementation")),
 
         getById: (id: string) =>
           E.gen(function* () {
-            yield* E.log(`Getting example with id ${id}`);
-            yield* E.annotateCurrentSpan("example.id", id);
-
-            const example = yield* db.findById("example", id);
-
-            // Check if example exists
-            if (!example) {
-              yield* E.annotateCurrentSpan("example.found", false);
-              return yield* E.fail(
-                new NotFoundError({
-                  message: `Example with ID ${id} not found`,
-                  entity: "Example",
-                  id,
-                }),
-              );
+            // Only fetch non-deleted records where id matches
+            const response = yield* db.findById("example", id);
+            
+            // Check if the record is deleted
+            if (response && (response as any).deletedAt) {
+              return E.fail(new NotFoundError({
+                message: `Example with id ${id} has been deleted`,
+                entity: "example",
+                id
+              }));
             }
 
-            yield* E.annotateCurrentSpan("example.found", true);
-            return example;
+            // Use as any to bypass TypeScript's type checking, since S.decodeSync will validate at runtime
+            return S.decodeSync(Example)(response as any);
           }).pipe(E.withSpan("ExampleService.getById.implementation")),
 
         update: (id: string, data: Partial<Example>) =>
           E.gen(function* () {
-            yield* E.log(`Updating example: ${id}`);
-            yield* E.annotateCurrentSpan("example.id", id);
-            yield* E.annotateCurrentSpan(
-              "update.fields",
-              Object.keys(data).join(","),
-            );
-
-            // Validate data
-            if (data.content && typeof data.content !== "string") {
-              yield* E.annotateCurrentSpan("validation.error", "true");
-              return yield* E.fail(
-                new ValidationError({
-                  message: `Invalid value for field 'content' in Example`,
-                  field: "content",
-                  value: data.content,
-                }),
-              );
-            }
-
             // Prepare update data
-            const updateData: Record<string, any> = {};
-            if (data.content) {
-              updateData.content = data.content;
-            }
-            updateData.updatedAt = new Date();
 
             // Update the example
-            const updatedExample = yield* db.update("example", id, updateData);
+            const updatedExample = yield* db.update("example", id, data);
 
-            // Check if example exists
-            if (!updatedExample) {
-              yield* E.annotateCurrentSpan("update.success", false);
-              return yield* E.fail(
-                new NotFoundError({
-                  message: `Example with ID ${id} not found`,
-                  entity: "Example",
-                  id,
-                }),
-              );
-            }
-
-            yield* E.annotateCurrentSpan("update.success", true);
             return updatedExample;
           }).pipe(E.withSpan("ExampleService.update.implementation")),
 
-        create: (data: Partial<NewExample>) =>
+        create: (data: NewExample) =>
           E.gen(function* () {
-            yield* E.log("Creating new example");
-            yield* E.annotateCurrentSpan(
-              "create.fields",
-              Object.keys(data).join(","),
-            );
-
-            // Validate data
-            if (data.content && typeof data.content !== "string") {
-              yield* E.annotateCurrentSpan("validation.error", "true");
-              return yield* E.fail(
-                new ValidationError({
-                  message: `Invalid value for field 'content' in Example`,
-                  field: "content",
-                  value: data.content,
-                }),
-              );
-            }
-
             // Create the example
-            const newExample = yield* db.insert("example", {
-              id: `example-${Date.now()}`,
-              content: data.content,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            });
+            const newExample = yield* db.insert("example", data);
 
-            yield* E.annotateCurrentSpan("example.id", (newExample as any).id);
-            yield* E.annotateCurrentSpan("create.success", true);
             return newExample;
           }).pipe(E.withSpan("ExampleService.create.implementation")),
 
+        // Soft delete implementation
         delete: (id: string) =>
           E.gen(function* () {
-            yield* E.log(`Deleting example: ${id}`);
-            yield* E.annotateCurrentSpan("example.id", id);
+            // Instead of deleting, update the deletedAt field to current timestamp
+            yield* db.update("example", id, { 
+              deletedAt: new Date() 
+            });
 
-            // Delete the example
-            yield* db.delete("example", id);
-            
-            yield* E.annotateCurrentSpan("delete.success", true);
             return { success: true, id };
           }).pipe(E.withSpan("ExampleService.delete.implementation")),
 
-        // Example of using a custom query
-        getByContent: (content: string) =>
+        // Add a method for permanent deletion if needed
+        permanentDeath: (id: string) =>
           E.gen(function* () {
-            yield* E.log(`Getting examples with content containing: ${content}`);
-            yield* E.annotateCurrentSpan("search.term", content);
+            // Actually delete the record from the database
+            yield* db.delete("example", id);
 
-            const examples = yield* db.execute<any[]>(
-              (dbInstance) => 
-                dbInstance.query.example.findMany({
-                  where: (exampleTable: any, { like }: any) => like(exampleTable.content, `%${content}%`)
-                }),
-              { 
-                operation: "search", 
-                entity: "Example" 
-              }
-            );
-
-            yield* E.annotateCurrentSpan("examples.count", examples.length);
-            return examples;
-          }).pipe(E.withSpan("ExampleService.getByContent.implementation")),
+            return { success: true, id };
+          }).pipe(E.withSpan("ExampleService.permanentDeath.implementation")),
       };
     }),
   },
