@@ -28,17 +28,21 @@ export namespace ExampleOperations {
   // Create a typed query key creator that accepts variables
   export const exampleQueryKey = createQueryKey<"example", ExampleVars>("example");
   
-  // Create a single query data helper for managing cache data - we'll use the list approach
+  // Create a single query data helper for managing cache data
   const exampleData = createQueryDataHelpers<Example[], ExampleVars>(exampleQueryKey);
+
+ 
 
   export const useGetAll = () => {
     return useEffectQuery({
       queryKey: exampleQueryKey({}), // Empty variables for the collection
       queryFn: () => 
         ExampleService.getAll().pipe(
-          E.withSpan("ExampleService.getAll")
+          E.withSpan("ExampleService.getAll"),
         ),
-      staleTime: "5 minutes",
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
     });
   };
 
@@ -58,27 +62,12 @@ export namespace ExampleOperations {
                 })
               : new ExampleError({ message: String(error) }),
           ),
-          // After successfully fetching, update the list cache if it exists
-          E.tap((example) => E.sync(() => {
-            // Get the current list from cache (if it exists)
-            const currentList = queryClient.getQueryData<Example[]>(exampleQueryKey({}));
-            
-            // If we have a list, update the example in it
-            if (currentList) {
-              const updatedList = currentList.map(item => 
-                String(item.id) === id ? example : item
-              );
-              
-              // Update the list cache
-              queryClient.setQueryData(exampleQueryKey({}), updatedList);
-            }
-          }))
         ),
-      // We can also try to get the example from the list cache first
-      select: (data) => data,
       // Only enable the query when we have a valid ID
       enabled: !!id && id.trim() !== '',
-      staleTime: "5 minutes",
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: true, 
+      refetchOnMount: true,
     });
   };
 
@@ -86,36 +75,15 @@ export namespace ExampleOperations {
     return useEffectMutation({
       mutationKey: ["updateExample"],
       mutationFn: ({ id, data }: { id: string; data: Partial<NewExample> }) => {
-        // Immediately perform optimistic update to the list
-        const timestamp = new Date();
-        
-        // Update list cache optimistically
-        exampleData.setData({}, (draft) => {
-          const index = draft.findIndex(example => String(example.id) === id);
-          if (index !== -1) {
-            draft[index] = {
-              ...draft[index],
-              ...data,
-              updatedAt: timestamp
-            };
-          }
-        });
-        
         // Make the actual API call
         return ExampleService.update(id, data).pipe(
-          E.tap((serverResponse) => E.sync(() => {
-            // Update with real server data
-            if (serverResponse) {
-              // Update the list cache with the server response
-              exampleData.setData({}, (draft) => {
-                const index = draft.findIndex(example => String(example.id) === id);
-                if (index !== -1) {
-                  draft[index] = serverResponse as any;
-                }
-              });
-            }
+          E.tap(() => E.sync(() => {
+            // Invalidate the specific example query
+            queryClient.invalidateQueries({ queryKey: exampleQueryKey({ id }) });
+            // Invalidate the list query
+            queryClient.invalidateQueries({ queryKey: exampleQueryKey({}) });
           }))
-        );
+        )
       }
     });
   };
@@ -137,6 +105,9 @@ export namespace ExampleOperations {
           deletedAt: null
         };
         
+        // Update individual cache with optimistic data
+        queryClient.setQueryData(exampleQueryKey({ id: tempId }), optimisticExample);
+        
         // Update list cache with optimistic data
         exampleData.setData({}, (draft) => {
           draft.push(optimisticExample as any);
@@ -147,17 +118,29 @@ export namespace ExampleOperations {
           E.tap((serverResponse) => E.sync(() => {
             // Type guard to ensure the response has the expected structure
             if (serverResponse && typeof serverResponse === 'object' && 'id' in serverResponse) {
-              // Update the list cache - replace the temporary item with the real one
+              const newId = String(serverResponse.id);
+              
+              // Remove temporary item
               exampleData.setData({}, (draft) => {
                 const tempIndex = draft.findIndex(ex => String(ex.id) === tempId);
                 if (tempIndex !== -1) {
-                  // Replace the temp item with the server response
-                  draft[tempIndex] = serverResponse as any;
-                } else {
-                  // If for some reason the temp item isn't there, add the new one
-                  draft.push(serverResponse as any);
+                  draft.splice(tempIndex, 1);
                 }
               });
+              
+              // Remove temporary cache entry
+              queryClient.removeQueries({ queryKey: exampleQueryKey({ id: tempId }) });
+              
+              // Add real item to individual cache
+              queryClient.setQueryData(exampleQueryKey({ id: newId }), serverResponse);
+              
+              // Add real item to list cache
+              exampleData.setData({}, (draft) => {
+                draft.push(serverResponse as any);
+              });
+              
+              // Invalidate queries to ensure any components using the data get the latest version
+              queryClient.invalidateQueries({ queryKey: exampleQueryKey({}) });
             }
           }))
         );
@@ -169,7 +152,8 @@ export namespace ExampleOperations {
     return useEffectMutation({
       mutationKey: ["deleteExample"],
       mutationFn: (id: string) => {
-        // Backup the list data in case we need to revert
+        // Backup the data in case we need to revert
+        const currentExample = queryClient.getQueryData<Example>(exampleQueryKey({ id }));
         const currentList = queryClient.getQueryData<Example[]>(exampleQueryKey({}));
         
         // Optimistically remove from list
@@ -180,13 +164,22 @@ export namespace ExampleOperations {
           }
         });
         
+        // Optimistically remove individual item
+        queryClient.removeQueries({ queryKey: exampleQueryKey({ id }) });
+        
         // Make the actual API call
         return ExampleService.delete(id).pipe(
-          E.tap(() => E.sync(() => {
+          E.tap((response) => E.sync(() => {
             // Success! Nothing more to do, we already removed it optimistically
+            // Invalidate queries to ensure any components using the data get the latest version
+            queryClient.invalidateQueries({ queryKey: exampleQueryKey({}) });
           })),
           E.catchAll((error) => {
-            // On error, restore the list data
+            // On error, restore the data
+            if (currentExample) {
+              queryClient.setQueryData(exampleQueryKey({ id }), currentExample);
+            }
+            
             if (currentList) {
               queryClient.setQueryData(exampleQueryKey({}), currentList);
             }
