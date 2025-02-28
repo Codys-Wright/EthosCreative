@@ -2,11 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import {
-  useGetAll,
-  useGetById,
-  useCreate,
-  useUpdate,
-  useDelete,
+  ExampleOperations
 } from "../../example.hooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -111,23 +107,23 @@ export const ExampleComponent = () => {
     data: examples = [],
     isLoading: isLoadingExamples,
     refetch: refetchExamples,
-  } = useGetAll();
+  } = ExampleOperations.useGetAll();
 
   // Get example by ID
   const {
     data: singleExample,
     isLoading: isLoadingSingle,
     refetch: refetchSingle,
-  } = useGetById(exampleId);
+  } = ExampleOperations.useGetById(exampleId);
 
   // Create a new example
-  const createMutation = useCreate();
+  const createMutation = ExampleOperations.useCreate();
 
   // Update an example
-  const updateMutation = useUpdate();
+  const updateMutation = ExampleOperations.useUpdate();
 
   // Delete an example
-  const deleteMutation = useDelete();
+  const deleteMutation = ExampleOperations.useDelete();
 
   const queryClient = useQueryClient();
 
@@ -438,9 +434,9 @@ export const ExampleComponent = () => {
   // Handle opening the full edit dialog
   const handleOpenFullEdit = (example: Example) => {
     setEditingFullExample(example);
-    setFullEditTitle(example.title || "");
-    setFullEditSubtitle(example.subtitle || "");
-    setFullEditContent(example.content);
+    setFullEditTitle(example.title ?? "");
+    setFullEditSubtitle(example.subtitle ?? "");
+    setFullEditContent(example.content ?? "");
     setIsFullEditOpen(true);
     setFullEditTab("content");
   };
@@ -480,7 +476,7 @@ export const ExampleComponent = () => {
           );
           
           // Use the queryClient to update the cache directly
-          queryClient.setQueryData(["ExampleOperations.useExampleQuery"], updatedExamples);
+          queryClient.setQueryData(ExampleOperations.exampleQueryKey({}), updatedExamples);
         },
         onError: (error) => {
           toast.error(`Failed to update example: ${error.message}`);
@@ -574,7 +570,7 @@ export const ExampleComponent = () => {
                 );
                 
                 // Use the queryClient to update the cache directly
-                queryClient.setQueryData(["ExampleOperations.useExampleQuery"], updatedExamples);
+                queryClient.setQueryData(ExampleOperations.exampleQueryKey({}), updatedExamples);
               },
               onError: (error) => {
                 toast.error(`Failed to update example: ${error.message}`);
@@ -696,7 +692,7 @@ export const ExampleComponent = () => {
                 );
                 
                 // Use the queryClient to update the cache directly
-                queryClient.setQueryData(["ExampleOperations.useExampleQuery"], updatedExamples);
+                queryClient.setQueryData(ExampleOperations.exampleQueryKey({}), updatedExamples);
               },
               onError: (error) => {
                 toast.error(`Failed to update example: ${error.message}`);
@@ -796,12 +792,12 @@ export const ExampleComponent = () => {
       },
       cell: ({ row }) => {
         const example = row.original as Example;
-        const [editValue, setEditValue] = useState(example.content);
+        const [editValue, setEditValue] = useState(example.content || "");
         const [isSaving, setIsSaving] = useState(false);
         const [open, setOpen] = useState(false);
         
         const handleSave = () => {
-          if (!editValue.trim()) {
+          if (!editValue || !editValue.trim()) {
             toast.error("Content cannot be empty");
             return;
           }
@@ -824,7 +820,7 @@ export const ExampleComponent = () => {
                 );
                 
                 // Use the queryClient to update the cache directly
-                queryClient.setQueryData(["ExampleOperations.useExampleQuery"], updatedExamples);
+                queryClient.setQueryData(ExampleOperations.exampleQueryKey({}), updatedExamples);
               },
               onError: (error) => {
                 toast.error(`Failed to update example: ${error.message}`);
@@ -839,7 +835,7 @@ export const ExampleComponent = () => {
             setOpen(newOpen);
             if (newOpen) {
               // Reset edit value when opening
-              setEditValue(example.content);
+              setEditValue(example.content || "");
             }
           }}>
             <PopoverTrigger asChild>
@@ -1368,8 +1364,8 @@ export const ExampleComponent = () => {
                       </Badge>
                     </div>
                     
-                    <div className="p-4 rounded-md bg-muted">
-                      <p className="whitespace-pre-wrap break-words">{singleExample.content}</p>
+                    <div className="py-4">
+                      <p className="whitespace-pre-wrap break-words">{singleExample.content ?? ""}</p>
                     </div>
                     
                     <div className="flex justify-between items-center text-sm text-muted-foreground">
@@ -1394,7 +1390,7 @@ export const ExampleComponent = () => {
                         variant="outline" 
                         size="sm"
                         onClick={() => {
-                          navigator.clipboard.writeText(singleExample.content);
+                          navigator.clipboard.writeText(singleExample.content ?? "");
                           toast.success("Content copied to clipboard");
                         }}
                         className="gap-1"

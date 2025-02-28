@@ -19,289 +19,182 @@ import {
   UnexpectedError,
 } from "@/features/global/lib/errors/base-errors";
 
-// Define the query key creator with proper typing
-const exampleQueryKey = createQueryKey("ExampleOperations.useExampleQuery");
-const exampleQueryData =
-  createQueryDataHelpers<(typeof Example)[]>(exampleQueryKey);
+export namespace ExampleOperations {
+  // Define type for query key variables - only need id now
+  type ExampleVars = {
+    id?: string;
+  };
 
-export const useGetAll = () => {
-  return useEffectQuery({
-    queryKey: exampleQueryKey(), // This creates the actual query key
-    queryFn: () =>
-      ExampleService.getAll().pipe(
-        // Add a span for tracing the getAll operation
-        E.withSpan("ExampleService.getAll"),
-      ),
-    staleTime: "5 minutes",
-  });
-};
+  // Create a typed query key creator that accepts variables
+  export const exampleQueryKey = createQueryKey<"example", ExampleVars>("example");
+  
+  // Create a single query data helper for managing cache data - we'll use the list approach
+  const exampleData = createQueryDataHelpers<Example[], ExampleVars>(exampleQueryKey);
 
-export const useGetById = (id: string) => {
-  return useEffectQuery({
-    queryKey: exampleQueryKey(),
-    queryFn: () =>
-      ExampleService.getById(id).pipe(
-        // Add a span for tracing the getById operation
-        E.withSpan("ExampleService.getById"),
-        // Annotate the span with the example ID
-        E.tap(() => E.annotateCurrentSpan("example.id", id)),
-        // Handle specific error types if needed
-        E.mapError((error) =>
-          // Use type assertion since we can't guarantee the error structure
-          (error as any)?._tag === "NotFoundError"
-            ? new NotFoundError({
-                message: `Example with ID ${id} not found`,
-                entity: "Example",
-                id,
-              })
-            : new ExampleError({ message: String(error) }),
+  export const useGetAll = () => {
+    return useEffectQuery({
+      queryKey: exampleQueryKey({}), // Empty variables for the collection
+      queryFn: () => 
+        ExampleService.getAll().pipe(
+          E.withSpan("ExampleService.getAll")
         ),
-      ),
-    staleTime: "5 minutes",
-  });
-};
+      staleTime: "5 minutes",
+    });
+  };
 
-export const useUpdate = () => {
-  return useEffectMutation({
-    mutationKey: ["updateUser"],
-    mutationFn: ({ id, data }: { id: string; data: Partial<NewExample> }) => {
-      // Store the previous state for potential rollback
-      const previousExamples = queryClient.getQueryData(exampleQueryKey());
-
-      // Create a parent span for the entire update operation
-      return E.gen(function* (_) {
-        // Log the start of optimistic update
-        yield* E.log("Starting optimistic update");
-
-        // Perform optimistic update
-        yield* E.sync(() => {
-          exampleQueryData.setData(undefined, (draft) => {
-            const exampleIndex = draft.findIndex(
-              (example) =>
-                // Access id safely with type checking
-                "id" in example && example.id === id,
-            );
-            if (exampleIndex !== -1) {
-              // Update the example with the new data
-              draft[exampleIndex] = { ...draft[exampleIndex], ...data };
-            }
-          });
-        }).pipe(
-          E.withSpan("optimistic.update"),
-          E.tap(() => E.annotateCurrentSpan("example.id", id)),
-          E.tap(() => E.annotateCurrentSpan("update.type", "optimistic")),
-        );
-
-        // Log the completion of optimistic update
-        yield* E.log("Optimistic update completed, sending to server");
-
-        // Execute the actual update operation
-        const result = yield* ExampleService.update(id, data).pipe(
-          E.withSpan("ExampleService.update"),
-          E.tap(() => E.annotateCurrentSpan("example.id", id)),
-        );
-
-        // On success, invalidate queries
-        yield* E.sync(() => {
-          queryClient.invalidateQueries({ queryKey: exampleQueryKey() });
-        }).pipe(
-          E.withSpan("cache.invalidate"),
-          E.tap(() => E.log("Cache invalidated after successful update")),
-        );
-
-        return result;
-      }).pipe(
-        E.withSpan("example.update.operation"),
-        E.mapError((error) => {
-          // Roll back to the previous state
-          if (previousExamples) {
-            queryClient.setQueryData(exampleQueryKey(), previousExamples);
-          }
-
-          // Log the error
-          console.error("Error updating example:", error);
-
-          // Map to appropriate error type
-          return (error as any)?._tag === "NotFoundError"
-            ? new NotFoundError({
-                message: `Example with ID ${id} not found`,
-                entity: "Example",
-                id,
-              })
-            : new DatabaseError({
-                message: `Failed to update example with ID ${id}`,
-                operation: "update",
-                entity: "Example",
-                cause: error,
-              });
-        }),
-      );
-    },
-  });
-};
-
-export const useCreate = () => {
-  return useEffectMutation({
-    mutationKey: ["createUser"],
-    mutationFn: (input: NewExample) => {
-      // Generate a temporary ID for the optimistic update
-      const tempId = `temp-${Date.now()}`;
-
-      // Create a temporary example with the input data
-      const tempExample = {
-        ...input,
-        id: tempId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      // Store the previous state for potential rollback
-      const previousExamples = queryClient.getQueryData(exampleQueryKey());
-
-      // Create a parent span for the entire create operation
-      return E.gen(function* (_) {
-        // Log the start of optimistic create
-        yield* E.log("Starting optimistic create");
-
-        // Perform optimistic update by adding the new example to the list
-        if (previousExamples) {
-          yield* E.sync(() => {
-            exampleQueryData.setData(undefined, (draft) => {
-              // Using type assertion to bypass type checking for the temporary object
-              draft.push(tempExample as any);
-            });
-          }).pipe(
-            E.withSpan("optimistic.create"),
-            E.tap(() => E.annotateCurrentSpan("temp.id", tempId)),
-            E.tap(() => E.annotateCurrentSpan("update.type", "optimistic")),
-          );
-        }
-
-        // Log the completion of optimistic create
-        yield* E.log("Optimistic create completed, sending to server");
-
-        // Execute the actual create operation
-        const createdExample = yield* ExampleService.create(input).pipe(
-          E.withSpan("ExampleService.create"),
-        );
-
-        // Replace the temporary example with the real one
-        yield* E.sync(() => {
-          exampleQueryData.setData(undefined, (draft) => {
-            const tempIndex = draft.findIndex(
-              (example) => "id" in example && example.id === tempId,
-            );
-            if (tempIndex !== -1) {
-              // Replace the temporary example with the real one from the server
-              draft[tempIndex] = createdExample as any;
-            }
-          });
-          // Also invalidate queries to ensure cache is in sync with server
-          queryClient.invalidateQueries({ queryKey: exampleQueryKey() });
-        }).pipe(
-          E.withSpan("cache.update"),
-          E.tap(() =>
-            E.log("Cache updated with real example after successful create"),
+  export const useGetById = (id: string | undefined) => {
+    return useEffectQuery({
+      queryKey: exampleQueryKey({ id: id || '' }),
+      queryFn: () =>
+        ExampleService.getById(id!).pipe(
+          E.withSpan("ExampleService.getById"),
+          E.tap(() => E.annotateCurrentSpan("example.id", id!)),
+          E.mapError((error) =>
+            (error as any)?._tag === "NotFoundError"
+              ? new NotFoundError({
+                  message: `Example with ID ${id} not found`,
+                  entity: "Example",
+                  id: id!,
+                })
+              : new ExampleError({ message: String(error) }),
           ),
-        );
-
-        return createdExample;
-      }).pipe(
-        E.withSpan("example.create.operation"),
-        E.mapError((error) => {
-          // Roll back to the previous state
-          if (previousExamples) {
-            queryClient.setQueryData(exampleQueryKey(), previousExamples);
-          }
-
-          // Log the error
-          console.error("Error creating example:", error);
-
-          // Return a specific create error
-          return new DatabaseError({
-            message: `Failed to create example`,
-            operation: "create",
-            entity: "Example",
-            cause: error,
-          });
-        }),
-      );
-    },
-  });
-};
-
-export const useDelete = () => {
-  return useEffectMutation({
-    mutationKey: ["deleteUser"],
-    mutationFn: (id: string) => {
-      // Store the previous state for potential rollback
-      const previousExamples = queryClient.getQueryData(exampleQueryKey());
-
-      // Create a parent span for the entire delete operation
-      return E.gen(function* (_) {
-        // Log the start of optimistic delete
-        yield* E.log("Starting optimistic delete");
-
-        // Perform optimistic update by removing the example from the list
-        yield* E.sync(() => {
-          exampleQueryData.setData(undefined, (draft) => {
-            const exampleIndex = draft.findIndex(
-              (example) => "id" in example && example.id === id,
-            );
-            if (exampleIndex !== -1) {
-              draft.splice(exampleIndex, 1);
+          // After successfully fetching, update the list cache if it exists
+          E.tap((example) => E.sync(() => {
+            // Get the current list from cache (if it exists)
+            const currentList = queryClient.getQueryData<Example[]>(exampleQueryKey({}));
+            
+            // If we have a list, update the example in it
+            if (currentList) {
+              const updatedList = currentList.map(item => 
+                String(item.id) === id ? example : item
+              );
+              
+              // Update the list cache
+              queryClient.setQueryData(exampleQueryKey({}), updatedList);
             }
-          });
-        }).pipe(
-          E.withSpan("optimistic.delete"),
-          E.tap(() => E.annotateCurrentSpan("example.id", id)),
-          E.tap(() => E.annotateCurrentSpan("update.type", "optimistic")),
-        );
+          }))
+        ),
+      // We can also try to get the example from the list cache first
+      select: (data) => data,
+      // Only enable the query when we have a valid ID
+      enabled: !!id && id.trim() !== '',
+      staleTime: "5 minutes",
+    });
+  };
 
-        // Log the completion of optimistic delete
-        yield* E.log("Optimistic delete completed, sending to server");
-
-        // Execute the actual delete operation
-        const result = yield* ExampleService.delete(id).pipe(
-          E.withSpan("ExampleService.delete"),
-          E.tap(() => E.annotateCurrentSpan("example.id", id)),
-        );
-
-        // On success, invalidate queries
-        yield* E.sync(() => {
-          queryClient.invalidateQueries({ queryKey: exampleQueryKey() });
-        }).pipe(
-          E.withSpan("cache.invalidate"),
-          E.tap(() => E.log("Cache invalidated after successful delete")),
-        );
-
-        return result;
-      }).pipe(
-        E.withSpan("example.delete.operation"),
-        E.mapError((error) => {
-          // Roll back to the previous state
-          if (previousExamples) {
-            queryClient.setQueryData(exampleQueryKey(), previousExamples);
+  export const useUpdate = () => {
+    return useEffectMutation({
+      mutationKey: ["updateExample"],
+      mutationFn: ({ id, data }: { id: string; data: Partial<NewExample> }) => {
+        // Immediately perform optimistic update to the list
+        const timestamp = new Date();
+        
+        // Update list cache optimistically
+        exampleData.setData({}, (draft) => {
+          const index = draft.findIndex(example => String(example.id) === id);
+          if (index !== -1) {
+            draft[index] = {
+              ...draft[index],
+              ...data,
+              updatedAt: timestamp
+            };
           }
-
-          // Log the error
-          console.error("Error deleting example:", error);
-
-          // Map to appropriate error type
-          return (error as any)?._tag === "NotFoundError"
-            ? new NotFoundError({
-                message: `Example with ID ${id} not found`,
-                entity: "Example",
-                id,
-              })
-            : new DatabaseError({
-                message: `Failed to delete example with ID ${id}`,
-                operation: "delete",
-                entity: "Example",
-                cause: error,
+        });
+        
+        // Make the actual API call
+        return ExampleService.update(id, data).pipe(
+          E.tap((serverResponse) => E.sync(() => {
+            // Update with real server data
+            if (serverResponse) {
+              // Update the list cache with the server response
+              exampleData.setData({}, (draft) => {
+                const index = draft.findIndex(example => String(example.id) === id);
+                if (index !== -1) {
+                  draft[index] = serverResponse as any;
+                }
               });
-        }),
-      );
-    },
-  });
-};
+            }
+          }))
+        );
+      }
+    });
+  };
+
+  export const useCreate = () => {
+    return useEffectMutation({
+      mutationKey: ["createExample"],
+      mutationFn: (input: NewExample) => {
+        // Generate temporary ID and timestamps for optimistic update
+        const tempId = `temp-${Date.now()}`;
+        const timestamp = new Date();
+        
+        // Create optimistic example with temporary values
+        const optimisticExample: Example = {
+          ...input,
+          id: tempId as any, // Cast to satisfy the type system
+          createdAt: timestamp,
+          updatedAt: timestamp,
+          deletedAt: null
+        };
+        
+        // Update list cache with optimistic data
+        exampleData.setData({}, (draft) => {
+          draft.push(optimisticExample as any);
+        });
+        
+        // Make the actual API call
+        return ExampleService.create(input).pipe(
+          E.tap((serverResponse) => E.sync(() => {
+            // Type guard to ensure the response has the expected structure
+            if (serverResponse && typeof serverResponse === 'object' && 'id' in serverResponse) {
+              // Update the list cache - replace the temporary item with the real one
+              exampleData.setData({}, (draft) => {
+                const tempIndex = draft.findIndex(ex => String(ex.id) === tempId);
+                if (tempIndex !== -1) {
+                  // Replace the temp item with the server response
+                  draft[tempIndex] = serverResponse as any;
+                } else {
+                  // If for some reason the temp item isn't there, add the new one
+                  draft.push(serverResponse as any);
+                }
+              });
+            }
+          }))
+        );
+      }
+    });
+  };
+
+  export const useDelete = () => {
+    return useEffectMutation({
+      mutationKey: ["deleteExample"],
+      mutationFn: (id: string) => {
+        // Backup the list data in case we need to revert
+        const currentList = queryClient.getQueryData<Example[]>(exampleQueryKey({}));
+        
+        // Optimistically remove from list
+        exampleData.setData({}, (draft) => {
+          const index = draft.findIndex(example => String(example.id) === id);
+          if (index !== -1) {
+            draft.splice(index, 1);
+          }
+        });
+        
+        // Make the actual API call
+        return ExampleService.delete(id).pipe(
+          E.tap(() => E.sync(() => {
+            // Success! Nothing more to do, we already removed it optimistically
+          })),
+          E.catchAll((error) => {
+            // On error, restore the list data
+            if (currentList) {
+              queryClient.setQueryData(exampleQueryKey({}), currentList);
+            }
+            
+            return E.fail(error);
+          })
+        );
+      }
+    });
+  };
+}
