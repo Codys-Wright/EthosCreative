@@ -1,6 +1,7 @@
 "use client"
+
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { useTestQuery, useEffectfulInvalidation, useDirectInvalidation, debugFactoryHelper } from "./hooks";
+import { useTestQuery, useEffectfulInvalidation, useDirectInvalidation } from "./hooks";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -12,7 +13,6 @@ export function TestEffectfulInvalidation() {
     const directInvalidation = useDirectInvalidation();
     const [isInvalidating, setIsInvalidating] = useState(false);
     const [isDirectInvalidating, setIsDirectInvalidating] = useState(false);
-    const [isDebugging, setIsDebugging] = useState(false);
     const queryClient = useQueryClient();
     
     // Log query cache state on mount and after data changes
@@ -66,28 +66,13 @@ export function TestEffectfulInvalidation() {
       }
     };
     
-    const handleDebug = () => {
-      setIsDebugging(true);
-      try {
-        console.log("Running query key debug...");
-        const result = debugFactoryHelper(queryClient);
-        console.log("Debug complete", result);
-        toast.success("Debug info logged to console");
-      } catch (error: any) {
-        console.error("Error in debug:", error);
-        toast.error(`Debug error: ${error?.message || String(error)}`);
-      } finally {
-        setIsDebugging(false);
-      }
-    };
-    
   return (
     <Card className="border-green-500">
       <CardHeader className="bg-green-50">
         <CardTitle>Effect Framework</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="mb-2">Using factory key approach for consistency</p>
+        <p className="mb-2">Using simplified factory key approach</p>
         <p>Status: {status} (Fetch: {fetchStatus})</p>
         {isLoading ? (
           <p>Loading...</p>
@@ -132,16 +117,6 @@ export function TestEffectfulInvalidation() {
             size="sm"
           >
             Refetch
-          </Button>
-          
-          <Button 
-            variant="outline"
-            className="border-purple-500" 
-            onClick={handleDebug}
-            disabled={isDebugging}
-            size="sm"
-          >
-            {isDebugging ? "Debugging..." : "Debug Keys"}
           </Button>
         </div>
       </CardFooter>

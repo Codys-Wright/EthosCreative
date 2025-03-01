@@ -8,6 +8,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { TestWithFactoryKey } from "./TestWithFactoryKey";
 import { TestEffectfulInvalidation } from "./TestEffectfulInvalidation";
 import { TestWithVars } from "./TestWithVars";
+import { QueryHelperDemo } from "./QueryHelperDemo";
+import { MinimalExample } from "./MinimalExample";
 
 export function TestQuery() {
     const { data, isLoading, refetch, status, fetchStatus } = useTestQuery();
@@ -83,7 +85,37 @@ export function TestQuery() {
   return (
     <div className="space-y-8">
       <h2 className="text-2xl font-bold mb-4">Query Invalidation Test Cases</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-8">
+        {/* Add the minimal example as a first-class card */}
+        <MinimalExample />
+        
+        {/* Add a description card to explain the pattern */}
+        <Card className="border-amber-500">
+          <CardHeader className="bg-amber-50">
+            <CardTitle>Why This Pattern Works</CardTitle>
+          </CardHeader>
+          <CardContent className="prose">
+            <div className="space-y-2">
+              <p className="font-medium">The essential pattern with Effect framework:</p>
+              
+              <ol className="list-decimal pl-4 space-y-2">
+                <li><strong>Create a query key factory</strong> once, at module level</li>
+                <li><strong>Generate fresh keys</strong> both when querying and invalidating</li>
+                <li><strong>Use Effect for invalidation</strong> with useEffectMutation</li>
+                <li><strong>Try both exact and non-exact matching</strong> for reliability</li>
+              </ol>
+              
+              <p className="text-sm text-muted-foreground mt-2">
+                The Effect framework makes this pattern more robust with built-in error handling, logging, and typed results
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <h3 className="text-xl font-bold mb-4">Other Implementation Approaches</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* First card: Direct Key Approach */}
         <Card>
           <CardHeader className="bg-blue-50">
@@ -143,6 +175,7 @@ export function TestQuery() {
         {/* Include the other test components in the grid */}
         <TestWithFactoryKey />
         <TestEffectfulInvalidation />
+        <QueryHelperDemo />
       </div>
       
       {/* Add the variable query key test section */}

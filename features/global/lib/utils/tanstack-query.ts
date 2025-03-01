@@ -271,3 +271,62 @@ export function useEffectQuery<
 
   return useQuery(queryOptions);
 }
+
+/**
+ * Global utility to invalidate queries by key
+ * 
+ * This function wraps queryClient.invalidateQueries and provides consistent
+ * invalidation behavior across the application. It first tries with exact:true
+ * and then with exact:false to ensure thorough invalidation.
+ * 
+ * @param queryKey The query key to invalidate
+ * @param options Optional invalidation options
+ * @returns Promise that resolves when invalidation is complete
+ */
+export const invalidateQueries = async (
+  queryKey: readonly unknown[],
+  options?: { showToast?: boolean; exact?: boolean }
+): Promise<void> => {
+  const { showToast = false, exact } = options || {};
+  
+  try {
+    console.log("Invalidating cache with key:", queryKey);
+    
+    if (exact !== undefined) {
+      // Use the exact option provided
+      await queryClient.invalidateQueries({ queryKey, exact });
+    } else {
+      // Try both exact true and false for thorough invalidation
+      await queryClient.invalidateQueries({ queryKey, exact: true });
+      await queryClient.invalidateQueries({ queryKey, exact: false });
+    }
+    
+    console.log("Cache invalidation completed");
+    
+    // Optional toast notification
+    if (showToast) {
+      // If this utility is used in a non-React context, we can't import toast directly
+      // So we'll need to find a way to access toast or handle it differently
+      // Consider passing a callback for notification instead
+      try {
+        const { toast } = await import("sonner");
+        toast.success("Data updated successfully");
+      } catch (e) {
+        console.log("Toast notification not available");
+      }
+    }
+  } catch (error) {
+    console.error("Cache invalidation failed:", error);
+    
+    if (showToast) {
+      try {
+        const { toast } = await import("sonner");
+        toast.error("Update operation failed");
+      } catch (e) {
+        console.log("Toast notification not available");
+      }
+    }
+    
+    throw error;
+  }
+};

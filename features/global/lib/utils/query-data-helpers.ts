@@ -1,13 +1,11 @@
-import { queryClient } from "./tanstack-query";
+import { queryClient } from "@/features/global/lib/utils/tanstack-query";
 import * as mutative from "mutative";
 
 type DeepMutable<T> = {
   -readonly [P in keyof T]: T[P] extends object ? DeepMutable<T[P]> : T[P];
 };
 
-export type QueryDataUpdater<TData> = (
-  draft: mutative.Draft<DeepMutable<TData>>,
-) => void;
+export type QueryDataUpdater<TData> = (draft: mutative.Draft<DeepMutable<TData>>) => void;
 
 type QueryKey<TKey extends string, TVariables = void> = TVariables extends void
   ? readonly [TKey]
@@ -33,9 +31,7 @@ type QueryKey<TKey extends string, TVariables = void> = TVariables extends void
  * const key = userKey({ id: "123" }); // returns ["user", { id: "123" }]
  * ```
  */
-export function createQueryKey<TKey extends string, TVariables = void>(
-  key: TKey,
-) {
+export function createQueryKey<TKey extends string, TVariables = void>(key: TKey) {
   return ((variables?: TVariables) =>
     variables === undefined
       ? ([key] as const)
@@ -47,10 +43,7 @@ export function createQueryKey<TKey extends string, TVariables = void>(
 type QueryDataHelpers<TData, TVariables> = {
   removeQuery: (variables: TVariables) => void;
   removeAllQueries: () => void;
-  setData: (
-    variables: TVariables,
-    updater: QueryDataUpdater<TData>,
-  ) => TData | undefined;
+  setData: (variables: TVariables, updater: QueryDataUpdater<TData>) => TData | undefined;
   invalidateQuery: (variables: TVariables) => Promise<void>;
   invalidateAllQueries: () => Promise<void>;
   refetchQuery: (variables: TVariables) => Promise<void>;
@@ -120,7 +113,6 @@ export function createQueryDataHelpers<TData, TVariables = void>(
       queryClient.invalidateQueries({ queryKey: [namespaceKey], exact: false }),
     refetchQuery: (variables: TVariables) =>
       queryClient.refetchQueries({ queryKey: queryKey(variables) }),
-    refetchAllQueries: () =>
-      queryClient.refetchQueries({ queryKey: [namespaceKey], exact: false }),
+    refetchAllQueries: () => queryClient.refetchQueries({ queryKey: [namespaceKey], exact: false }),
   };
 }

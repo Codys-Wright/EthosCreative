@@ -9,35 +9,14 @@ import { Effect as E } from "effect"
 // Create a simple query key without using the helper
 export const TEST_QUERY_KEY = ["test"] as const;
 
-// Create a fixed key helper that uses the same factory function 
-export const testHelper = {
-  invalidateAllQueries: async () => {
-    // Get the factory key at invalidation time
-    const factoryKey = testQueryKey();
-    console.log("Custom testHelper: Invalidating with factory key:", factoryKey);
-    
-    // Log both keys to understand what's happening
-    console.log("Factory key:", factoryKey);
-    console.log("Static TEST_QUERY_KEY:", TEST_QUERY_KEY);
-    console.log("Keys match by JSON comparison:", JSON.stringify(factoryKey) === JSON.stringify(TEST_QUERY_KEY));
-    
-    // First try with the factory key (reference equality matters for React Query)
-    console.log("Invalidating with factory key");
-    const result = await queryClient.invalidateQueries({ queryKey: factoryKey });
-    
-    // If factory key didn't work for some reason, try with the static key
-    console.log("Also invalidating with static key just to be safe");
-    await queryClient.invalidateQueries({ queryKey: TEST_QUERY_KEY });
-    
-    console.log("Custom testHelper: Invalidation complete");
-    return result;
-  },
-  // Add other methods if needed
-}
-
-// Use the helper for demonstration, but we'll use direct key helper
+// Create a typed factory key helper for consistency
 const testQueryKey = createQueryKey("test")
-export const factoryHelper = createQueryDataHelpers<Example[]>(testQueryKey)
+
+// Create query data helper with our updated implementation
+export const testHelper = createQueryDataHelpers<Example[]>(testQueryKey);
+
+// Keep this for backward compatibility, but mark as legacy
+export const factoryHelper = testHelper;
 
 // Example usage:
 // To invalidate all test queries:
@@ -67,39 +46,34 @@ export const useTestQuery = () => {
 export const useInvalidateTestQuery = () => {
     // Get query client from the hook
     const queryClient = useQueryClient();
-    // Use the factory function for the key to ensure consistency
-    const queryKey = testQueryKey();
     
     const invalidate = useCallback(async () => {
         try {
+            // Generate a fresh key to avoid reference issues
+            const queryKey = testQueryKey();
+            
             console.log("About to invalidate queries with factory key:", queryKey);
             console.log("Current cache keys:", [...queryClient.getQueryCache().getAll().map(q => q.queryKey)]);
             console.log("Current data:", queryClient.getQueryData(queryKey));
             
-            // Attempt to invalidate with different exact settings
-            console.log("Invalidating with exact:false");
-            await queryClient.invalidateQueries({ queryKey, exact: false });
-            
-            console.log("Invalidating with exact:true");
+            // First try with exact:true
             await queryClient.invalidateQueries({ queryKey, exact: true });
+            
+            // Then try with exact:false
+            await queryClient.invalidateQueries({ queryKey, exact: false });
             
             // Check if we still have data after invalidation
             console.log("Data after invalidation:", queryClient.getQueryData(queryKey));
             console.log("Cache after invalidation:", [...queryClient.getQueryCache().getAll().map(q => q.queryKey)]);
             
-            // Also try a direct refetchQueries call to compare behavior
-            console.log("Attempting direct refetch");
-            await queryClient.refetchQueries({ queryKey });
-            
-            console.log("Invalidation completed");
             return { success: true };
         } catch (error) {
             console.error("Error invalidating test query:", error);
             return { success: false, error };
         }
-    }, [queryClient, queryKey]);
+    }, [queryClient]);
 
-    return { invalidate, queryKey };
+    return { invalidate };
 }
 
 /**
@@ -162,8 +136,7 @@ export class InvalidationError {
 
 /**
  * A hook that uses Effect framework with useEffectMutation to perform invalidation
- * This will help us determine if the issue is with the testHelper methods
- * Uses Effect's tryPromise for more idiomatic handling
+ * Updated to use the simplified query helpers approach
  */
 export const useEffectfulInvalidation = () => {
   const queryClient = useQueryClient();
@@ -175,93 +148,20 @@ export const useEffectfulInvalidation = () => {
       return E.gen(function* () {
         console.log("Starting effectful invalidation process");
         
-        // Log the keys being used to better understand the issue
-        const factoryKey = testQueryKey();
-        console.log("Factory key:", factoryKey);
-        console.log("Direct key:", TEST_QUERY_KEY);
+        // First use the testHelper to invalidate
+        console.log("Using testHelper.invalidateAllQueries()");
+        yield* E.promise(() => testHelper.invalidateAllQueries());
         
-        // Deep inspection of the keys
-        console.log("Factory key details:", {
-          value: factoryKey,
-          type: typeof factoryKey,
-          isArray: Array.isArray(factoryKey),
-          length: factoryKey.length,
-          firstItem: factoryKey[0],
-          firstItemType: typeof factoryKey[0],
-          stringify: JSON.stringify(factoryKey)
-        });
-        
-        console.log("Direct key details:", {
-          value: TEST_QUERY_KEY,
-          type: typeof TEST_QUERY_KEY,
-          isArray: Array.isArray(TEST_QUERY_KEY),
-          length: TEST_QUERY_KEY.length,
-          firstItem: TEST_QUERY_KEY[0],
-          firstItemType: typeof TEST_QUERY_KEY[0],
-          stringify: JSON.stringify(TEST_QUERY_KEY)
-        });
-        
-        // Get the actual key that factoryHelper would use to invalidate
-        console.log("factoryHelper internals inspection:");
-        try {
-          // @ts-ignore - Accessing internal function for debugging
-          const namespaceKey = testQueryKey(undefined as any)[0]; 
-          console.log("factoryHelper namespace key:", namespaceKey);
-          
-          // Log what query keys we find in the cache
-          const matchingQueries = queryClient.getQueryCache().findAll({ 
-            queryKey: ['test'],
-            exact: false 
-          });
-          console.log("Matching queries with ['test']:", matchingQueries.map(q => ({
-            key: q.queryKey,
-            state: q.state.status
-          })));
-          
-          // Also check with the factoryKey
-          const factoryMatches = queryClient.getQueryCache().findAll({ 
-            queryKey: factoryKey,
-            exact: true 
-          });
-          console.log("Matching queries with factoryKey:", factoryMatches.map(q => ({
-            key: q.queryKey,
-            state: q.state.status
-          })));
-        } catch (e) {
-          console.error("Error inspecting factoryHelper:", e);
-        }
-        
-        // Cache keys before invalidation
-        console.log("Cache keys before:", [...queryClient.getQueryCache().getAll().map(q => ({
+        // Log cache state after invalidation
+        console.log("Cache after testHelper invalidation:", [...queryClient.getQueryCache().getAll().map(q => ({
           key: q.queryKey,
           status: q.state.status,
           dataUpdatedAt: new Date(q.state.dataUpdatedAt).toISOString()
         }))]);
         
-        // First try using the query helper - this likely doesn't work due to key mismatch
-        yield* E.promise(() => {
-          console.log("Calling factoryHelper.invalidateAllQueries()");
-          return factoryHelper.invalidateAllQueries();
-        });
-        
-        // Check cache state after factory helper invalidation
-        console.log("Cache keys after factoryHelper.invalidateAllQueries():", [...queryClient.getQueryCache().getAll().map(q => ({
-          key: q.queryKey,
-          status: q.state.status,
-          dataUpdatedAt: new Date(q.state.dataUpdatedAt).toISOString()
-        }))]);
-        
-        // Now try with our direct helper
-        yield* E.promise(() => {
-          console.log("Calling direct testHelper.invalidateAllQueries()");
-          return testHelper.invalidateAllQueries();
-        });
-        
-        console.log("Cache after direct testHelper invalidation:", [...queryClient.getQueryCache().getAll().map(q => ({
-          key: q.queryKey,
-          status: q.state.status,
-          dataUpdatedAt: new Date(q.state.dataUpdatedAt).toISOString()
-        }))]);
+        // Also try with direct static key for backward compatibility
+        console.log("Also trying direct invalidation with TEST_QUERY_KEY for backward compatibility");
+        yield* E.promise(() => queryClient.invalidateQueries({ queryKey: TEST_QUERY_KEY }));
         
         return { success: true };
       });
