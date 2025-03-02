@@ -1,4 +1,4 @@
-import { Example, NewExample } from "./types/example.type";
+import { Example, NewExample, ExampleType, NewExampleType } from "../types/example.type";
 import { Effect as E, Schema as S } from "effect";
 import { NotFoundError } from "@/features/global/lib/errors/base-errors";
 import { Database } from "@/lib/db/db.service";
@@ -51,7 +51,7 @@ export class ExampleService extends E.Service<ExampleService>()(
             return S.decodeSync(Example)(response as any);
           }).pipe(E.withSpan("ExampleService.getById.implementation")),
 
-        update: (id: string, data: Partial<Example>) =>
+        update: (id: string, data: Partial<ExampleType>) =>
           E.gen(function* () {
             // Prepare update data
 
@@ -61,7 +61,7 @@ export class ExampleService extends E.Service<ExampleService>()(
             return updatedExample;
           }).pipe(E.withSpan("ExampleService.update.implementation")),
 
-        create: (data: NewExample) =>
+        create: (data: NewExampleType) =>
           E.gen(function* () {
             // Create the example
             const newExample = yield* db.insert("example", data);
@@ -79,6 +79,40 @@ export class ExampleService extends E.Service<ExampleService>()(
 
             return { success: true, id };
           }).pipe(E.withSpan("ExampleService.delete.implementation")),
+
+        // Add undo delete method
+        undoDelete: (id: string) =>
+          E.gen(function* () {
+            // Find the example first to check if it exists and is deleted
+            const example = yield* db.findById("example", id);
+            
+            if (!example) {
+              return E.fail(
+                new NotFoundError({
+                  message: `Example with id ${id} not found`,
+                  entity: "example",
+                  id,
+                }),
+              );
+            }
+            
+            // If the example isn't deleted, there's nothing to restore
+            if (!(example as any).deletedAt) {
+              return { success: false, id, message: "Example is not deleted" };
+            }
+            
+            // Restore the example by setting deletedAt to null
+            const restoredExample = yield* db.update("example", id, {
+              deletedAt: null,
+            });
+
+            return { 
+              success: true, 
+              id, 
+              message: "Example restored successfully",
+              example: restoredExample
+            };
+          }).pipe(E.withSpan("ExampleService.undoDelete.implementation")),
 
         // Add a method for permanent deletion if needed
         permanentDeath: (id: string) =>

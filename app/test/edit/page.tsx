@@ -16,7 +16,7 @@ import {
 import { DialogDemo } from "./dialogDemo";
 import { ExampleEditor } from "@/features/example/presentation/components/example-editor";
 import { 
-  Example, 
+  ExampleTS, 
   ExampleId, 
   NewExample, 
   ExampleGroups 
@@ -34,7 +34,7 @@ const formatDate = (date: Date | null | undefined): string => {
 };
 
 // Create a properly typed example object for demonstration
-const exampleData: Example = {
+const exampleData: ExampleTS = {
   id: "example-123" as unknown as string & typeof ExampleId.Type,
   title: "Example Title",
   subtitle: "This is a subtitle",
@@ -46,7 +46,7 @@ const exampleData: Example = {
 
 export default function TestEditPage() {
   // Handler for when form is saved
-  const handleSave = (data: Example) => {
+  const handleSave = (data: ExampleTS) => {
     console.log("Form saved with data:", data);
     alert("Data saved! Check console for details.");
   };
@@ -70,25 +70,25 @@ export default function TestEditPage() {
     },
     id: {
       description: "Unique identifier (read-only)",
-      readonly: true,
+      readOnly: true,
     },
     createdAt: {
       label: "Created Date",
       description: "When this item was created (read-only)",
       type: "date",
-      readonly: true,
+      readOnly: true,
     },
     updatedAt: {
       label: "Last Updated",
       description: "When this item was last updated (read-only)",
       type: "date",
-      readonly: true,
+      readOnly: true,
     },
     deletedAt: {
       label: "Deleted Date",
       description: "When this item was deleted (if applicable)",
       type: "date",
-      readonly: true,
+      readOnly: true,
     }
   };
 

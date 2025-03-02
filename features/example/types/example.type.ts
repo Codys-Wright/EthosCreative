@@ -21,24 +21,19 @@ export const NewExample = S.Struct({
 });
 
 //export types for normal ts usage
-export type Example = typeof Example.Type;
-export type NewExample = typeof NewExample.Type;
+export type ExampleType = typeof Example.Type;
+export type NewExampleType = typeof NewExample.Type;
 
-// define the tabs schema for group
-export const ExampleGroups: TabDefinition<Example>[] = [
-  {
-    id: "basic",
-    label: "Basic Information",
-    fields: ["title", "subtitle"],
-  },
+// Tab definitions for organizing example fields in forms
+export const ExampleGroups: TabDefinition<ExampleType>[] = [
   {
     id: "content",
     label: "Content",
-    fields: ["content"],
+    fields: ["title", "subtitle", "content"]
   },
   {
     id: "metadata",
     label: "Metadata",
-    fields: ["id", "createdAt", "updatedAt"],
-  },
+    fields: ["id", "createdAt", "updatedAt", "deletedAt"]
+  }
 ];

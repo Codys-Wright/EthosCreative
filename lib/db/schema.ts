@@ -5,7 +5,10 @@ import {
   timestamp,
   boolean,
   jsonb,
+  customType,
+  index,
 } from "drizzle-orm/pg-core";
+import { SQL, sql } from "drizzle-orm";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -171,12 +174,38 @@ export const crmObject = pgTable("crm_object", {
   updatedAt: timestamp("updated_at"),
 });
 
-export const example = pgTable("example", {
-  id: text("id").primaryKey(),
-  title: text("title"),
-  subtitle: text("subtitle"),
-  content: text("content").notNull(),
-  createdAt: timestamp("created_at").notNull(),
-  updatedAt: timestamp("updated_at").notNull(),
-  deletedAt: timestamp("deleted_at"),
+// Create a custom type for tsvector (text search vector)
+const tsVector = customType<{ data: string }>({
+  dataType() {
+    return "tsvector";
+  },
 });
+
+export const example = pgTable(
+  "example", 
+  {
+    id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+    title: text("title"),
+    subtitle: text("subtitle"),
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    deletedAt: timestamp("deleted_at"),
+    // Add a generated column for full-text search
+    contentSearch: tsVector("content_search").generatedAlwaysAs(
+      (): SQL => sql`to_tsvector('english', COALESCE(${example.title}, '') || ' ' || COALESCE(${example.subtitle}, '') || ' ' || ${example.content})`
+    ),
+    // Add generated display name that combines title and subtitle
+    displayName: text("display_name").generatedAlwaysAs(
+      (): SQL => sql`CASE WHEN ${example.title} IS NOT NULL AND ${example.subtitle} IS NOT NULL 
+                      THEN ${example.title} || ' - ' || ${example.subtitle} 
+                      WHEN ${example.title} IS NOT NULL THEN ${example.title} 
+                      WHEN ${example.subtitle} IS NOT NULL THEN ${example.subtitle} 
+                      ELSE 'Untitled Example' END`
+    ),
+  },
+  (table) => ({
+    // Add a GIN index for efficient full-text search
+    contentSearchIdx: index("idx_example_content_search").on(table.contentSearch),
+  })
+);

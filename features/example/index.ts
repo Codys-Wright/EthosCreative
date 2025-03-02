@@ -1,3 +1,4 @@
-export * from "./example.service";
-export * as exampleHooks from "./example.hooks";
-export * from "./types";
+export * from "./api/example.service";
+export * as exampleHooks from "./api/example.hooks";
+export * from "./types/example.type";
+export * from "./errors/example-errors";

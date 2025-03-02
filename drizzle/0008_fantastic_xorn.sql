@@ -1,0 +1,1 @@
+ALTER TABLE "example" ALTER COLUMN "content" DROP NOT NULL;
