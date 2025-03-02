@@ -1,13 +1,13 @@
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+"use client";
+
+import dynamic from "next/dynamic";
+
+// Dynamically import the ArtistTypeDemoPage with no SSR to avoid hydration issues
+const ArtistTypeDemoPage = dynamic(
+  () => import("@/features/artist-types/__tests__/demo/artist-type-demo-page"),
+  { ssr: false }
+);
 
 export default function ArtistTypePage() {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Not Implemented </CardTitle>
-        </CardHeader>
-      </Card>
-    </div>
-  );
+  return <ArtistTypeDemoPage />;
 }

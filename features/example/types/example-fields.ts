@@ -28,30 +28,42 @@ export const ExampleFields: FieldCustomizationRecord<ExampleType> = {
     label: "ID",
     type: "text",
     readOnly: true,
+    required: false,
   },
   title: {
     label: "Title",
     type: "text",
     placeholder: "Enter a title",
+    required: false,
   },
   subtitle: {
     label: "Subtitle",
     type: "text",
     placeholder: "Enter a subtitle",
+    required: false,
   },
   content: {
     label: "Content",
     type: "text",
     placeholder: "Enter content",
+    required: false,
   },
   createdAt: {
     label: "Created At",
     type: "date",
     readOnly: true,
+    required: false,
   },
   updatedAt: {
     label: "Updated At",
     type: "date",
     readOnly: true,
+    required: false,
   },
+  deletedAt: {
+    label: "Deleted At",
+    type: "date",
+    readOnly: true,
+    required: false,
+  }
 };

@@ -81,12 +81,15 @@ export type DataEditorDialogProps<T extends Record<string, any>> = {
   onOpenChange?: (open: boolean) => void;
   // New prop to indicate whether we're in create or edit mode
   mode?: 'create' | 'edit';
+  // New prop to disable validation
+  disableValidation?: boolean;
 };
 
 // Helper to extract schema info and infer field types
 const getSchemaFieldInfo = <T extends Record<string, any>>(
   schema: ReturnType<typeof Schema.make<T>>,
-  sampleData?: T
+  sampleData?: T,
+  fieldCustomizations?: FieldCustomizationRecord<T>
 ): Record<string, { type: GeneratedFieldType; required: boolean }> => {
   const fields: Record<
     string,
@@ -120,17 +123,31 @@ const getSchemaFieldInfo = <T extends Record<string, any>>(
         else if (typeof value === "boolean") fieldType = "checkbox";
         else if (value instanceof Date) fieldType = "date";
         
-        fields[key] = { type: fieldType, required: false };
+        // Check if there's a customization that explicitly sets required
+        const customization = fieldCustomizations?.[key as keyof T & string];
+        // If required is explicitly set in customization, use that value, otherwise default to false
+        const required = customization?.required !== undefined ? customization.required : false;
+        
+        fields[key] = { type: fieldType, required };
       });
       return fields;
     }
 
     Object.entries(schemaFields).forEach(([key, value]: [string, any]) => {
-      // Determine if field is required (not nullable)
-      const isNullable = value?.annotations?.nullable || value?.$schema?.annotations?.nullable || false;
-      const isOptional = value?.annotations?.optional || value?.$schema?.annotations?.optional || false;
-      const required = !isNullable && !isOptional;
-
+      // First check if there's a customization that explicitly sets required
+      const customization = fieldCustomizations?.[key as keyof T & string];
+      let required: boolean;
+      
+      // If required is explicitly set in customization, use that value
+      if (customization?.required !== undefined) {
+        required = customization.required;
+      } else {
+        // Otherwise determine if field is required (not nullable/optional) from schema
+        const isNullable = value?.annotations?.nullable || value?.$schema?.annotations?.nullable || false;
+        const isOptional = value?.annotations?.optional || value?.$schema?.annotations?.optional || false;
+        required = !isNullable && !isOptional;
+      }
+      
       // Determine field type based on schema type information
       let fieldType: GeneratedFieldType = "text"; // Default
 
@@ -199,6 +216,28 @@ function formatDateForInput(value: any): string {
   }
 }
 
+// Helper function to handle tag inputs (convert between string and array)
+function handleTagInput(value: any, mode: 'format' | 'parse'): string | string[] | null {
+  if (mode === 'format') {
+    // Format for display in input: array to comma-separated string
+    if (Array.isArray(value)) {
+      return value.join(', ');
+    }
+    return value || '';
+  } else {
+    // Parse for submission: comma-separated string to array or null
+    if (typeof value === 'string') {
+      if (!value.trim()) return null;
+      // Split by comma, trim each entry, and filter out empty entries
+      const tags = value.split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag.length > 0);
+      return tags.length > 0 ? tags : null;
+    }
+    return value === undefined ? null : value;
+  }
+}
+
 export function DataEditorDialog<T extends Record<string, any>>({
   title,
   description,
@@ -213,6 +252,7 @@ export function DataEditorDialog<T extends Record<string, any>>({
   open = false,
   onOpenChange,
   mode = 'edit', // Default to edit mode
+  disableValidation = false, // Default to validation enabled
 }: DataEditorDialogProps<T>) {
   const [activeTab, setActiveTab] = React.useState(tabs[0]?.id || "");
   const isCreationMode = mode === 'create';
@@ -263,15 +303,15 @@ export function DataEditorDialog<T extends Record<string, any>>({
 
   // Extract schema field information
   const schemaFields = React.useMemo(
-    () => getSchemaFieldInfo<T>(schema, data),
-    [schema, data],
+    () => getSchemaFieldInfo<T>(schema, data, fieldCustomizations),
+    [schema, data, fieldCustomizations],
   );
 
   // Create form with react-hook-form and effect-ts validation
   // Use createSchema for validation in creation mode, if available
   const validationSchema = isCreationMode && createSchema ? createSchema : schema;
   const form = useForm<T>({
-    resolver: effectTsResolver(validationSchema),
+    resolver: disableValidation ? undefined : effectTsResolver(validationSchema),
     defaultValues: data as any, // Cast to any to avoid type issues
   });
 
@@ -284,13 +324,44 @@ export function DataEditorDialog<T extends Record<string, any>>({
     : undefined;
 
   function onSubmit(values: T) {
+    // Process form values to convert undefined to null for S.NullOr fields
+    // and handle special cases like tags (string to array)
+    const processedValues = Object.keys(values).reduce((result: any, key) => {
+      const value = values[key as keyof T];
+      
+      // Special handling for tags field
+      if (key === 'tags') {
+        result[key] = handleTagInput(value, 'parse');
+        return result;
+      }
+      
+      // Convert undefined to null
+      if (value === undefined) {
+        result[key] = null;
+      } 
+      // Convert empty arrays to null
+      else if (Array.isArray(value) && value.length === 0) {
+        result[key] = null;
+      }
+      // Keep other values as is
+      else {
+        result[key] = value;
+      }
+      return result;
+    }, {} as T);
+
+    // Add a console log if validation is disabled
+    if (disableValidation) {
+      console.info('Form validation disabled - submitting data without validation');
+    }
+
     // For creation mode, filter out auto-generated fields before saving
     if (isCreationMode && createSchema) {
       // Create a filtered copy of values excluding auto-generated fields
-      const filteredValues = Object.keys(values).reduce((result: any, key) => {
+      const filteredValues = Object.keys(processedValues).reduce((result: any, key) => {
         // Only include fields that are not auto-generated
         if (!autoGeneratedFields.has(key)) {
-          result[key] = values[key as keyof T];
+          result[key] = processedValues[key as keyof T];
         }
         return result;
       }, {});
@@ -299,7 +370,7 @@ export function DataEditorDialog<T extends Record<string, any>>({
       onSave(filteredValues as T);
     } else {
       // In edit mode, pass all values
-      onSave(values);
+      onSave(processedValues);
     }
     
     if (onOpenChange) {
@@ -636,6 +707,25 @@ export function DataEditorDialog<T extends Record<string, any>>({
                                               : "w-full"
                                           }
                                         />
+                                      ) : fieldName === "tags" || (Array.isArray(formField.value) && !isReadonly) ? (
+                                        // Special handling for tags or any array field
+                                        <Input
+                                          placeholder={`${placeholder} (comma separated)`}
+                                          value={handleTagInput(formField.value, 'format') as string}
+                                          onChange={(e) => {
+                                            // We update the form with the string value, but it will be converted to array on submit
+                                            formField.onChange(e.target.value);
+                                          }}
+                                          onBlur={formField.onBlur}
+                                          readOnly={isReadonly}
+                                          onKeyDown={isLastField ? handleKeyDown : undefined}
+                                          onFocus={(e) => !isReadonly && e.target.select()}
+                                          className={
+                                            isReadonly
+                                              ? "bg-muted cursor-not-allowed opacity-70 w-full"
+                                              : "w-full"
+                                          }
+                                        />
                                       ) : (
                                         <Input
                                           {...formField}
@@ -671,6 +761,11 @@ export function DataEditorDialog<T extends Record<string, any>>({
                 </Tabs>
 
                 <DialogFooter className="mt-4 pt-3 border-t flex-shrink-0 w-full">
+                  {disableValidation && (
+                    <p className="text-yellow-500 text-xs mr-auto">
+                      Validation disabled: All fields can be saved regardless of validity.
+                    </p>
+                  )}
                   <Button
                     type="button"
                     variant="outline"

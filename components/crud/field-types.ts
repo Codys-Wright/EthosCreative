@@ -25,6 +25,9 @@ export type FieldCustomization = {
   // Visibility and access control
   hidden?: boolean;              // Whether to hide this field in forms
   readOnly?: boolean;            // Whether the field is read-only (non-editable)
+  
+  // Validation behavior
+  required?: boolean;            // Explicitly set if field is required (overrides schema inference)
 };
 
 // Helper type for field customization records

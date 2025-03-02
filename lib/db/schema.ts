@@ -209,3 +209,49 @@ export const example = pgTable(
     contentSearchIdx: index("idx_example_content_search").on(table.contentSearch),
   })
 );
+
+// Artist Type table
+export const artistType = pgTable(
+  "artist_type",
+  {
+    id: text("id")
+      .primaryKey()
+      .notNull()
+      .default(sql`gen_random_uuid()`),
+    title: text("title").notNull(),
+    subtitle: text("subtitle"),
+    elevatorPitch: text("elevator_pitch"),
+    description: text("description"),
+    blog: jsonb("blog"),
+    tags: jsonb("tags").$type<string[]>(),
+    icon: text("icon"),
+    metadata: jsonb("metadata"),
+    notes: text("notes"),
+    version: integer("version"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    deletedAt: timestamp("deleted_at"),
+    // Add a generated column for full-text search
+    contentSearch: tsVector("content_search").generatedAlwaysAs(
+      (): SQL => sql`to_tsvector('english', COALESCE(${artistType.title}, '') || ' ' || COALESCE(${artistType.subtitle}, '') || ' ' || COALESCE(${artistType.description}, '') || ' ' || COALESCE(${artistType.elevatorPitch}, ''))`
+    ),
+    // Add generated display name
+    displayName: text("display_name").generatedAlwaysAs(
+      (): SQL => sql`CASE WHEN ${artistType.title} IS NOT NULL AND ${artistType.subtitle} IS NOT NULL 
+                      THEN ${artistType.title} || ' - ' || ${artistType.subtitle} 
+                      WHEN ${artistType.title} IS NOT NULL THEN ${artistType.title} 
+                      WHEN ${artistType.subtitle} IS NOT NULL THEN ${artistType.subtitle} 
+                      ELSE 'Untitled Artist Type' END`
+    ),
+  },
+  (table) => ({
+    // Add a GIN index for efficient full-text search
+    contentSearchIdx: index("idx_artist_type_content_search").on(table.contentSearch),
+  })
+);
+
+// Export combined schema
+export const schema = {
+  // ... existing tables
+  artistType,
+};

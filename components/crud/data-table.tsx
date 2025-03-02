@@ -23,6 +23,14 @@ import { FieldCustomization, FieldCustomizationRecord, GeneratedFieldType } from
 import { DataEditorDialog, TabDefinition } from "./data-editor-dialog";
 import { format } from "date-fns";
 
+/**
+ * Helper function to safely type a Schema for use with DataTable and form components
+ * This allows passing an Effect schema while preserving TypeScript type information
+ */
+export function schemaFor<T>(schema: any): ReturnType<typeof Schema.make<T>> {
+  return schema as unknown as ReturnType<typeof Schema.make<T>>;
+}
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -1848,7 +1856,7 @@ export function DataTable<T extends Record<string, any>>({
             setCreateFormData({});
           }}
           keyInfo={keyInfo as any}
-          schema={editSchema || createSchema} // Use both schemas
+          schema={createSchema} // Use createSchema for both schema props
           createSchema={createSchema}
           tabs={tabs}
           fieldCustomizations={fieldCustomizations}
