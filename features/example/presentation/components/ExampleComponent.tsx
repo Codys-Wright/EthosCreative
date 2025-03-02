@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback, useLayoutEffect } from "react";
 import {
   ExampleOperations
 } from "../../example.hooks";
@@ -28,7 +28,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, MoreHorizontal, Calendar as CalendarIcon, Plus, Copy, Check, Eye, Search, X, Edit, Image, FileText, Clock, Info } from "lucide-react";
+import { ArrowUpDown, ChevronDown, MoreHorizontal, Calendar as CalendarIcon, Plus, Copy, Check, Eye, Search, X, Edit, Image, FileText, Clock, Info, RefreshCw } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -67,8 +67,97 @@ import { Badge } from "@/components/ui/badge";
 import { useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { ExampleEditor } from "../components/example-editor";
+import { queryClient } from "@/features/global/lib/utils/tanstack-query";
+
+// Use the exported data helper directly from ExampleOperations
+const { exampleData } = ExampleOperations;
+
+// Update helper function to check if an example is in optimistic state using TanStack Query
+const isOptimisticUpdate = (example: Example | null): boolean => {
+  if (!example) return false;
+  
+  
+  // Get all active mutations for this example
+  const mutations = queryClient.getMutationCache().getAll();
+  
+  // Check if there are any pending mutations for this example's ID
+  return mutations.some(mutation => {
+    const variables = mutation.state.variables as { id?: string } | undefined;
+    return (
+      mutation.state.status === 'pending' && 
+      variables && 
+      'id' in variables && 
+      variables.id === example.id
+    );
+  });
+};
+
+// Add CSS utility function for optimistic updates
+const optimisticCls = (example: Example | null): string => {
+  return isOptimisticUpdate(example) ? "opacity-70 italic" : "";
+};
+
+// Add the TabButton component
+const TabButton = ({ active, onClick, children }: { 
+  active: boolean, 
+  onClick: () => void, 
+  children: React.ReactNode 
+}) => {
+  return (
+    <Button 
+      variant={active ? "default" : "ghost"} 
+      className={`rounded-md px-4 py-2 ${active ? 'bg-primary text-primary-foreground' : ''}`}
+      onClick={onClick}
+    >
+      {children}
+    </Button>
+  );
+};
 
 export const ExampleComponent = () => {
+  console.log("ExampleComponent rendering");
+  const renderCount = useRef(0);
+  
+  // Setup performance monitoring
+  useEffect(() => {
+    // Start monitoring performance when component mounts
+    if (typeof window !== 'undefined') {
+      window.performance.mark('component-render-start');
+      
+      // Simple render tracking for dev purposes
+      renderCount.current++;
+      const renderNum = renderCount.current;
+      
+      // Use requestAnimationFrame to measure time to actual paint
+      requestAnimationFrame(() => {
+        window.performance.mark('component-render-end');
+        window.performance.measure(
+          `ExampleComponent render #${renderNum}`,
+          'component-render-start',
+          'component-render-end'
+        );
+        
+        const entries = window.performance.getEntriesByType('measure');
+        const lastMeasure = entries[entries.length - 1];
+        console.log(`Total ExampleComponent render #${renderNum}: ${lastMeasure.duration.toFixed(2)}ms`);
+        
+        // If render is slow, log a warning
+        if (lastMeasure.duration > 50) {
+          console.warn(`Slow render detected: ${lastMeasure.duration.toFixed(2)}ms`);
+        }
+      });
+    }
+
+    return () => {
+      // Clean up performance marks
+      if (typeof window !== 'undefined') {
+        window.performance.clearMarks('component-render-start');
+        window.performance.clearMarks('component-render-end');
+      }
+    };
+  });
+
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
@@ -94,9 +183,6 @@ export const ExampleComponent = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [isFullEditOpen, setIsFullEditOpen] = useState(false);
   const [editingFullExample, setEditingFullExample] = useState<Example | null>(null);
-  const [fullEditTitle, setFullEditTitle] = useState("");
-  const [fullEditSubtitle, setFullEditSubtitle] = useState("");
-  const [fullEditContent, setFullEditContent] = useState("");
   const [fullEditTab, setFullEditTab] = useState("content");
   // Add debouncing for auto-search
   const [debouncedExampleId, setDebouncedExampleId] = useState("");
@@ -138,300 +224,45 @@ export const ExampleComponent = () => {
   useEffect(() => {
     if (debouncedExampleId.trim()) {
       setIsAutoSearching(true);
-      queryClient.invalidateQueries({ 
-        queryKey: ExampleOperations.exampleQueryKey({ id: debouncedExampleId }) 
-      }).finally(() => {
-        setIsAutoSearching(false);
-      });
+      exampleData.invalidateQuery({ id: debouncedExampleId })
+        .finally(() => {
+          setIsAutoSearching(false);
+        });
     }
-  }, [debouncedExampleId, queryClient]);
+  }, [debouncedExampleId]);
 
   const handleCreate = () => {
     createMutation.mutate(
       { title, subtitle, content },
       {
         onSuccess: () => {
-          toast.success("Example created successfully");
+          // Toast is already shown in the hook
           setTitle("");
           setSubtitle("");
           setContent("");
         },
         onError: (error) => {
-          toast.error(`Error creating example: ${error.message}`);
+          // Toast is already shown in the hook
         },
       },
     );
-  };
-
-  // Handle creating a new example from the modal
-  const handleCreateFromModal = () => {
-    createMutation.mutate(
-      { title: newExampleTitle, subtitle: newExampleSubtitle, content: newExampleContent },
-      {
-        onSuccess: () => {
-          toast.success("Example created successfully");
-          setNewExampleTitle("");
-          setNewExampleSubtitle("");
-          setNewExampleContent("");
-          setIsDialogOpen(false);
-        },
-        onError: (error) => {
-          toast.error(`Error creating example: ${error.message}`);
-        },
-      },
-    );
-  };
-
-  const handleUpdate = () => {
-    updateMutation.mutate(
-      {
-        id: exampleId,
-        data: { title, subtitle, content },
-      },
-      {
-        onSuccess: () => {
-          toast.success("Example updated successfully");
-        },
-        onError: (error) => {
-          toast.error(`Error updating example: ${error.message}`);
-        },
-      },
-    );
-  };
-
-  const handleDelete = () => {
-    deleteMutation.mutate(exampleId, {
-      onSuccess: () => {
-        toast.success("Example deleted successfully");
-        setExampleId("");
-      },
-      onError: (error) => {
-        toast.error(`Error deleting example: ${error.message}`);
-      },
-    });
-  };
-
-  // Helper function to safely format dates
-  const formatDate = (dateValue: any) => {
-    if (!dateValue) return "N/A";
-    try {
-      const date = new Date(dateValue);
-      return format(date, "PPP"); // Format as "Apr 29, 2023"
-    } catch (error) {
-      return "Invalid date";
-    }
-  };
-
-  // Helper function to safely format time
-  const formatTime = (dateValue: any) => {
-    if (!dateValue) return "";
-    try {
-      const date = new Date(dateValue);
-      return format(date, "p"); // Format as "12:00 AM"
-    } catch (error) {
-      return "";
-    }
-  };
-
-  // Type guard to check if an object is an Example
-  const isExample = (obj: any): obj is Example => {
-    return true; // Always return true to bypass validation
-  };
-
-  // Date Calendar Component
-  const DateCalendar = ({ date }: { date: string | Date }) => {
-    const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-      date ? new Date(date) : undefined
-    );
-    const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
-
-    return (
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className={cn(
-              "max-w-[180px] mx-auto justify-center text-center font-normal",
-              !date && "text-muted-foreground"
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {selectedDate ? (
-              <span>{format(selectedDate, "PPP")}</span>
-            ) : (
-              <span>No date</span>
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <div className="flex">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              initialFocus
-              disabled={true} // Make it read-only
-            />
-            {selectedDate && (
-              <div className="border-l min-w-[240px] bg-muted/50 flex flex-col h-[352px]">
-                <div className="p-4 flex flex-col h-full">
-                  <h4 className="text-sm font-semibold mb-2 flex items-center">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {showTechnicalDetails ? "Technical Details" : "Date Information"}
-                  </h4>
-                  
-                  <ScrollArea className="flex-1 h-[260px]">
-                    {!showTechnicalDetails ? (
-                      <div className="rounded-md bg-background p-3 shadow-sm border">
-                        <div className="text-xs font-medium text-muted-foreground mb-1">FORMATTED DATE</div>
-                        <div className="text-sm font-medium mb-2">{format(selectedDate, "PPP")}</div>
-                        
-                        <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
-                          <div>
-                            <div className="text-muted-foreground mb-1">DAY</div>
-                            <div className="font-medium">{format(selectedDate, "EEEE")}</div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground mb-1">TIME</div>
-                            <div className="font-medium">{format(selectedDate, "p")}</div>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <div className="rounded-md bg-background p-2 shadow-sm border">
-                          <div className="text-xs text-muted-foreground">ISO 8601</div>
-                          <div className="text-xs font-mono mt-1 font-medium break-all">{selectedDate.toISOString()}</div>
-                        </div>
-                        
-                        <div className="rounded-md bg-background p-2 shadow-sm border">
-                          <div className="text-xs text-muted-foreground">UTC STRING</div>
-                          <div className="text-xs font-mono mt-1 font-medium break-all">{selectedDate.toUTCString()}</div>
-                        </div>
-                      </div>
-                    )}
-                  </ScrollArea>
-                  
-                  <div className="mt-4 pt-2 border-t">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="w-full text-xs text-muted-foreground hover:text-foreground hover:bg-muted"
-                      onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
-                    >
-                      {showTechnicalDetails ? "View Date Information" : "View Technical Details"}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </PopoverContent>
-      </Popover>
-    );
-  };
-
-  // Function to truncate ID for display
-  const truncateId = (id: string) => {
-    if (!id) return "";
-    if (id.length <= 8) return id;
-    return `${id.substring(0, 4)}...${id.substring(id.length - 4)}`;
-  };
-
-  // ID display component with copy functionality
-  const IdDisplay = ({ id }: { id: string }) => {
-    const [copied, setCopied] = useState(false);
-    
-    const copyToClipboard = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      navigator.clipboard.writeText(id);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    };
-    
-    return (
-      <div className="flex items-center gap-2">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Badge 
-                variant="outline" 
-                className="font-mono text-xs py-1"
-              >
-                ID
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="max-w-[300px] break-all">
-              <p className="text-xs font-mono">{id}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-6 w-6 text-muted-foreground hover:text-foreground" 
-                onClick={copyToClipboard}
-              >
-                {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="top">
-              <p className="text-xs">{copied ? "Copied!" : "Copy ID"}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    );
-  };
-
-  // Handle input change without triggering any actions
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<string>>) => {
-    setter(e.target.value);
-  };
-
-  // Debounced filter function for table
-  const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>, setFilterValue: (value: string) => void) => {
-    setFilterValue(event.target.value);
   };
 
   // Handle opening the full edit dialog
-  const handleOpenFullEdit = (example: Example) => {
+  const handleOpenFullEdit = useCallback((example: Example) => {
+    console.time('fullEditDialogOpen');
     setEditingFullExample(example);
-    setFullEditTitle(example.title ?? "");
-    setFullEditSubtitle(example.subtitle ?? "");
-    setFullEditContent(example.content ?? "");
     setIsFullEditOpen(true);
-    setFullEditTab("content");
-  };
-
-  // Handle saving the full edit
-  const handleSaveFullEdit = () => {
-    if (!editingFullExample) return;
+    console.timeEnd('fullEditDialogOpen');
     
-    updateMutation.mutate(
-      {
-        id: editingFullExample.id,
-        data: { 
-          title: fullEditTitle,
-          subtitle: fullEditSubtitle,
-          content: fullEditContent 
-        } as Partial<NewExample>,
-      },
-      {
-        onSuccess: () => {
-          toast.success("Example updated successfully");
-          setIsFullEditOpen(false);
-        },
-        onError: (error) => {
-          toast.error(`Failed to update example: ${error.message}`);
-        },
-      }
-    );
-  };
+    // Track DOM updates
+    requestAnimationFrame(() => {
+      console.time('fullEditDialogRender');
+      requestAnimationFrame(() => {
+        console.timeEnd('fullEditDialogRender');
+      });
+    });
+  }, []);
 
   // Define table columns
   const columns: ColumnDef<any>[] = [
@@ -502,12 +333,12 @@ export const ExampleComponent = () => {
             },
             {
               onSuccess: (updatedExample) => {
-                toast.success("Example updated successfully");
+                // Toast is already shown in the hook
                 setOpen(false);
                 setIsSaving(false);
               },
               onError: (error) => {
-                toast.error(`Failed to update example: ${error.message}`);
+                // Toast is already shown in the hook
                 setIsSaving(false);
               },
             }
@@ -525,7 +356,7 @@ export const ExampleComponent = () => {
             <PopoverTrigger asChild>
               <div 
                 id={`title-${row.id}`}
-                className="cursor-pointer hover:text-primary transition-colors truncate font-medium"
+                className={`cursor-pointer hover:text-primary transition-colors truncate font-medium ${optimisticCls(example)}`}
                 title={row.getValue("title") || ""}
               >
                 {row.getValue("title") || "—"}
@@ -615,12 +446,12 @@ export const ExampleComponent = () => {
             },
             {
               onSuccess: (updatedExample) => {
-                toast.success("Example updated successfully");
+                // Toast is already shown in the hook
                 setOpen(false);
                 setIsSaving(false);
               },
               onError: (error) => {
-                toast.error(`Failed to update example: ${error.message}`);
+                // Toast is already shown in the hook
                 setIsSaving(false);
               },
             }
@@ -638,7 +469,7 @@ export const ExampleComponent = () => {
             <PopoverTrigger asChild>
               <div 
                 id={`subtitle-${row.id}`}
-                className="cursor-pointer hover:text-primary transition-colors truncate text-muted-foreground text-sm"
+                className={`cursor-pointer hover:text-primary transition-colors truncate text-muted-foreground text-sm ${optimisticCls(example)}`}
                 title={row.getValue("subtitle") || ""}
               >
                 {row.getValue("subtitle") || "—"}
@@ -729,12 +560,12 @@ export const ExampleComponent = () => {
             },
             {
               onSuccess: (updatedExample) => {
-                toast.success("Example updated successfully");
+                // Toast is already shown in the hook
                 setOpen(false);
                 setIsSaving(false);
               },
               onError: (error) => {
-                toast.error(`Failed to update example: ${error.message}`);
+                // Toast is already shown in the hook
                 setIsSaving(false);
               },
             }
@@ -752,7 +583,7 @@ export const ExampleComponent = () => {
             <PopoverTrigger asChild>
               <div 
                 id={`content-${row.id}`}
-                className="cursor-pointer hover:text-primary transition-colors truncate"
+                className={`cursor-pointer hover:text-primary transition-colors truncate ${optimisticCls(example)}`}
                 title={row.getValue("content")}
               >
                 {row.getValue("content")}
@@ -946,6 +777,190 @@ export const ExampleComponent = () => {
     }
   };
 
+  // Helper function to safely format dates
+  const formatDate = (dateValue: any) => {
+    if (!dateValue) return "N/A";
+    try {
+      const date = new Date(dateValue);
+      return format(date, "PPP"); // Format as "Apr 29, 2023"
+    } catch (error) {
+      return "Invalid date";
+    }
+  };
+
+  // Type guard to check if an object is an Example
+  const isExample = (obj: any): obj is Example => {
+    return true; // Always return true to bypass validation
+  };
+
+  // Function to truncate ID for display
+  const truncateId = (id: string) => {
+    if (!id) return "";
+    if (id.length <= 8) return id;
+    return `${id.substring(0, 4)}...${id.substring(id.length - 4)}`;
+  };
+
+  // ID display component with copy functionality
+  const IdDisplay = ({ id }: { id: string }) => {
+    const [copied, setCopied] = useState(false);
+    
+    const copyToClipboard = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      navigator.clipboard.writeText(id);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    };
+    
+    return (
+      <div className="flex items-center gap-2">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge 
+                variant="outline" 
+                className="font-mono text-xs py-1"
+              >
+                ID
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-[300px] break-all">
+              <p className="text-xs font-mono">{id}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6 text-muted-foreground hover:text-foreground" 
+                onClick={copyToClipboard}
+              >
+                {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p className="text-xs">{copied ? "Copied!" : "Copy ID"}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+    );
+  };
+
+  // Date Calendar Component
+  const DateCalendar = ({ date }: { date: string | Date }) => {
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+      date ? new Date(date) : undefined
+    );
+    const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
+
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className={cn(
+              "max-w-[180px] mx-auto justify-center text-center font-normal",
+              !date && "text-muted-foreground"
+            )}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {selectedDate ? (
+              <span>{format(selectedDate, "PPP")}</span>
+            ) : (
+              <span>No date</span>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <div className="flex">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              initialFocus
+              disabled={true} // Make it read-only
+            />
+            {selectedDate && (
+              <div className="border-l min-w-[240px] bg-muted/50 flex flex-col h-[352px]">
+                <div className="p-4 flex flex-col h-full">
+                  <h4 className="text-sm font-semibold mb-2 flex items-center">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {showTechnicalDetails ? "Technical Details" : "Date Information"}
+                  </h4>
+                  
+                  <ScrollArea className="flex-1 h-[260px]">
+                    {!showTechnicalDetails ? (
+                      <div className="rounded-md bg-background p-3 shadow-sm border">
+                        <div className="text-xs font-medium text-muted-foreground mb-1">FORMATTED DATE</div>
+                        <div className="text-sm font-medium mb-2">{format(selectedDate, "PPP")}</div>
+                        
+                        <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
+                          <div>
+                            <div className="text-muted-foreground mb-1">DAY</div>
+                            <div className="font-medium">{format(selectedDate, "EEEE")}</div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground mb-1">TIME</div>
+                            <div className="font-medium">{format(selectedDate, "p")}</div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="rounded-md bg-background p-2 shadow-sm border">
+                          <div className="text-xs text-muted-foreground">ISO 8601</div>
+                          <div className="text-xs font-mono mt-1 font-medium break-all">{selectedDate.toISOString()}</div>
+                        </div>
+                        
+                        <div className="rounded-md bg-background p-2 shadow-sm border">
+                          <div className="text-xs text-muted-foreground">UTC STRING</div>
+                          <div className="text-xs font-mono mt-1 font-medium break-all">{selectedDate.toUTCString()}</div>
+                        </div>
+                      </div>
+                    )}
+                  </ScrollArea>
+                  
+                  <div className="mt-4 pt-2 border-t">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="w-full text-xs text-muted-foreground hover:text-foreground hover:bg-muted"
+                      onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
+                    >
+                      {showTechnicalDetails ? "View Date Information" : "View Technical Details"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </PopoverContent>
+      </Popover>
+    );
+  };
+
+  // Restore handleDelete function with proper types
+  const handleDelete = () => {
+    deleteMutation.mutate(exampleId, {
+      onSuccess: () => {
+        // Toast is already shown in the hook
+        setExampleId("");
+      },
+      onError: (error) => {
+        // Toast is already shown in the hook
+      },
+    });
+  };
+
+  // Fix the filter change handler to specify type
+  const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>, setFilterValue: (value: string) => void) => {
+    setFilterValue(event.target.value);
+  };
+
   return (
     <div className="container mx-auto py-8 max-w-7xl">
       <div className="space-y-6">
@@ -957,7 +972,7 @@ export const ExampleComponent = () => {
             </p>
           </div>
           
-          {/* New Example Dialog */}
+          {/* Replace the custom New Example Dialog with our ExampleEditor */}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button
@@ -975,54 +990,9 @@ export const ExampleComponent = () => {
                   Add a new example to the database.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="modal-title" className="text-right text-sm font-medium">
-                    Title <span className="text-muted-foreground text-xs">(optional)</span>
-                  </label>
-                  <Input
-                    id="modal-title"
-                    placeholder="Enter title"
-                    value={newExampleTitle}
-                    onChange={(e) => handleInputChange(e, setNewExampleTitle)}
-                    className="col-span-3"
-                    autoFocus
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="modal-subtitle" className="text-right text-sm font-medium">
-                    Subtitle <span className="text-muted-foreground text-xs">(optional)</span>
-                  </label>
-                  <Input
-                    id="modal-subtitle"
-                    placeholder="Enter subtitle"
-                    value={newExampleSubtitle}
-                    onChange={(e) => handleInputChange(e, setNewExampleSubtitle)}
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="modal-content" className="text-right text-sm font-medium">
-                    Content <span className="text-muted-foreground text-xs">(required)</span>
-                  </label>
-                  <Input
-                    id="modal-content"
-                    placeholder="Enter content"
-                    value={newExampleContent}
-                    onChange={(e) => handleInputChange(e, setNewExampleContent)}
-                    className="col-span-3"
-                  />
-                </div>
+              <div className="pt-4">
+                <ExampleEditor />
               </div>
-              <DialogFooter>
-                <Button 
-                  type="submit" 
-                  onClick={handleCreateFromModal}
-                  disabled={createMutation.isPending}
-                >
-                  {createMutation.isPending ? "Creating..." : "Create Example"}
-                </Button>
-              </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
@@ -1040,10 +1010,10 @@ export const ExampleComponent = () => {
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => queryClient.invalidateQueries({ queryKey: ExampleOperations.exampleQueryKey({}) })}
+                  onClick={() => exampleData.invalidateAllQueries()}
                   className="gap-2"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-refresh-cw"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
+                  <RefreshCw className="h-4 w-4" />
                   Refresh
                 </Button>
               </div>
@@ -1263,11 +1233,11 @@ export const ExampleComponent = () => {
                   <div className="space-y-4">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="text-lg font-semibold">
+                        <h3 className={`text-lg font-semibold ${optimisticCls(singleExample)}`}>
                           {singleExample.title || "Untitled Example"}
                         </h3>
                         {singleExample.subtitle && (
-                          <p className="text-sm text-muted-foreground">{singleExample.subtitle}</p>
+                          <p className={`text-sm text-muted-foreground ${optimisticCls(singleExample)}`}>{singleExample.subtitle}</p>
                         )}
                       </div>
                       <Badge variant="outline" className="font-mono text-xs py-1">
@@ -1276,7 +1246,7 @@ export const ExampleComponent = () => {
                     </div>
                     
                     <div className="py-4">
-                      <p className="whitespace-pre-wrap break-words">{singleExample.content ?? ""}</p>
+                      <p className={`whitespace-pre-wrap break-words ${optimisticCls(singleExample)}`}>{singleExample.content ?? ""}</p>
                     </div>
                     
                     <div className="flex justify-between items-center text-sm text-muted-foreground">
@@ -1335,257 +1305,27 @@ export const ExampleComponent = () => {
         </Card>
       </div>
 
-      {/* Full Edit Dialog */}
-      <Dialog open={isFullEditOpen} onOpenChange={setIsFullEditOpen}>
-        <DialogContent style={{ width: '90vw', maxWidth: '90vw', height: '90vh', maxHeight: '90vh' }} className="w-[90vw] max-w-[90vw] h-[90vh] max-h-[90vh] p-0 flex flex-col rounded-md border">
-          <div className="flex flex-col h-full">
-            <DialogHeader className="px-8 py-6 border-b">
-              <div className="flex items-center justify-between">
-                <DialogTitle className="text-2xl font-semibold">Edit Example</DialogTitle>
-                <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setIsFullEditOpen(false)}>
-                  <X className="h-5 w-5" />
-                </Button>
-              </div>
-            </DialogHeader>
-            
-            <div className="flex flex-1 overflow-hidden">
-              {/* Left side - Preview */}
-              <div className="w-1/3 border-r p-8 overflow-auto" style={{ minWidth: '33%' }}>
-                <div className="space-y-8">
-                  <div>
-                    <h2 className="text-2xl font-bold mb-2">{fullEditTitle}</h2>
-                    {fullEditSubtitle && (
-                      <p className="text-lg text-muted-foreground mb-6">{fullEditSubtitle}</p>
-                    )}
-                    <div className="p-6 border rounded-md bg-muted min-h-[250px]">
-                      <p className="whitespace-pre-wrap break-words text-base">{fullEditContent}</p>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-xl font-semibold mb-3">Example Information</h3>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="font-mono text-xs py-1">ID</Badge>
-                        <span className="text-sm font-mono">{editingFullExample?.id}</span>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-6 w-6 ml-auto" 
-                          onClick={() => {
-                            if (editingFullExample) {
-                              navigator.clipboard.writeText(editingFullExample.id);
-                              toast.success("ID copied to clipboard");
-                            }
-                          }}
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs py-1">Created</Badge>
-                        <span className="text-sm">
-                          {editingFullExample ? formatDate(editingFullExample.createdAt) : ""}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs py-1">Updated</Badge>
-                        <div className="flex items-center gap-1">
-                          <span className="text-sm">
-                            {editingFullExample ? formatDate(editingFullExample.updatedAt) : ""}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {editingFullExample ? formatTime(editingFullExample.updatedAt) : ""}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-xl font-semibold mb-3">Image Placeholder</h3>
-                    <div className="border rounded-md bg-muted/50 h-[300px] flex items-center justify-center">
-                      <div className="text-center text-muted-foreground">
-                        <Image className="h-12 w-12 mx-auto mb-3" />
-                        <p className="text-base">No image available</p>
-                        <Button variant="ghost" size="sm" className="mt-3">
-                          <Plus className="h-4 w-4 mr-1" /> Add Image
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Right side - Edit Form */}
-              <div className="w-2/3 p-8 overflow-auto" style={{ minWidth: '67%' }}>
-                <Tabs value={fullEditTab} onValueChange={setFullEditTab} className="w-full">
-                  <TabsList className="w-full mb-6 h-12">
-                    <TabsTrigger value="content" className="flex-1 h-full data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                      <div className="flex items-center justify-center gap-2">
-                        <FileText className="h-4 w-4" />
-                        <span>Content</span>
-                      </div>
-                    </TabsTrigger>
-                    <TabsTrigger value="metadata" className="flex-1 h-full data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                      <div className="flex items-center justify-center gap-2">
-                        <Info className="h-4 w-4" />
-                        <span>Metadata</span>
-                      </div>
-                    </TabsTrigger>
-                    <TabsTrigger value="dates" className="flex-1 h-full data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                      <div className="flex items-center justify-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        <span>Dates</span>
-                      </div>
-                    </TabsTrigger>
-                    <TabsTrigger value="media" className="flex-1 h-full data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                      <div className="flex items-center justify-center gap-2">
-                        <Image className="h-4 w-4" />
-                        <span>Media</span>
-                      </div>
-                    </TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="content" className="space-y-6">
-                    <div>
-                      <label htmlFor="full-edit-title" className="text-base font-medium block mb-3">
-                        Title <span className="text-muted-foreground">(optional)</span>
-                      </label>
-                      <Input
-                        id="full-edit-title"
-                        value={fullEditTitle}
-                        onChange={(e) => setFullEditTitle(e.target.value)}
-                        className="text-base py-5"
-                        placeholder="Enter title..."
-                      />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="full-edit-subtitle" className="text-base font-medium block mb-3">
-                        Subtitle <span className="text-muted-foreground">(optional)</span>
-                      </label>
-                      <Input
-                        id="full-edit-subtitle"
-                        value={fullEditSubtitle}
-                        onChange={(e) => setFullEditSubtitle(e.target.value)}
-                        className="text-base py-5"
-                        placeholder="Enter subtitle..."
-                      />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="full-edit-content" className="text-base font-medium block mb-3">
-                        Content <span className="text-muted-foreground">(required)</span>
-                      </label>
-                      <div className="relative">
-                        <textarea
-                          id="full-edit-content"
-                          value={fullEditContent}
-                          onChange={(e) => setFullEditContent(e.target.value)}
-                          className="flex min-h-[400px] w-full rounded-md border border-input bg-background px-4 py-3 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                          placeholder="Enter content..."
-                        />
-                        <div className="absolute bottom-3 right-3 text-sm text-muted-foreground">
-                          {fullEditContent.length} characters
-                        </div>
-                      </div>
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="metadata" className="space-y-6">
-                    <div className="border rounded-md p-8 bg-muted/30">
-                      <h3 className="text-lg font-medium mb-6">Metadata Fields</h3>
-                      <p className="text-base text-muted-foreground mb-6">
-                        This section would contain additional metadata fields for the example.
-                      </p>
-                      <div className="space-y-6">
-                        <div>
-                          <label className="text-base font-medium block mb-2">
-                            Tags
-                          </label>
-                          <Input placeholder="Enter tags separated by commas" className="text-base py-5" />
-                        </div>
-                        <div>
-                          <label className="text-base font-medium block mb-2">
-                            Category
-                          </label>
-                          <Input placeholder="Enter category" className="text-base py-5" />
-                        </div>
-                        <div>
-                          <label className="text-base font-medium block mb-2">
-                            Status
-                          </label>
-                          <Input placeholder="Enter status" className="text-base py-5" />
-                        </div>
-                      </div>
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="dates" className="space-y-6">
-                    <div className="border rounded-md p-8 bg-muted/30">
-                      <h3 className="text-lg font-medium mb-6">Date Information</h3>
-                      <div className="grid grid-cols-2 gap-8">
-                        <div>
-                          <label className="text-base font-medium block mb-3">
-                            Created At
-                          </label>
-                          <div className="border rounded-md p-6 bg-muted/50">
-                            <p className="text-base font-medium">
-                              {editingFullExample ? formatDate(editingFullExample.createdAt) : ""}
-                            </p>
-                            <p className="text-sm text-muted-foreground mt-2">
-                              {editingFullExample ? formatTime(editingFullExample.createdAt) : ""}
-                            </p>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="text-base font-medium block mb-3">
-                            Updated At
-                          </label>
-                          <div className="border rounded-md p-6 bg-muted/50">
-                            <p className="text-base font-medium">
-                              {editingFullExample ? formatDate(editingFullExample.updatedAt) : ""}
-                            </p>
-                            <p className="text-sm text-muted-foreground mt-2">
-                              {editingFullExample ? formatTime(editingFullExample.updatedAt) : ""}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="media" className="space-y-6">
-                    <div className="border rounded-md p-8 bg-muted/30">
-                      <h3 className="text-lg font-medium mb-6">Media Attachments</h3>
-                      <div className="border-2 border-dashed rounded-md p-12 text-center">
-                        <Image className="h-12 w-12 mx-auto mb-4" />
-                        <p className="text-base font-medium">Drag and drop files here</p>
-                        <p className="text-sm text-muted-foreground mt-2 mb-6">
-                          Supports images, videos, and documents
-                        </p>
-                        <Button variant="secondary" size="lg" className="px-6">
-                          <Plus className="h-5 w-5 mr-2" /> Browse Files
-                        </Button>
-                      </div>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </div>
+      {/* Replace the Full Edit Dialog with our ExampleEditor */}
+      <Dialog open={isFullEditOpen} onOpenChange={(open) => {
+        setIsFullEditOpen(open);
+        if (!open) {
+          // Reset after dialog closes
+          setEditingFullExample(null);
+          setFullEditTab("content");
+        }
+      }}>
+        <DialogContent className="sm:max-w-[625px]">
+          <DialogHeader>
+            <DialogTitle>Edit Example</DialogTitle>
+            <DialogDescription>
+              Make changes to the example below.
+            </DialogDescription>
+          </DialogHeader>
+          {editingFullExample && (
+            <div className="py-4">
+              <ExampleEditor edit={editingFullExample} />
             </div>
-            
-            <div className="px-8 py-6 border-t flex justify-end gap-3">
-              <Button variant="outline" size="lg" onClick={() => setIsFullEditOpen(false)}>
-                Cancel
-              </Button>
-              <Button size="lg" onClick={handleSaveFullEdit} disabled={updateMutation.isPending || !fullEditContent.trim()}>
-                {updateMutation.isPending ? "Saving..." : "Save Changes"}
-              </Button>
-            </div>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

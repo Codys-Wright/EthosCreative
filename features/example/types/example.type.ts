@@ -1,3 +1,4 @@
+import { TabDefinition } from "@/components/crud/data-editor-dialog";
 import { Schema as S } from "effect";
 
 export const ExampleId = S.String.pipe(S.brand("ExampleId"));
@@ -22,3 +23,22 @@ export const NewExample = S.Struct({
 //export types for normal ts usage
 export type Example = typeof Example.Type;
 export type NewExample = typeof NewExample.Type;
+
+// define the tabs schema for group
+export const ExampleGroups: TabDefinition<Example>[] = [
+  {
+    id: "basic",
+    label: "Basic Information",
+    fields: ["title", "subtitle"],
+  },
+  {
+    id: "content",
+    label: "Content",
+    fields: ["content"],
+  },
+  {
+    id: "metadata",
+    label: "Metadata",
+    fields: ["id", "createdAt", "updatedAt"],
+  },
+];
