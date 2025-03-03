@@ -9,7 +9,11 @@ export type GeneratedFieldType =
   | "email"
   | "date"
   | "select"
-  | "checkbox";
+  | "checkbox"
+  | "combobox"    // Multi-select tag input
+  | "image"       // Image upload/display
+  | "avatar"      // Profile picture with avatar fallback
+  | "richtext";   // Rich text editor
 
 // Unified field customization type for both table and editor dialog
 export type FieldCustomization = {
