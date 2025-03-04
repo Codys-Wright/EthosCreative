@@ -63,11 +63,11 @@ export const columns: DataTableColumnConfig<ArtistTypeType>[] = [
     width: 200,
     renderer: ({ value }) => {
       if (!value || !Array.isArray(value)) return null;
-      
+
       // Display first 3 tags with a count of remaining ones
       const displayTags = value.slice(0, 3).join(", ");
-      const extraCount = value.length > 3 ? ` +${value.length - 3} more` : '';
-      
+      const extraCount = value.length > 3 ? ` +${value.length - 3} more` : "";
+
       return displayTags + extraCount;
     },
   },
@@ -101,18 +101,18 @@ export const columns: DataTableColumnConfig<ArtistTypeType>[] = [
 export const artistTypeEditorKeyInfo = {
   title: {
     field: "title",
-    label: "Title"
+    label: "Title",
   },
   subtitle: {
     field: "subtitle",
-    label: "Subtitle"
+    label: "Subtitle",
   },
   additionalFields: [
     {
       field: "elevatorPitch",
-      label: "Elevator Pitch"
-    }
-  ]
+      label: "Elevator Pitch",
+    },
+  ],
 };
 
 /**********************
@@ -134,7 +134,7 @@ export const artistTypeTableConfig = {
 };
 
 /**
- * Type definition for the Artist Type table props 
+ * Type definition for the Artist Type table props
  */
 export type ArtistTypeTableProps = DataTableProps<ArtistTypeType>;
 
@@ -175,4 +175,4 @@ export const artistTypeTableBaseProps: Partial<ArtistTypeTableProps> = {
   // Feature flags
   useIntegratedEditor: true,
   enableSelection: true,
-}; 
+};

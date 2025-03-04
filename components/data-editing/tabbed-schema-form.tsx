@@ -9,18 +9,27 @@ import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, MoreHorizontal, ChevronDown } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  MoreHorizontal,
+  ChevronDown,
+} from "lucide-react";
 import { FieldCustomizationRecord } from "@/components/crud/field-types";
-import { getSchemaFieldInfo, TabDefinition, isFieldRequired } from "./schema-utils";
+import {
+  getSchemaFieldInfo,
+  TabDefinition,
+  isFieldRequired,
+} from "./schema-utils";
 import { FormFieldRenderer } from "./field-renderers";
 import { cn } from "@/lib/utils";
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
 /**
@@ -73,8 +82,12 @@ const ResponsiveTabsList = ({
   countErrorFields,
   isSubmitted,
 }: ResponsiveTabsProps) => {
-  const [visibleTabs, setVisibleTabs] = React.useState<TabDefinition<any>[]>([]);
-  const [overflowTabs, setOverflowTabs] = React.useState<TabDefinition<any>[]>([]);
+  const [visibleTabs, setVisibleTabs] = React.useState<TabDefinition<any>[]>(
+    [],
+  );
+  const [overflowTabs, setOverflowTabs] = React.useState<TabDefinition<any>[]>(
+    [],
+  );
   const [showMore, setShowMore] = React.useState(false);
   const tabsListRef = React.useRef<HTMLDivElement>(null);
 
@@ -92,7 +105,7 @@ const ResponsiveTabsList = ({
       const overflow: TabDefinition<any>[] = [];
 
       // First, check if the active tab should be prioritized
-      const activeTabIndex = tabs.findIndex(tab => tab.id === activeTab);
+      const activeTabIndex = tabs.findIndex((tab) => tab.id === activeTab);
       let activeTabIncluded = false;
 
       // Calculate based on text content - approximate width per character plus padding
@@ -110,9 +123,12 @@ const ResponsiveTabsList = ({
             // If active tab doesn't fit, we'll handle it later
             overflow.push(tabs[i]);
           }
-        } 
+        }
         // Include other tabs if there's space
-        else if (currentWidth + estimatedWidth <= maxWidth || visible.length < 2) {
+        else if (
+          currentWidth + estimatedWidth <= maxWidth ||
+          visible.length < 2
+        ) {
           // Always show at least 2 tabs if possible
           currentWidth += estimatedWidth;
           visible.push(tabs[i]);
@@ -123,7 +139,11 @@ const ResponsiveTabsList = ({
 
       // If the active tab is in overflow but we have space for visible tabs,
       // swap the last visible tab with the active tab
-      if (!activeTabIncluded && visible.length > 0 && overflow.includes(tabs[activeTabIndex])) {
+      if (
+        !activeTabIncluded &&
+        visible.length > 0 &&
+        overflow.includes(tabs[activeTabIndex])
+      ) {
         const lastVisibleTab = visible.pop()!;
         visible.push(tabs[activeTabIndex]);
         overflow.splice(overflow.indexOf(tabs[activeTabIndex]), 1);
@@ -159,22 +179,34 @@ const ResponsiveTabsList = ({
             className={cn(
               "w-full justify-between pr-6 relative",
               // Apply special styling if current tab has required fields or errors
-              isSubmitted && countErrorFields(activeTab) > 0 && "text-destructive border-destructive",
-              !isSubmitted && countRequiredFields(activeTab) > 0 && "text-destructive/70 border-destructive/40"
+              isSubmitted &&
+                countErrorFields(activeTab) > 0 &&
+                "text-destructive border-destructive",
+              !isSubmitted &&
+                countRequiredFields(activeTab) > 0 &&
+                "text-destructive/70 border-destructive/40",
             )}
           >
-            <span>{tabs.find(t => t.id === activeTab)?.label || "Select tab"}</span>
+            <span>
+              {tabs.find((t) => t.id === activeTab)?.label || "Select tab"}
+            </span>
             <ChevronDown className="h-4 w-4 opacity-50" />
 
             {/* Position badges absolutely to avoid shifting content */}
             {isSubmitted && countErrorFields(activeTab) > 0 && (
-              <Badge variant="destructive" className="absolute -top-2 right-0 text-[10px] px-1 py-0 h-5 min-w-5 flex items-center justify-center">
+              <Badge
+                variant="destructive"
+                className="absolute -top-2 right-0 text-[10px] px-1 py-0 h-5 min-w-5 flex items-center justify-center"
+              >
                 {countErrorFields(activeTab)}
               </Badge>
             )}
             {/* Always show required count badge regardless of errors */}
             {countRequiredFields(activeTab) > 0 && (
-              <Badge variant="outline" className="absolute -top-2 right-7 text-[10px] px-1 py-0 h-5 min-w-5 border-destructive text-destructive flex items-center justify-center">
+              <Badge
+                variant="outline"
+                className="absolute -top-2 right-7 text-[10px] px-1 py-0 h-5 min-w-5 border-destructive text-destructive flex items-center justify-center"
+              >
                 {countRequiredFields(activeTab)}
               </Badge>
             )}
@@ -184,7 +216,7 @@ const ResponsiveTabsList = ({
           {tabs.map((tab) => {
             const requiredCount = countRequiredFields(tab.id);
             const errorCount = isSubmitted ? countErrorFields(tab.id) : 0;
-            
+
             return (
               <DropdownMenuItem
                 key={tab.id}
@@ -192,20 +224,28 @@ const ResponsiveTabsList = ({
                   "justify-between cursor-pointer",
                   tab.id === activeTab && "bg-accent font-medium",
                   errorCount > 0 && "text-destructive focus:text-destructive",
-                  requiredCount > 0 && !errorCount && "text-destructive focus:text-destructive"
+                  requiredCount > 0 &&
+                    !errorCount &&
+                    "text-destructive focus:text-destructive",
                 )}
                 onClick={() => onChange(tab.id)}
               >
                 <span>{tab.label}</span>
                 <div className="flex gap-1.5">
                   {errorCount > 0 && (
-                    <Badge variant="destructive" className="text-[10px] px-1 py-0 h-5 min-w-5 flex items-center justify-center">
+                    <Badge
+                      variant="destructive"
+                      className="text-[10px] px-1 py-0 h-5 min-w-5 flex items-center justify-center"
+                    >
                       {errorCount}
                     </Badge>
                   )}
                   {/* Always show required count regardless of errors */}
                   {requiredCount > 0 && (
-                    <Badge variant="outline" className="text-[10px] px-1 py-0 h-5 min-w-5 border-destructive text-destructive flex items-center justify-center ml-1">
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] px-1 py-0 h-5 min-w-5 border-destructive text-destructive flex items-center justify-center ml-1"
+                    >
                       {requiredCount}
                     </Badge>
                   )}
@@ -227,41 +267,41 @@ const ResponsiveTabsList = ({
         className="relative w-full"
       >
         <div className="relative">
-          <TabsList 
-            ref={tabsListRef} 
+          <TabsList
+            ref={tabsListRef}
             className="flex w-full overflow-visible bg-muted/50 rounded-md p-1"
           >
             {visibleTabs.map((tab) => {
               const requiredCount = countRequiredFields(tab.id);
               const errorCount = isSubmitted ? countErrorFields(tab.id) : 0;
               const hasErrors = errorCount > 0;
-              
+
               return (
-                <TabsTrigger 
-                  key={tab.id} 
-                  value={tab.id} 
+                <TabsTrigger
+                  key={tab.id}
+                  value={tab.id}
                   className={cn(
                     "relative whitespace-nowrap flex-1 data-[state=active]:bg-background",
-                    hasErrors && "text-destructive border-destructive hover:text-destructive hover:border-destructive",
-                    !hasErrors && requiredCount > 0 && "text-destructive border-destructive hover:text-destructive hover:border-destructive"
+                    hasErrors &&
+                      "text-destructive border-destructive hover:text-destructive hover:border-destructive",
+                    !hasErrors &&
+                      requiredCount > 0 &&
+                      "text-destructive border-destructive hover:text-destructive hover:border-destructive",
                   )}
                 >
                   {tab.label}
-                  
+
                   {/* Show error badge if there are errors after submission */}
                   {hasErrors && (
-                    <Badge 
-                      variant="destructive" 
-                      className="ml-2 text-xs"
-                    >
+                    <Badge variant="destructive" className="ml-2 text-xs">
                       {errorCount}
                     </Badge>
                   )}
-                  
+
                   {/* Show required count badge if no errors */}
                   {!hasErrors && requiredCount > 0 && (
-                    <Badge 
-                      variant="outline" 
+                    <Badge
+                      variant="outline"
                       className="ml-2 text-xs border-destructive text-destructive flex items-center justify-center"
                     >
                       {requiredCount}
@@ -275,19 +315,31 @@ const ResponsiveTabsList = ({
             {showMore && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="sm"
-                    aria-label={`More tabs${overflowTabs.some(tab => countRequiredFields(tab.id) > 0) ? ' with required fields' : ''}`}
-                    title={overflowTabs.some(tab => countRequiredFields(tab.id) > 0) ? 'Some hidden tabs contain required fields' : 'More tabs'}
+                    aria-label={`More tabs${overflowTabs.some((tab) => countRequiredFields(tab.id) > 0) ? " with required fields" : ""}`}
+                    title={
+                      overflowTabs.some(
+                        (tab) => countRequiredFields(tab.id) > 0,
+                      )
+                        ? "Some hidden tabs contain required fields"
+                        : "More tabs"
+                    }
                     className={cn(
                       "px-3 ml-1 relative pr-8", // Increased right padding to make room for badge
                       // Apply red styling to match other tabs
-                      overflowTabs.some(tab => countRequiredFields(tab.id) > 0) && 
+                      overflowTabs.some(
+                        (tab) => countRequiredFields(tab.id) > 0,
+                      ) &&
                         "text-destructive border-destructive hover:text-destructive hover:border-destructive",
-                      (isSubmitted && overflowTabs.some(tab => countErrorFields(tab.id) > 0)) && 
+                      isSubmitted &&
+                        overflowTabs.some(
+                          (tab) => countErrorFields(tab.id) > 0,
+                        ) &&
                         "text-destructive border-destructive hover:text-destructive hover:border-destructive",
-                      overflowTabs.some(tab => tab.id === activeTab) && "bg-accent text-accent-foreground" // Selected state when an overflow tab is active
+                      overflowTabs.some((tab) => tab.id === activeTab) &&
+                        "bg-accent text-accent-foreground", // Selected state when an overflow tab is active
                     )}
                   >
                     <div className="flex items-center gap-1.5">
@@ -295,46 +347,66 @@ const ResponsiveTabsList = ({
                       <ChevronDown className="h-4 w-4" />
                     </div>
                     {/* Always show the required fields count badge if there are required fields */}
-                    {overflowTabs.some(tab => countRequiredFields(tab.id) > 0) && (
-                      <Badge 
-                        variant="outline" 
+                    {overflowTabs.some(
+                      (tab) => countRequiredFields(tab.id) > 0,
+                    ) && (
+                      <Badge
+                        variant="outline"
                         className="absolute -top-2 right-1 h-5 min-w-[1.25rem] text-[10px] px-1 py-0 border-destructive text-destructive flex items-center justify-center"
                       >
-                        {overflowTabs.reduce((total, tab) => total + countRequiredFields(tab.id), 0)}
+                        {overflowTabs.reduce(
+                          (total, tab) => total + countRequiredFields(tab.id),
+                          0,
+                        )}
                       </Badge>
                     )}
                     {/* Show error indicator if there are errors */}
-                    {isSubmitted && overflowTabs.some(tab => countErrorFields(tab.id) > 0) && (
-                      <div className="absolute -top-1 right-7 h-3 w-3 rounded-full bg-destructive animate-pulse" />
-                    )}
+                    {isSubmitted &&
+                      overflowTabs.some(
+                        (tab) => countErrorFields(tab.id) > 0,
+                      ) && (
+                        <div className="absolute -top-1 right-7 h-3 w-3 rounded-full bg-destructive animate-pulse" />
+                      )}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="min-w-[160px]">
                   {overflowTabs.map((tab) => {
                     const requiredCount = countRequiredFields(tab.id);
-                    const errorCount = isSubmitted ? countErrorFields(tab.id) : 0;
-                    
+                    const errorCount = isSubmitted
+                      ? countErrorFields(tab.id)
+                      : 0;
+
                     return (
                       <DropdownMenuItem
                         key={tab.id}
                         className={cn(
                           "flex items-center justify-between cursor-pointer",
-                          activeTab === tab.id && "bg-accent text-accent-foreground",
-                          errorCount > 0 && "text-destructive focus:text-destructive",
-                          requiredCount > 0 && !errorCount && "text-destructive focus:text-destructive"
+                          activeTab === tab.id &&
+                            "bg-accent text-accent-foreground",
+                          errorCount > 0 &&
+                            "text-destructive focus:text-destructive",
+                          requiredCount > 0 &&
+                            !errorCount &&
+                            "text-destructive focus:text-destructive",
                         )}
                         onClick={() => handleOverflowTabSelect(tab)}
                       >
                         <span>{tab.label}</span>
                         <div className="flex gap-1.5">
                           {errorCount > 0 && (
-                            <Badge variant="destructive" className="text-[10px] px-1 py-0 h-5 min-w-5 flex items-center justify-center">
+                            <Badge
+                              variant="destructive"
+                              className="text-[10px] px-1 py-0 h-5 min-w-5 flex items-center justify-center"
+                            >
                               {errorCount}
                             </Badge>
                           )}
                           {/* Always show required count regardless of errors */}
                           {requiredCount > 0 && (
-                            <Badge variant="outline" className="text-[10px] px-1 py-0 h-5 min-w-5 border-destructive text-destructive flex items-center justify-center ml-1">
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] px-1 py-0 h-5 min-w-5 border-destructive text-destructive flex items-center justify-center ml-1"
+                            >
                               {requiredCount}
                             </Badge>
                           )}
@@ -374,10 +446,12 @@ const NonTabbedContent = React.memo<{
           <div className="pb-2 border-b">
             <h3 className="text-lg font-medium">{tab.label}</h3>
             {tab.description && (
-              <p className="text-muted-foreground text-sm mt-1">{tab.description}</p>
+              <p className="text-muted-foreground text-sm mt-1">
+                {tab.description}
+              </p>
             )}
           </div>
-          
+
           <div className="space-y-6">
             {tab.fields.map((fieldName) => (
               <FormFieldRenderer
@@ -439,21 +513,57 @@ export function TabbedSchemaForm<T extends Record<string, any>>({
   showReset = false,
   tabbed = true, // Default to tabbed mode
 }: TabbedSchemaFormProps<T>) {
+  // Extract schema field information
+  const schemaFields = React.useMemo(() => {
+    const fields = getSchemaFieldInfo<T>(schema, defaultValues, fieldCustomizations);
+    console.log("📑 [TabbedSchemaForm] Schema field info:", {
+      totalFields: Object.keys(fields).length,
+      requiredFields: Object.entries(fields).filter(([_, info]) => info.required).map(([field]) => field),
+      requiredCount: Object.values(fields).filter(info => info.required).length
+    });
+    return fields;
+  }, [schema, defaultValues, fieldCustomizations]);
+
   // Create form with react-hook-form and effect-ts validation
   const form = useForm<T>({
-    resolver: disableValidation ? undefined : effectTsResolver(schema),
+    resolver: disableValidation 
+      ? undefined 
+      : async (data, context, options) => {
+          // Create a copy of data safely
+          const processedData = JSON.parse(JSON.stringify(data));
+          
+          // Get list of required field names from schemaFields
+          const requiredFields = Object.entries(schemaFields)
+            .filter(([_, info]) => info.required)
+            .map(([fieldName]) => fieldName);
+          
+          console.log("🔍 [TabbedSchemaForm] Processing data for validation:", {
+            requiredFields,
+            originalData: data,
+            allFields: Object.keys(data)
+          });
+          
+          // For each required field, if value is null, convert to empty string
+          // This allows the validator to correctly identify missing required fields
+          requiredFields.forEach(fieldName => {
+            if (processedData[fieldName] === null) {
+              processedData[fieldName] = "";
+              console.log(`🔍 [TabbedSchemaForm] Converting null to empty string for required field: ${fieldName}`);
+            }
+          });
+          
+          // Debug output to verify processedData
+          console.log("🔍 [TabbedSchemaForm] Processed data:", processedData);
+          
+          // Use the standard Effect.ts resolver with our processed data
+          return effectTsResolver(schema)(processedData, context, options);
+        },
     defaultValues: defaultValues as any,
   });
 
-  // Extract schema field information
-  const schemaFields = React.useMemo(
-    () => getSchemaFieldInfo<T>(schema, defaultValues, fieldCustomizations),
-    [schema, defaultValues, fieldCustomizations],
-  );
-
   // State for active tab
   const [activeTab, setActiveTab] = React.useState(tabs[0]?.id || "");
-  
+
   // Ref to track the last processed submission count
   const lastProcessedSubmitRef = React.useRef(0);
 
@@ -466,7 +576,34 @@ export function TabbedSchemaForm<T extends Record<string, any>>({
 
   // Handle form submission
   const handleSubmit = form.handleSubmit((data) => {
-    onSubmit(data);
+    // Track placeholder values and convert them to null on submission
+    // This approach will transform both empty strings and placeholder values to null
+    // which will properly trigger validation for required fields
+    
+    // First, we transform empty strings to null
+    const stringified = JSON.stringify(data, (key, value) => {
+      // Transform empty strings to null
+      if (value === "") {
+        return null;
+      }
+      
+      // For string values, check if they appear to be placeholders
+      // Placeholder text often follows patterns like "Enter...", "Select...", "Type..."
+      if (typeof value === 'string' && 
+          (value.startsWith("Enter ") || 
+           value.startsWith("Select ") || 
+           value.startsWith("Type ") ||
+           value.startsWith("Choose "))) {
+        console.log(`Converting likely placeholder value to null: ${key} = ${value}`);
+        return null;
+      }
+      
+      return value;
+    });
+    
+    const transformedData = JSON.parse(stringified);
+    
+    onSubmit(transformedData);
   });
 
   // Handle form reset
@@ -476,41 +613,43 @@ export function TabbedSchemaForm<T extends Record<string, any>>({
 
   // Function to count required fields in a tab
   const countRequiredFields = (tabId: string) => {
-    const tab = tabs.find(t => t.id === tabId);
+    const tab = tabs.find((t) => t.id === tabId);
     if (!tab) return 0;
-    
-    return tab.fields.filter(field => isFieldRequired(field, schemaFields)).length;
+
+    return tab.fields.filter((field) => isFieldRequired(field, schemaFields))
+      .length;
   };
 
   // Function to count fields with errors in a tab
   const countErrorFields = (tabId: string) => {
-    const tab = tabs.find(t => t.id === tabId);
+    const tab = tabs.find((t) => t.id === tabId);
     if (!tab) return 0;
-    
+
     const { errors } = form.formState;
-    return tab.fields.filter(field => errors[field as string]).length;
+    return tab.fields.filter((field) => errors[field as string]).length;
   };
 
   // Get form state
-  const { isSubmitted, submitCount, errors } = form.formState;
-  
+  const { submitCount } = form.formState;
+
   // Switch to first tab with errors on submission with errors
   React.useEffect(() => {
     // Only process if using tabbed mode, this is a new submission, and there are errors
-    if (tabbed && 
-        isSubmitted && 
-        Object.keys(errors).length > 0 && 
-        lastProcessedSubmitRef.current !== submitCount) {
-      
+    if (
+      tabbed &&
+      form.formState.isSubmitted &&
+      Object.keys(form.formState.errors).length > 0 &&
+      lastProcessedSubmitRef.current !== submitCount
+    ) {
       // Update our ref to indicate we've processed this submission
       lastProcessedSubmitRef.current = submitCount;
-      
+
       // Find the first tab with errors
       for (const tab of tabs) {
         const hasErrorInTab = tab.fields.some(
-          fieldName => errors[fieldName as string]
+          (fieldName) => form.formState.errors[fieldName as string],
         );
-        
+
         if (hasErrorInTab) {
           // Switch to the first tab with errors
           setActiveTab(tab.id);
@@ -518,39 +657,56 @@ export function TabbedSchemaForm<T extends Record<string, any>>({
         }
       }
     }
-  }, [tabbed, isSubmitted, submitCount, errors, tabs, setActiveTab]);
+  }, [
+    tabbed,
+    form.formState.isSubmitted,
+    submitCount,
+    form.formState.errors,
+    tabs,
+    setActiveTab,
+  ]);
 
   // Scroll to first error when form is submitted (non-tabbed mode)
   React.useEffect(() => {
-    if (!tabbed && 
-        isSubmitted && 
-        Object.keys(errors).length > 0 && 
-        lastProcessedSubmitRef.current !== submitCount) {
-      
+    if (
+      !tabbed &&
+      form.formState.isSubmitted &&
+      Object.keys(form.formState.errors).length > 0 &&
+      lastProcessedSubmitRef.current !== submitCount
+    ) {
       // Update our ref to indicate we've processed this submission
       lastProcessedSubmitRef.current = submitCount;
-      
+
       // Find the first element with an error and scroll to it
       setTimeout(() => {
         const firstErrorField = document.querySelector('[aria-invalid="true"]');
         if (firstErrorField) {
-          firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          firstErrorField.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
         }
       }, 100);
     }
-  }, [tabbed, isSubmitted, submitCount, errors]);
+  }, [tabbed, form.formState.isSubmitted, submitCount, form.formState.errors]);
 
   return (
     <div className="w-full">
       {title && <h2 className="text-2xl font-bold mb-2">{title}</h2>}
-      {description && <p className="text-muted-foreground mb-6">{description}</p>}
+      {description && (
+        <p className="text-muted-foreground mb-6">{description}</p>
+      )}
 
       <FormProvider {...form}>
         <Form {...form}>
           <form onSubmit={handleSubmit} className="space-y-6">
             {tabbed ? (
               // Tabbed mode
-              <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+              <Tabs
+                value={activeTab}
+                onValueChange={handleTabChange}
+                className="w-full"
+              >
                 <div className="border-b">
                   <ResponsiveTabsList
                     tabs={tabs}
@@ -558,13 +714,17 @@ export function TabbedSchemaForm<T extends Record<string, any>>({
                     onChange={handleTabChange}
                     countRequiredFields={countRequiredFields}
                     countErrorFields={countErrorFields}
-                    isSubmitted={isSubmitted}
+                    isSubmitted={form.formState.isSubmitted}
                   />
                 </div>
 
                 {tabs.map((tab) => (
-                  <TabsContent key={tab.id} value={tab.id} className="space-y-6 pt-4">
-                    <MemoizedTabContent 
+                  <TabsContent
+                    key={tab.id}
+                    value={tab.id}
+                    className="space-y-6 pt-4"
+                  >
+                    <MemoizedTabContent
                       tab={tab}
                       fieldCustomizations={fieldCustomizations}
                       schemaFields={schemaFields}
@@ -594,4 +754,5 @@ export function TabbedSchemaForm<T extends Record<string, any>>({
       </FormProvider>
     </div>
   );
-} 
+}
+

@@ -77,10 +77,12 @@ export default function ArtistTypeDemoPage() {
   };
 
   // Function to save artist type (create or update)
-  const saveArtistType = (data: ArtistTypeType | NewArtistTypeType): void => {
+  const saveArtistType = (data?: ArtistTypeType | NewArtistTypeType | Partial<NewArtistTypeType>): void => {
+    if (!data) return;
+    
     if ('id' in data) {
       // It's an update
-      const { id, ...updateData } = data;
+      const { id, ...updateData } = data as ArtistTypeType;
       const { createdAt, updatedAt, deletedAt, ...cleanedData } = updateData as any;
       
       updateMutation.mutate(
@@ -114,33 +116,12 @@ export default function ArtistTypeDemoPage() {
     return true;
   };
 
-  // Function to handle creating a new artist type
-  const createArtistType = () => {
-    // Generate a new artist type
-    const newData = generateNewArtistType();
-    const newTitle = "New " + newData.title;
-    
-    // Create new artist type with modified title
-    const newArtistTypeData: NewArtistTypeType = {
-      ...newData,
-      title: newTitle
-    };
-    
-    // Create the artist type
-    createMutation.mutate(newArtistTypeData, {
-      onSuccess: (data) => {
-        // Add to our local state
-        setArtistTypes(prev => [...prev, data as ArtistTypeType]);
-      }
-    });
-  };
-
   // Define the runtime props for this instance of the table
   const runtimeProps: ArtistTypeTableRuntimeProps = {
     data: artistTypes,
     onEdit: saveArtistType,
     onDelete: deleteArtistType,
-    onCreateNew: createArtistType,
+    onCreateNew: saveArtistType,
     onFieldUpdate: handleFieldUpdate,
     editable: true,
   };
@@ -150,11 +131,12 @@ export default function ArtistTypeDemoPage() {
     ...artistTypeTableBaseProps,
     ...runtimeProps,
     columns: artistTypeTableConfig.columns, // Ensure columns are explicitly set
+    fieldCustomizations: ArtistTypeFields, // Use field customizations with updateOnly flags
   };
 
   // Configure columns and render the data table
   return (
-    <QueryClientProvider client={queryClient}>
+  
       <div className="container mx-auto py-8">
         <h1 className="text-3xl font-bold mb-6">Artist Type Management</h1>
         <p className="mb-6 text-gray-600">
@@ -169,6 +151,5 @@ export default function ArtistTypeDemoPage() {
           <DataTable {...tableProps} />
         )}
       </div>
-    </QueryClientProvider>
   );
 } 

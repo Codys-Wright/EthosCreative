@@ -10,7 +10,7 @@ export const BlogSchema = S.Struct({
   content: S.NullOr(S.String),
   author: S.NullOr(S.String),
   publishDate: S.NullOr(S.DateFromSelf),
-  tags: S.NullOr(S.Array(S.String))
+  tags: S.NullOr(S.Array(S.String)),
 });
 
 // 2. Define the full entity schema with all fields
@@ -33,7 +33,7 @@ export const ArtistType = S.Struct({
 
 // 3. Define schema for creating new entities (without auto-generated fields)
 export const NewArtistType = S.Struct({
-  title: S.String,
+  title: S.String.pipe(S.minLength(1)),
   subtitle: S.NullOr(S.String),
   elevatorPitch: S.NullOr(S.String),
   description: S.NullOr(S.String),
@@ -55,26 +55,26 @@ export const ArtistTypeGroups: TabDefinition<ArtistTypeType>[] = [
   {
     id: "basic",
     label: "Basic Info",
-    fields: ["title", "subtitle", "elevatorPitch"]
+    fields: ["title", "subtitle", "elevatorPitch"],
   },
   {
     id: "content",
     label: "Content",
-    fields: ["description", "blog"]
+    fields: ["description", "blog"],
   },
   {
     id: "attributes",
     label: "Attributes",
-    fields: ["tags", "icon"]
+    fields: ["tags", "icon"],
   },
   {
     id: "additional",
     label: "Additional",
-    fields: ["metadata", "notes", "version"]
+    fields: ["metadata", "notes", "version"],
   },
   {
     id: "system",
     label: "System",
-    fields: ["id", "createdAt", "updatedAt", "deletedAt"]
-  }
+    fields: ["id", "createdAt", "updatedAt", "deletedAt"],
+  },
 ];

@@ -1,4 +1,9 @@
-import { Example, NewExample, ExampleType, NewExampleType } from "../types/example.type";
+import {
+  Example,
+  NewExample,
+  ExampleType,
+  NewExampleType,
+} from "../types/example.type";
 import { Effect as E, Schema as S } from "effect";
 import { NotFoundError } from "@/features/global/lib/errors/base-errors";
 import { Database } from "@/lib/db/db.service";
@@ -29,7 +34,7 @@ export class ExampleService extends E.Service<ExampleService>()(
             );
 
             return activeExamples;
-          }).pipe(E.withSpan("ExampleService.getAll.implementation")),
+          }).pipe(E.withSpan("ExampleService.getAll.Default")),
 
         getById: (id: string) =>
           E.gen(function* () {
@@ -49,7 +54,7 @@ export class ExampleService extends E.Service<ExampleService>()(
 
             // Use as any to bypass TypeScript's type checking, since S.decodeSync will validate at runtime
             return S.decodeSync(Example)(response as any);
-          }).pipe(E.withSpan("ExampleService.getById.implementation")),
+          }).pipe(E.withSpan("ExampleService.getById.Default")),
 
         update: (id: string, data: Partial<ExampleType>) =>
           E.gen(function* () {
@@ -59,7 +64,7 @@ export class ExampleService extends E.Service<ExampleService>()(
             const updatedExample = yield* db.update("example", id, data);
 
             return updatedExample;
-          }).pipe(E.withSpan("ExampleService.update.implementation")),
+          }).pipe(E.withSpan("ExampleService.update.Default")),
 
         create: (data: NewExampleType) =>
           E.gen(function* () {
@@ -67,7 +72,7 @@ export class ExampleService extends E.Service<ExampleService>()(
             const newExample = yield* db.insert("example", data);
 
             return newExample;
-          }).pipe(E.withSpan("ExampleService.create.implementation")),
+          }).pipe(E.withSpan("ExampleService.create.Default")),
 
         // Soft delete implementation
         delete: (id: string) =>
@@ -78,14 +83,14 @@ export class ExampleService extends E.Service<ExampleService>()(
             });
 
             return { success: true, id };
-          }).pipe(E.withSpan("ExampleService.delete.implementation")),
+          }).pipe(E.withSpan("ExampleService.delete.Default")),
 
         // Add undo delete method
         undoDelete: (id: string) =>
           E.gen(function* () {
             // Find the example first to check if it exists and is deleted
             const example = yield* db.findById("example", id);
-            
+
             if (!example) {
               return E.fail(
                 new NotFoundError({
@@ -95,24 +100,24 @@ export class ExampleService extends E.Service<ExampleService>()(
                 }),
               );
             }
-            
+
             // If the example isn't deleted, there's nothing to restore
             if (!(example as any).deletedAt) {
               return { success: false, id, message: "Example is not deleted" };
             }
-            
+
             // Restore the example by setting deletedAt to null
             const restoredExample = yield* db.update("example", id, {
               deletedAt: null,
             });
 
-            return { 
-              success: true, 
-              id, 
+            return {
+              success: true,
+              id,
               message: "Example restored successfully",
-              example: restoredExample
+              example: restoredExample,
             };
-          }).pipe(E.withSpan("ExampleService.undoDelete.implementation")),
+          }).pipe(E.withSpan("ExampleService.undoDelete.Default")),
 
         // Add a method for permanent deletion if needed
         permanentDeath: (id: string) =>
@@ -121,7 +126,7 @@ export class ExampleService extends E.Service<ExampleService>()(
             yield* db.delete("example", id);
 
             return { success: true, id };
-          }).pipe(E.withSpan("ExampleService.permanentDeath.implementation")),
+          }).pipe(E.withSpan("ExampleService.permanentDeath.Default")),
       };
     }),
   },

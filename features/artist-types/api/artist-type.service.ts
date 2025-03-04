@@ -1,4 +1,9 @@
-import { ArtistType, NewArtistType, ArtistTypeType, NewArtistTypeType } from "../types/artist-type.type";
+import {
+  ArtistType,
+  NewArtistType,
+  ArtistTypeType,
+  NewArtistTypeType,
+} from "../types/artist-type.type";
 import { Effect as E, Schema as S } from "effect";
 import { NotFoundError } from "@/features/global/lib/errors/base-errors";
 import { Database } from "@/lib/db/db.service";
@@ -29,7 +34,7 @@ export class ArtistTypeService extends E.Service<ArtistTypeService>()(
             );
 
             return activeArtistTypes;
-          }).pipe(E.withSpan("ArtistTypeService.getAll.implementation")),
+          }).pipe(E.withSpan("ArtistTypeService.getAll.Default")),
 
         getById: (id: string) =>
           E.gen(function* () {
@@ -49,7 +54,7 @@ export class ArtistTypeService extends E.Service<ArtistTypeService>()(
 
             // Use as any to bypass TypeScript's type checking, since S.decodeSync will validate at runtime
             return S.decodeSync(ArtistType)(response as any);
-          }).pipe(E.withSpan("ArtistTypeService.getById.implementation")),
+          }).pipe(E.withSpan("ArtistTypeService.getById.Default")),
 
         update: (id: string, data: Partial<ArtistTypeType>) =>
           E.gen(function* () {
@@ -57,7 +62,7 @@ export class ArtistTypeService extends E.Service<ArtistTypeService>()(
             const updatedArtistType = yield* db.update("artistType", id, data);
 
             return updatedArtistType;
-          }).pipe(E.withSpan("ArtistTypeService.update.implementation")),
+          }).pipe(E.withSpan("ArtistTypeService.update.Default")),
 
         create: (data: NewArtistTypeType) =>
           E.gen(function* () {
@@ -65,7 +70,7 @@ export class ArtistTypeService extends E.Service<ArtistTypeService>()(
             const newArtistType = yield* db.insert("artistType", data);
 
             return newArtistType;
-          }).pipe(E.withSpan("ArtistTypeService.create.implementation")),
+          }).pipe(E.withSpan("ArtistTypeService.create.Default")),
 
         // Soft delete implementation
         delete: (id: string) =>
@@ -76,14 +81,14 @@ export class ArtistTypeService extends E.Service<ArtistTypeService>()(
             });
 
             return { success: true, id };
-          }).pipe(E.withSpan("ArtistTypeService.delete.implementation")),
+          }).pipe(E.withSpan("ArtistTypeService.delete.Default")),
 
         // Add undo delete method
         undoDelete: (id: string) =>
           E.gen(function* () {
             // Find the artist type first to check if it exists and is deleted
             const artistType = yield* db.findById("artistType", id);
-            
+
             if (!artistType) {
               return E.fail(
                 new NotFoundError({
@@ -93,24 +98,28 @@ export class ArtistTypeService extends E.Service<ArtistTypeService>()(
                 }),
               );
             }
-            
+
             // If the artist type isn't deleted, there's nothing to restore
             if (!(artistType as any).deletedAt) {
-              return { success: false, id, message: "Artist Type is not deleted" };
+              return {
+                success: false,
+                id,
+                message: "Artist Type is not deleted",
+              };
             }
-            
+
             // Restore the artist type by setting deletedAt to null
             const restoredArtistType = yield* db.update("artistType", id, {
               deletedAt: null,
             });
 
-            return { 
-              success: true, 
-              id, 
+            return {
+              success: true,
+              id,
               message: "Artist Type restored successfully",
-              artistType: restoredArtistType
+              artistType: restoredArtistType,
             };
-          }).pipe(E.withSpan("ArtistTypeService.undoDelete.implementation")),
+          }).pipe(E.withSpan("ArtistTypeService.undoDelete.Default")),
       };
     }),
   },

@@ -2,8 +2,10 @@ import { FieldCustomizationRecord } from "@/components/crud/field-types";
 import { ArtistTypeType } from "./artist-type.type";
 
 /**
- * Field customizations for the ArtistType entity
+ * Field customizations for ArtistType entities
  * These customizations control the appearance and behavior of fields in forms and tables
+ * Fields marked with updateOnly: true will be shown as disabled in creation forms,
+ * with a note that they're only available after the entity is created.
  */
 export const ArtistTypeFields: FieldCustomizationRecord<ArtistTypeType> = {
   title: {
@@ -72,26 +74,34 @@ export const ArtistTypeFields: FieldCustomizationRecord<ArtistTypeType> = {
   },
   id: {
     readOnly: true,
+    updateOnly: true,
     label: "Artist Type ID",
     description: "Unique identifier for this artist type (system-generated)",
-    required: false,
+    placeholder: "Generated after creation",
+    required: false, // Not required during creation
   },
   createdAt: {
     readOnly: true,
+    updateOnly: true,
     label: "Created Date",
-    description: "When this artist type was first created",
-    required: false,
+    description: "Timestamp when this artist type was first created",
+    placeholder: "Generated after creation",
+    required: false, // Not required during creation
   },
   updatedAt: {
     readOnly: true,
+    updateOnly: true,
     label: "Last Updated",
-    description: "When this artist type was last modified",
-    required: false,
+    description: "Timestamp when this artist type was last modified",
+    placeholder: "Generated after creation",
+    required: false, // Not required during creation
   },
   deletedAt: {
     readOnly: true,
+    updateOnly: true,
     label: "Deleted Date",
-    description: "When this artist type was deleted (if applicable)",
+    description: "Timestamp when this artist type was deleted (if applicable)",
+    placeholder: "Generated after creation",
     required: false,
   },
 }; 

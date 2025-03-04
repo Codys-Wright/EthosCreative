@@ -71,6 +71,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CalendarIcon } from "lucide-react";
+import { TabbedSchemaForm } from "@/components/data-editing/tabbed-schema-form";
 
 // Type for data cell renderers
 export type CellRenderer<T> = (props: { value: any; row: T; field: string }) => React.ReactNode;
@@ -136,7 +137,7 @@ export interface DataTableProps<T extends Record<string, any>> {
   // CRUD operation handlers
   onEdit: (row: T) => void; // Callback when edit is clicked
   onDelete: (row: T) => Promise<boolean> | boolean; // Callback when delete is clicked
-  onCreateNew: () => void; // Callback when create new is clicked
+  onCreateNew: ((data?: Partial<T>) => void) | (() => void); // Callback for create action - receives form data when using integrated editor
   onFieldUpdate: (row: T, field: keyof T, value: any) => Promise<boolean> | boolean; // Callback for updating a single field
   
   // Row editor component (render prop) - THIS WILL BE DEPRECATED
@@ -159,7 +160,8 @@ export interface DataTableProps<T extends Record<string, any>> {
   createSchema?: ReturnType<typeof Schema.make<any>>; // Schema for creating new items
   editSchema?: ReturnType<typeof Schema.make<T>>; // Schema for editing existing items
   tabs?: TabDefinition<T>[]; // Tab definitions (used for both create and edit modes)
-  fieldCustomizations?: FieldCustomizationRecord<T>; // Field customizations for validation and UI
+  fieldCustomizations?: FieldCustomizationRecord<T>; // Field customizations for editing validation and UI
+  createFieldCustomizations?: FieldCustomizationRecord<any>; // Field customizations for creation validation and UI
   editorKeyInfo?: {
     title: {
       field: string;
@@ -1047,6 +1049,7 @@ export function DataTable<T extends Record<string, any>>({
   editSchema,
   tabs,
   fieldCustomizations,
+  createFieldCustomizations,
   editorKeyInfo,
   enableSelection = true,
   customActions = [],
@@ -1076,6 +1079,9 @@ export function DataTable<T extends Record<string, any>>({
   
   // State for inline field editing
   const [editingCell, setEditingCell] = React.useState<{ rowId: string; field: string } | null>(null);
+  
+  // New state for direct schema form dialog
+  const [isDirectSchemaFormOpen, setIsDirectSchemaFormOpen] = React.useState(false);
   
   // Helper function to detect dummy/empty functions
   const isDummyFunction = (fn: Function) => {
@@ -1113,19 +1119,39 @@ export function DataTable<T extends Record<string, any>>({
     }
   };
 
-  // Wrap the default click handler for the create button
+  // Handle create click to open direct schema form dialog instead of editor dialog
   const handleCreateClick = () => {
-    // Reset the create form data to an empty object each time
-    setCreateFormData({});
+    // Initialize create form data with default empty values for required fields
+    // instead of just an empty object to help with validation
+    const initialData: Record<string, any> = {};
     
-    // Check if integrated editor is enabled
-    if (useIntegratedEditor && createSchema && tabs) {
-      setIsCreateEditorOpen(true);
-    } else if (createEditor) {
-      // If custom create editor is provided via render prop
-      setIsCreateEditorOpen(true);
+    // If we have field customizations, use them to detect required fields
+    if (fieldCustomizations) {
+      Object.entries(fieldCustomizations).forEach(([field, customization]) => {
+        // Initialize required fields with empty strings
+        if (customization?.required && !customization?.updateOnly) {
+          initialData[field] = '';
+        }
+      });
+    }
+    
+    console.log("📊 [DataTable] Initializing create form with:", initialData);
+    setCreateFormData(initialData as Partial<T>);
+    
+    if (useIntegratedEditor) {
+      // Log schema information for debugging
+      console.log("📊 [DataTable] Creation dialog opening with:", {
+        schema: createSchema ? Object.keys(createSchema).length : 'No schema',
+        schemaType: createSchema ? typeof createSchema : 'N/A',
+        fieldCount: fieldCustomizations ? Object.keys(fieldCustomizations).length : 'No customizations',
+        tabsCount: tabs ? tabs.length : 'No tabs',
+        initialDataKeys: Object.keys(initialData)
+      });
+      
+      // Show direct schema form dialog instead of integrated editor
+      setIsDirectSchemaFormOpen(true);
     } else {
-      // Fall back to the traditional callback
+      // Fall back to traditional callback if integrated editor not enabled
       onCreateNew();
     }
   };
@@ -1179,14 +1205,25 @@ export function DataTable<T extends Record<string, any>>({
   
   // Handle saving data from the integrated editor
   const handleIntegratedEditorSave = async (data: any, mode: 'create' | 'edit') => {
+    console.log("📊 [DataTable] handleIntegratedEditorSave called:", {
+      mode,
+      data,
+      usingCreateSchema: mode === 'create' && !!createSchema,
+      usingEditSchema: mode === 'edit' && !!editSchema
+    });
+    
     try {
       if (mode === 'edit') {
-        // For editing, we use the onEdit callback
+        // For editing, we use the onEdit callback which should handle updating the data
+        console.log("📊 [DataTable] Using onEdit handler for edit mode");
         await onEdit(data);
         setEditingRow(null);
       } else {
-        // For creation, we use the onCreateNew callback
-        await onCreateNew();
+        // For creation, we should use onCreateNew with the form data
+        // NOTE: Users of this component may need to update their onCreateNew implementation
+        // to accept and handle the form data parameter, which contains the values from the form
+        console.log("📊 [DataTable] Using onCreateNew handler for create mode");
+        await onCreateNew(data);
         setIsCreateEditorOpen(false);
       }
       return true;
@@ -1194,6 +1231,15 @@ export function DataTable<T extends Record<string, any>>({
       console.error(`Error ${mode === 'edit' ? 'editing' : 'creating'} data:`, error);
       return false;
     }
+  };
+
+  // Handle direct schema form save
+  const handleDirectSchemaFormSave = (data: any) => {
+    console.log("🔧 [DataTable] Form submitted with data:", data);
+    setIsDirectSchemaFormOpen(false);
+    
+    // Call the integrated editor save handler with the data
+    handleIntegratedEditorSave(data, 'create');
   };
 
   // When we render the dropdown menu actions
@@ -1533,12 +1579,17 @@ export function DataTable<T extends Record<string, any>>({
   const renderCreateButton = () => {
     if (isDummyFunction(onCreateNew)) return null;
     
+    // Create a nice singular form of the title if available
+    const itemName = title ? title.replace(/s$/, '') : 'Item';
+    
     return (
       <Button
         onClick={handleCreateClick}
         className="ml-auto gap-1"
+        variant="default"
       >
-        <Plus className="h-4 w-4" /> New
+        <Plus className="h-4 w-4" /> 
+        Create New {itemName}
       </Button>
     );
   };
@@ -1820,15 +1871,14 @@ export function DataTable<T extends Record<string, any>>({
       </Dialog>
 
       {/* Integrated Editor Dialogs */}
-      {useIntegratedEditor && editSchema && tabs && editingRow && (
+      {useIntegratedEditor && editSchema && tabs && editingRow && editingRow.open && (
         <DataEditorDialog
-          title={`Edit ${title ? title.slice(0, -1) : 'Item'}`}
-          description={`Edit the details of this ${title ? title.slice(0, -1).toLowerCase() : 'item'}.`}
-          data={editingRow.data}
+          title={`Edit ${title?.replace(/s$/, '') || 'Item'}`}
+          description={`Update this ${title?.replace(/s$/, '').toLowerCase() || 'item'}`}
+          data={editingRow.data as any}
           onSave={(data) => handleIntegratedEditorSave(data, 'edit')}
           keyInfo={keyInfo as any}
           schema={editSchema}
-          createSchema={createSchema}
           tabs={tabs}
           fieldCustomizations={fieldCustomizations}
           open={editingRow.open}
@@ -1838,31 +1888,52 @@ export function DataTable<T extends Record<string, any>>({
         />
       )}
 
+      {/* Direct TabbedSchemaForm Dialog for creation */}
+      {useIntegratedEditor && createSchema && tabs && (
+        <Dialog open={isDirectSchemaFormOpen} onOpenChange={setIsDirectSchemaFormOpen}>
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-auto">
+            <DialogHeader>
+              <DialogTitle>{`Create New ${title?.replace(/s$/, '') || 'Item'}`}</DialogTitle>
+              <DialogDescription>{`Create a new ${title?.replace(/s$/, '').toLowerCase() || 'item'}`}</DialogDescription>
+            </DialogHeader>
+            
+            <div className="py-4">
+              <TabbedSchemaForm
+                schema={createSchema}
+                defaultValues={createFormData}
+                disableValidation={false}
+                fieldCustomizations={createFieldCustomizations ?? fieldCustomizations}
+                tabs={tabs}
+                onSubmit={handleDirectSchemaFormSave}
+                title={`Create New ${title?.replace(/s$/, '') || 'Item'}`}
+                description={`Enter the details for the new ${title?.replace(/s$/, '').toLowerCase() || 'item'}`}
+                submitText="Create"
+                showReset={true}
+                tabbed={true}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+      
+      {/* Hidden DataEditorDialog for compatibility with existing event handlers */}
       {useIntegratedEditor && createSchema && tabs && (
         <DataEditorDialog
-          title={`Create New ${title ? title.slice(0, -1) : 'Item'}`}
-          description={`Create a new ${title ? title.slice(0, -1).toLowerCase() : 'item'} by filling out the form.`}
-          data={createFormData as any}  // Use the empty object as starting data
-          onSave={(data) => {
-            // For creation, we need to save the data through the appropriate handler
-            // The existing handleIntegratedEditorSave function doesn't properly save the data
-            if (onEdit) {
-              // Pass the data to the save handler
-              onEdit(data);
-            }
-            // Close the creation dialog
-            setIsCreateEditorOpen(false);
-            // Reset form data
-            setCreateFormData({});
-          }}
-          keyInfo={keyInfo as any}
-          schema={createSchema} // Use createSchema for both schema props
-          createSchema={createSchema}
+          title={`Create New ${title?.replace(/s$/, '') || 'Item'}`}
+          description={`Create a new ${title?.replace(/s$/, '').toLowerCase() || 'item'}`}
+          data={createFormData as any}
+          onSave={(data) => handleIntegratedEditorSave(data, 'create')}
+          keyInfo={keyInfo}
+          schema={createSchema}
           tabs={tabs}
-          fieldCustomizations={fieldCustomizations}
-          open={isCreateEditorOpen}
-          onOpenChange={(open) => handleIntegratedEditorOpenChange(open, 'create')}
-          trigger={null}
+          fieldCustomizations={createFieldCustomizations ?? fieldCustomizations}
+          open={false} // Always keep closed
+          onOpenChange={(open) => {
+            // Redirect to our TabbedSchemaForm dialog instead
+            if (open) {
+              setIsDirectSchemaFormOpen(true);
+            }
+          }}
           mode="create"
         />
       )}

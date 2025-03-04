@@ -12,16 +12,56 @@ export function getSchemaFieldInfo<T extends Record<string, any>>(
   sampleData?: Partial<T>,
   fieldCustomizations?: FieldCustomizationRecord<T>
 ): Record<string, { type: GeneratedFieldType; required: boolean }> {
+  console.log("🔍 [Schema Utils] getSchemaFieldInfo called with:", {
+    schema: schema !== undefined ? "Schema provided" : "No schema",
+    sampleDataFields: sampleData ? Object.keys(sampleData) : "No sample data",
+    fieldCustomizationsCount: fieldCustomizations ? Object.keys(fieldCustomizations).length : 0
+  });
+
   const fields: Record<string, { type: GeneratedFieldType; required: boolean }> = {};
 
   try {
     // First try to determine fields from the schema object
     if (schema && typeof schema === 'object') {
-      // Try to extract field information from schema and sample data
-      const schemaFields = Object.keys(sampleData || {});
+      // Try to extract field information directly from schema when no sample data is provided
+      let schemaFields: string[] = [];
+      
+      // Extract fields from sample data if available
+      if (sampleData && Object.keys(sampleData).length > 0) {
+        schemaFields = Object.keys(sampleData);
+      } 
+      // If no sample data, extract fields directly from schema structure
+      else if (schema) {
+        try {
+          const schemaAny = schema as any;
+          
+          // Try different schema structures that might contain field definitions
+          if (schemaAny.fields && typeof schemaAny.fields === 'object') {
+            schemaFields = Object.keys(schemaAny.fields);
+          } else if (schemaAny.$schema && schemaAny.$schema.fields) {
+            schemaFields = Object.keys(schemaAny.$schema.fields);
+          } else if (schemaAny.proto && schemaAny.proto.fields) {
+            schemaFields = Object.keys(schemaAny.proto.fields);
+          }
+          
+          // If we have fieldCustomizations, ensure those fields are included
+          if (fieldCustomizations) {
+            const customizationFields = Object.keys(fieldCustomizations);
+            schemaFields = [...new Set([...schemaFields, ...customizationFields])];
+          }
+          
+          console.log("🔍 [Schema Utils] Extracted fields from schema:", schemaFields);
+        } catch (e) {
+          console.warn("Error extracting fields directly from schema:", e);
+        }
+      }
+      
+      console.log("🔍 [Schema Utils] Processing schema fields:", schemaFields);
       
       // Function to check if a schema field is optional
       const isFieldOptional = (schema: any, key: string): boolean => {
+        console.log(`🔍 [Schema Utils] Checking if field '${key}' is optional`);
+        
         if (!schema) return false;
         
         // Try to access the schema's internal structure
@@ -35,11 +75,27 @@ export function getSchemaFieldInfo<T extends Record<string, any>>(
             const field = schemaAny.fields[key];
             if (!field) return false;
             
-            // Check for NullOr or Optional constructors
+            // Check for NullOr or Optional constructors or "| null" in type string
             const fieldStr = field.toString();
-            return fieldStr.includes('NullOr') || 
-                   fieldStr.includes('Optional') || 
-                   fieldStr.includes('nullable');
+            console.log(`🔍 [Schema Utils] Field '${key}' string representation: "${fieldStr}"`);
+            
+            // Check different patterns that indicate a field is optional
+            const isNullOr = fieldStr.includes('NullOr');
+            const isOptionalKeyword = fieldStr.includes('Optional');
+            const isNullable = fieldStr.includes('nullable');
+            const hasNullInType = fieldStr.includes('| null');
+            
+            const isOptional = isNullOr || isOptionalKeyword || isNullable || hasNullInType;
+            
+            console.log(`🔍 [Schema Utils] Field '${key}' optionality checks:`, {
+              isNullOr,
+              isOptionalKeyword, 
+              isNullable,
+              hasNullInType,
+              finalDecision: isOptional ? 'optional' : 'required'
+            });
+            
+            return isOptional;
           }
           
           // For schema.proto.fields approach (another possible structure)
@@ -47,11 +103,32 @@ export function getSchemaFieldInfo<T extends Record<string, any>>(
             const field = schemaAny.proto.fields[key];
             if (!field) return false;
             
-            // Check for NullOr or Optional constructors
+            // Check for NullOr or Optional constructors or "| null" in type string
             const fieldStr = field.toString();
-            return fieldStr.includes('NullOr') || 
+            const isOptional = fieldStr.includes('NullOr') || 
                    fieldStr.includes('Optional') || 
-                   fieldStr.includes('nullable');
+                   fieldStr.includes('nullable') ||
+                   fieldStr.includes('| null'); // Add check for "| null" in type string
+                   
+            console.log(`🔍 [Schema Utils] Field '${key}' is determined to be ${isOptional ? 'optional' : 'required'} from proto.fields`);
+            
+            return isOptional;
+          }
+          
+          // Additional check for Effect.Schema structure
+          if (schemaAny.$schema && schemaAny.$schema.fields) {
+            const field = schemaAny.$schema.fields[key];
+            if (!field) return false;
+            
+            const fieldStr = JSON.stringify(field);
+            const isOptional = fieldStr.includes('NullOr') || 
+                   fieldStr.includes('Optional') || 
+                   fieldStr.includes('nullable') ||
+                   fieldStr.includes('| null'); // Add check for "| null" in type string
+                   
+            console.log(`🔍 [Schema Utils] Field '${key}' is determined to be ${isOptional ? 'optional' : 'required'} from $schema.fields`);
+            
+            return isOptional;
           }
         } catch (e) {
           console.warn(`Error inspecting schema for field ${key}:`, e);
@@ -60,24 +137,30 @@ export function getSchemaFieldInfo<T extends Record<string, any>>(
         // If we can't determine from schema structure, check the sample data
         // If a field in sample data is null or undefined, it's likely optional
         if (sampleData && key in sampleData) {
-          return sampleData[key] === null || sampleData[key] === undefined;
+          const isOptional = sampleData[key] === null || sampleData[key] === undefined;
+          console.log(`🔍 [Schema Utils] Field '${key}' is determined to be ${isOptional ? 'optional' : 'required'} from sample data`);
+          return isOptional;
         }
         
-        return false;
+        // IMPORTANT: In case of doubt, default to NOT optional (required)
+        // This matches Effect Schema's behavior where fields are required by default
+        const result = false; // Default to NOT optional (i.e., required)
+        console.log(`🔍 [Schema Utils] Field '${key}' is determined to be ${result ? 'optional' : 'required'} by default`);
+        return result;
       };
       
       for (const key of schemaFields) {
         // Use field customization if available
         const customization = fieldCustomizations?.[key as keyof T & string];
         
-        // IMPORTANT CHANGE: Default to true (required) unless:
-        // 1. The schema indicates it's optional, or
-        // 2. Field customization explicitly sets required to false
+        // IMPORTANT CHANGE: Default to false (NOT required) unless:
+        // 1. The schema explicitly indicates it's required, or
+        // 2. Field customization explicitly sets required to true
         const isOptional = isFieldOptional(schema, key);
-        let required = true;
+        let required = false; // Default to NOT required
         
-        if (isOptional) {
-          required = false;
+        if (!isOptional) {
+          required = true; // Only set to required if schema explicitly indicates
         }
         
         // Field customization can override the schema inference

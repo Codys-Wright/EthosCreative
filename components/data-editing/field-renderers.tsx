@@ -51,20 +51,35 @@ export function FormFieldRenderer<T extends Record<string, any>>({
   
   const fieldLabel = getFieldLabel(name, fieldCustomizations);
   const description = getFieldDescription(name, fieldCustomizations);
-  const placeholder = getFieldPlaceholder(name, fieldLabel, fieldCustomizations);
+  const placeholder = getFieldPlaceholder(name, `Enter ${fieldLabel.toLowerCase()}...`, fieldCustomizations);
   const isReadonly = isFieldReadonly(name, fieldCustomizations);
   const isRequired = isFieldRequired(name, schemaFields);
-  const options = fieldCustomizations[name]?.options || [];
   
+  // Check if field is marked as updateOnly
+  const isUpdateOnly = fieldCustomizations[name]?.updateOnly === true;
+  
+  // Get options for select fields
+  const options = fieldCustomizations[name]?.options || [];
+
+  // Skip completely hidden fields
+  if (fieldCustomizations[name]?.hidden) {
+    return null;
+  }
+
   return (
     <FormField
       control={form.control}
       name={name as Path<any>}
       render={({ field }) => (
-        <FormItem className="w-full">
-          <FormLabel>
+        <FormItem className={`w-full ${isUpdateOnly ? 'border-l-2 border-muted-foreground/20 pl-3' : ''}`}>
+          <FormLabel className={isUpdateOnly ? 'text-muted-foreground flex items-center' : ''}>
             {fieldLabel}
             {isRequired && <span className="text-destructive ml-1">*</span>}
+            {isUpdateOnly && (
+              <span className="ml-2 text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded-sm">
+                Post-creation
+              </span>
+            )}
           </FormLabel>
           <FormControl>
             {renderFieldByType(fieldType, field, placeholder, isReadonly, options)}

@@ -1,172 +1,298 @@
 "use client";
 
-import Link from "next/link";
-import { 
-  BookOpen, 
-  LayoutList, 
-  FileInput, 
-  LayoutGrid, 
-  CheckSquare, 
-  Copy,
-  Layers,
-  Tag,
-  Hash
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { useState, useEffect } from 'react';
+import { Array } from 'effect';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LayoutGrid, Table as TableIcon } from "lucide-react";
 
-export default function TestPage() {
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 py-12">
-      <div className="container max-w-5xl mx-auto px-4">
-        <div className="mb-12 text-center">
-          <h1 className="text-4xl font-bold mb-3">Component Test Gallery</h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Explore and test different components and features. Each example demonstrates different capabilities and integration options.
-          </p>
-        </div>
-        
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-          <ExampleCard
-            title="Form Validation"
-            description="Schema-based form generation and validation with Effect schemas"
-            icon={<FileInput className="h-5 w-5" />}
-            href="/test/form-validation"
-          />
-          <ExampleCard
-            title="Tabbed Form"
-            description="Test the tabbed form component with multiple sections and fields"
-            icon={<LayoutGrid className="h-5 w-5" />}
-            href="/test/tabbed-form"
-          />
-          <ExampleCard 
-            title="Tags Component Demo"
-            description="Interactive tags input with suggestions and auto-completion"
-            icon={<Hash className="h-5 w-5" />}
-            href="/test/components/tags"
-          />
-          
-          <ExampleCard 
-            title="Complex Form Example"
-            description="Integration with application schemas and customizations"
-            icon={<Copy className="h-5 w-5" />}
-            href="/test/form-validation/complex-example"
-          />
-          
-          <ExampleCard 
-            title="Custom Field Renderers"
-            description="Specialized UI components for different field types"
-            icon={<Layers className="h-5 w-5" />}
-            href="/test/form-validation/custom-fields"
-          />
-          
-          <ExampleCard 
-            title="All Fields Example"
-            description="Comprehensive example showing all field types and renderers in tabs"
-            icon={<LayoutGrid className="h-5 w-5" />}
-            href="/test/form-validation/all-fields"
-          />
-          
-          <ExampleCard 
-            title="Table Example"
-            description="Basic table functionalities and interactions"
-            icon={<LayoutList className="h-5 w-5" />}
-            href="/test/table"
-          />
-          
-          <ExampleCard 
-            title="Example Table"
-            description="Table component with application data"
-            icon={<CheckSquare className="h-5 w-5" />}
-            href="/test/example-table"
-          />
-        </div>
-      
-        <div className="bg-card rounded-lg shadow-md p-8 border border-border">
-          <div className="flex items-start gap-4">
-            <div className="bg-primary/10 p-3 rounded-full">
-              <BookOpen className="h-6 w-6 text-primary" />
-            </div>
-            
-            <div>
-              <h2 className="text-2xl font-bold mb-4">About Schema Form</h2>
-              <p className="mb-4 text-muted-foreground">
-                The Schema Form components allow you to automatically generate forms from Effect schemas with validation.
-                They provide both simple and tabbed interfaces for creating forms with proper validation.
-              </p>
-              
-              <h3 className="text-lg font-semibold mb-3">Features:</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-4">
-                {[
-                  "Automatic form generation from Effect schemas",
-                  "Field validation based on schema rules",
-                  "Customizable field appearance and behavior",
-                  "Support for various field types (text, number, textarea, checkbox, select)",
-                  "Tab organization for complex forms",
-                  "Required field indicators in tab headers",
-                  "Easy integration with existing schemas"
-                ].map((feature, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-primary"></span>
-                    <span className="text-sm text-muted-foreground">{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+// Import all schemas and utilities from our schema directory
+import {
+  DataTypeSchema,
+  NewDataTypeSchema,
+  DataType,
+  getFieldMetadata,
+  formatValue,
+  DataTypeId,
+  getTabGroups
+} from './schemas';
 
-        <h2 className="text-2xl font-bold mt-8 mb-4">UI Components</h2>
-        <ul className="space-y-2">
-          <li>
-            <Link href="/test/components/tags" className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-2">
-              <span className="bg-blue-100 dark:bg-blue-900/40 p-1 rounded">
-                <Tag className="h-4 w-4" />
-              </span>
-              Tags Component
-              <Badge variant="outline" className="ml-2">New</Badge>
-            </Link>
-            <p className="text-sm text-muted-foreground ml-8">Multi-select tags input with search functionality.</p>
-          </li>
-          <li>
-            <Link href="/test/form-validation/all-fields" className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-2">
-              <span className="bg-blue-100 dark:bg-blue-900/40 p-1 rounded">
-                <LayoutGrid className="h-4 w-4" />
-              </span>
-              All Fields Example
-              <Badge variant="outline" className="ml-2">New</Badge>
-            </Link>
-            <p className="text-sm text-muted-foreground ml-8">Complete showcase of all form field types and renderers in a tabbed layout.</p>
-          </li>
-          {/* Add more component examples here */}
-        </ul>
-      </div>
-    </div>
-  );
+// Import our components
+import { SchemaFormRenderer } from './components/SchemaFormRenderer';
+import { SchemaDataTable } from './components/SchemaDataTable';
+
+// Define our interface for data objects
+interface DataItem {
+  id: string;
+  [key: string]: any;
 }
 
-function ExampleCard({ 
-  title, 
-  description, 
-  icon, 
-  href 
-}: { 
-  title: string; 
-  description: string; 
-  icon: React.ReactNode; 
-  href: string 
-}) {
+// Create sample data (in a real app, this would come from an API)
+const sampleData = Array.makeBy(10, (i) => {
+  const id = `${i + 1}`;
+  // Use a fixed base date for sample data
+  const baseDate = new Date('2023-01-01T00:00:00Z');
+  // Add days to create different dates for each item
+  const createdDate = new Date(baseDate.getTime());
+  createdDate.setDate(baseDate.getDate() + i);
+  const createdISOString = createdDate.toISOString();
+  
+  // Basic data object with all required fields
+  return {
+    id: id,
+    stringValue: `Sample text ${i}`,
+    numberValue: i * 10,
+    booleanValue: i % 2 === 0,
+    dateValue: new Date(createdISOString),
+    dateString: createdISOString.split('T')[0], // YYYY-MM-DD format
+    nullableString: i % 3 === 0 ? null : `Optional text ${i}`,
+    void: undefined,
+    email: `user${i}@example.com`,
+    createdAt: createdISOString,
+    updatedAt: createdISOString
+  };
+});
+
+// Data Card component for displaying items
+interface DataCardProps {
+  data: DataItem;
+  onEdit: (data: DataItem) => void;
+}
+
+const DataCard = ({ data, onEdit }: DataCardProps) => {
+  // Format field values for display
+  const formatFieldValue = (fieldName: string, value: any): string => {
+    if (value === null || value === undefined) return "-";
+    if (value instanceof Date) return value.toLocaleDateString();
+    
+    // Use the schema's formatValue helper
+    const metadata = getFieldMetadata(DataTypeSchema, fieldName);
+    if (metadata) {
+      return formatValue(value, metadata.type);
+    }
+    
+    return String(value);
+  };
+
+  // Group fields by tab groups from schema
+  const getFieldGroups = () => {
+    const tabGroups = getTabGroups(DataTypeSchema);
+    return Object.entries(tabGroups)
+      .filter(([groupName]) => groupName !== 'system') // Optional: filter out system fields
+      .map(([groupName, config]) => ({
+        groupName,
+        label: config.label,
+        fields: config.fields.filter(field => field !== 'id') // Optional: filter out id field
+      }));
+  };
+  
   return (
-    <Link 
-      href={href} 
-      className="bg-card rounded-lg border border-border shadow-sm hover:shadow-md transition-all p-6 flex flex-col h-full"
-    >
-      <div className="flex items-center gap-3 mb-3">
-        <div className="bg-primary/10 p-2 rounded-full">
-          {icon}
+    <Card className="mb-4">
+      <CardHeader>
+        <CardTitle>
+          {data.stringValue || `Item ${data.id}`}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {getFieldGroups().map(group => (
+          <div key={group.groupName} className="mb-4">
+            <h3 className="text-sm font-medium mb-2">{group.label}</h3>
+            <div className="space-y-1">
+              {group.fields.map(field => (
+                <div key={field} className="grid grid-cols-2 gap-2 text-sm">
+                  <span className="font-medium">
+                    {getFieldMetadata(DataTypeSchema, field)?.label || field}:
+                  </span>
+                  <span className="text-sm">{formatFieldValue(field, data[field])}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="mt-2"
+          onClick={() => onEdit(data)}
+        >
+          Edit
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Main Page Component
+export default function TestPage() {
+  // State for managing data items
+  const [data, setData] = useState<DataItem[]>([]);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentItem, setCurrentItem] = useState<DataItem | null>(null);
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
+  
+  // Load sample data on component mount
+  useEffect(() => {
+    setData(sampleData);
+  }, []);
+  
+  // Form submission handlers - these now simply update the state with the data
+  // from the form, with no additional processing needed
+  const handleCreateSubmit = (newItem: Record<string, any>) => {
+    // Add system fields in a real app, these would be handled by the backend
+    const completeItem = {
+      ...newItem,
+      id: String(data.length + 1),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    // Add to data array
+    setData([...data, completeItem]);
+    setIsCreating(false);
+  };
+
+  const handleEditSubmit = (updatedItem: Record<string, any>) => {
+    // Make sure we have the id property
+    if (!updatedItem.id) {
+      console.error('Cannot update item without id');
+      return;
+    }
+    
+    // Create a properly typed complete item
+    const completeItem: DataItem = {
+      id: updatedItem.id,
+      ...updatedItem,
+      updatedAt: new Date().toISOString()
+    };
+    
+    // Update in data array
+    setData(data.map(item => item.id === completeItem.id ? completeItem : item));
+    setIsEditing(false);
+    setCurrentItem(null);
+  };
+
+  const startEditing = (item: DataItem) => {
+    setCurrentItem(item);
+    setIsEditing(true);
+  };
+
+  // Select fields to display in the table
+  const displayFields = [
+    'stringValue',
+    'numberValue', 
+    'booleanValue',
+    'dateValue',
+    'email'
+  ];
+
+  return (
+    <div className="p-4 max-w-6xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Data Type Test</h1>
+      
+      {/* Create/Edit Forms */}
+      {isCreating && (
+        <div className="mb-6">
+          <SchemaFormRenderer
+            schema={NewDataTypeSchema}
+            schemaName="NewDataType"
+            onSubmit={handleCreateSubmit}
+            mode="create"
+            title="Create New Item"
+            description="Fill out the form to create a new item."
+          />
+          <Button 
+            variant="outline" 
+            className="mt-4"
+            onClick={() => setIsCreating(false)}
+          >
+            Cancel
+          </Button>
         </div>
-        <h3 className="text-lg font-semibold">{title}</h3>
-      </div>
-      <p className="text-sm text-muted-foreground">{description}</p>
-    </Link>
+      )}
+      
+      {isEditing && currentItem && (
+        <div className="mb-6">
+          <SchemaFormRenderer
+            schema={DataTypeSchema}
+            schemaName="DataType"
+            initialData={currentItem}
+            onSubmit={handleEditSubmit}
+            mode="edit"
+            title={`Edit ${currentItem.stringValue || `Item ${currentItem.id}`}`}
+            description="Update the item details."
+          />
+          <Button 
+            variant="outline" 
+            className="mt-4"
+            onClick={() => {
+              setIsEditing(false);
+              setCurrentItem(null);
+            }}
+          >
+            Cancel
+          </Button>
+        </div>
+      )}
+      
+      {/* Actions Bar */}
+      {!isCreating && !isEditing && (
+        <div className="mb-6 flex items-center justify-between">
+          <Button 
+            onClick={() => setIsCreating(true)}
+          >
+            Create New Item
+          </Button>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">View mode:</span>
+            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'table' | 'cards')}>
+              <TabsList>
+                <TabsTrigger value="table" className="flex items-center gap-1">
+                  <TableIcon className="h-4 w-4" />
+                  <span>Table</span>
+                </TabsTrigger>
+                <TabsTrigger value="cards" className="flex items-center gap-1">
+                  <LayoutGrid className="h-4 w-4" />
+                  <span>Cards</span>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        </div>
+      )}
+      
+      {/* Data Display */}
+      {!isCreating && !isEditing && (
+        <>
+          {/* Table View */}
+          {viewMode === 'table' && (
+            <SchemaDataTable
+              data={data}
+              schema={DataTypeSchema}
+              title="Data Items"
+              description="A list of all data items in the system"
+              displayFields={displayFields}
+              onEdit={startEditing}
+              searchPlaceholder="Search items..."
+            />
+          )}
+          
+          {/* Card View */}
+          {viewMode === 'cards' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {data.map(item => (
+                <DataCard
+                  key={item.id}
+                  data={item}
+                  onEdit={startEditing}
+                />
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </div>
   );
 }
