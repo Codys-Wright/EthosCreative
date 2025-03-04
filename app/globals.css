@@ -148,3 +148,17 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Utility class to hide scrollbars while allowing scrolling */
+.scrollbar-hide {
+  /* For Chrome, Safari and Opera */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* For Firefox */
+  scrollbar-width: none;
+  
+  /* For IE and Edge */
+  -ms-overflow-style: none;
+}

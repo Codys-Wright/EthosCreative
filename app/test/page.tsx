@@ -25,21 +25,19 @@ export default function TestPage() {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          <ExampleCard 
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <ExampleCard
             title="Form Validation"
             description="Schema-based form generation and validation with Effect schemas"
             icon={<FileInput className="h-5 w-5" />}
             href="/test/form-validation"
           />
-          
-          <ExampleCard 
-            title="Tabbed Form Example"
-            description="Advanced forms with tabs and required field indicators"
+          <ExampleCard
+            title="Tabbed Form"
+            description="Test the tabbed form component with multiple sections and fields"
             icon={<LayoutGrid className="h-5 w-5" />}
-            href="/test/form-validation/tabbed-example"
+            href="/test/tabbed-form"
           />
-          
           <ExampleCard 
             title="Tags Component Demo"
             description="Interactive tags input with suggestions and auto-completion"
@@ -59,6 +57,13 @@ export default function TestPage() {
             description="Specialized UI components for different field types"
             icon={<Layers className="h-5 w-5" />}
             href="/test/form-validation/custom-fields"
+          />
+          
+          <ExampleCard 
+            title="All Fields Example"
+            description="Comprehensive example showing all field types and renderers in tabs"
+            icon={<LayoutGrid className="h-5 w-5" />}
+            href="/test/form-validation/all-fields"
           />
           
           <ExampleCard 
@@ -121,6 +126,16 @@ export default function TestPage() {
               <Badge variant="outline" className="ml-2">New</Badge>
             </Link>
             <p className="text-sm text-muted-foreground ml-8">Multi-select tags input with search functionality.</p>
+          </li>
+          <li>
+            <Link href="/test/form-validation/all-fields" className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-2">
+              <span className="bg-blue-100 dark:bg-blue-900/40 p-1 rounded">
+                <LayoutGrid className="h-4 w-4" />
+              </span>
+              All Fields Example
+              <Badge variant="outline" className="ml-2">New</Badge>
+            </Link>
+            <p className="text-sm text-muted-foreground ml-8">Complete showcase of all form field types and renderers in a tabbed layout.</p>
           </li>
           {/* Add more component examples here */}
         </ul>

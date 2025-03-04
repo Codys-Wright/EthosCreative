@@ -5,6 +5,7 @@ import { GeneratedFieldType, FieldCustomizationRecord } from "@/components/crud/
 
 /**
  * Helper function to extract field information from a schema
+ * Now with improved required field detection based on Schema structure
  */
 export function getSchemaFieldInfo<T extends Record<string, any>>(
   schema: ReturnType<typeof Schema.make<T>>,
@@ -15,17 +16,74 @@ export function getSchemaFieldInfo<T extends Record<string, any>>(
 
   try {
     // First try to determine fields from the schema object
-    // This is a simplified approach as Effect.Schema can have complex structures
-    // We'll just check for properties and try to infer types
     if (schema && typeof schema === 'object') {
-      // Try to extract field information from various locations in the schema object
-      // This is a best-effort approach that may need adjustments based on your actual schema structure
+      // Try to extract field information from schema and sample data
       const schemaFields = Object.keys(sampleData || {});
+      
+      // Function to check if a schema field is optional
+      const isFieldOptional = (schema: any, key: string): boolean => {
+        if (!schema) return false;
+        
+        // Try to access the schema's internal structure
+        // This is a heuristic approach since Effect Schema's internal structure might change
+        const schemaAny = schema as any;
+        
+        // Check if we can find references to optional types
+        try {
+          // For schema.fields approach (S.Struct)
+          if (schemaAny.fields && typeof schemaAny.fields === 'object') {
+            const field = schemaAny.fields[key];
+            if (!field) return false;
+            
+            // Check for NullOr or Optional constructors
+            const fieldStr = field.toString();
+            return fieldStr.includes('NullOr') || 
+                   fieldStr.includes('Optional') || 
+                   fieldStr.includes('nullable');
+          }
+          
+          // For schema.proto.fields approach (another possible structure)
+          if (schemaAny.proto && schemaAny.proto.fields && typeof schemaAny.proto.fields === 'object') {
+            const field = schemaAny.proto.fields[key];
+            if (!field) return false;
+            
+            // Check for NullOr or Optional constructors
+            const fieldStr = field.toString();
+            return fieldStr.includes('NullOr') || 
+                   fieldStr.includes('Optional') || 
+                   fieldStr.includes('nullable');
+          }
+        } catch (e) {
+          console.warn(`Error inspecting schema for field ${key}:`, e);
+        }
+        
+        // If we can't determine from schema structure, check the sample data
+        // If a field in sample data is null or undefined, it's likely optional
+        if (sampleData && key in sampleData) {
+          return sampleData[key] === null || sampleData[key] === undefined;
+        }
+        
+        return false;
+      };
       
       for (const key of schemaFields) {
         // Use field customization if available
         const customization = fieldCustomizations?.[key as keyof T & string];
-        let required = customization?.required ?? false;
+        
+        // IMPORTANT CHANGE: Default to true (required) unless:
+        // 1. The schema indicates it's optional, or
+        // 2. Field customization explicitly sets required to false
+        const isOptional = isFieldOptional(schema, key);
+        let required = true;
+        
+        if (isOptional) {
+          required = false;
+        }
+        
+        // Field customization can override the schema inference
+        if (customization?.required !== undefined) {
+          required = customization.required;
+        }
         
         // Determine field type based on sample data or customization
         let fieldType: GeneratedFieldType = customization?.type || "text";
@@ -55,10 +113,19 @@ export function getSchemaFieldInfo<T extends Record<string, any>>(
         else if (Object.prototype.toString.call(value) === "[object Date]") fieldType = "date";
         else if (typeof value === "string" && value.includes("@")) fieldType = "email";
         
+        // For sample data only, assume fields are required by default
+        // unless they are null or explicitly marked as not required
+        let required = true;
+        
+        if (value === null || value === undefined) {
+          required = false;
+        }
+        
         // Check if there's a customization that explicitly sets required
         const customization = fieldCustomizations?.[key as keyof T & string];
-        // If required is explicitly set in customization, use that value, otherwise default to false
-        const required = customization?.required ?? false;
+        if (customization?.required !== undefined) {
+          required = customization.required;
+        }
         
         fields[key] = { type: fieldType, required };
       });

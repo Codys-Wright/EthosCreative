@@ -103,7 +103,7 @@ export default function FormValidationTestPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 py-10">
-      <div className="container max-w-5xl mx-auto px-4">
+      <div className="container max-w-3xl mx-auto px-4">
         <div className="mb-8">
           <Link href="/test" className="text-muted-foreground hover:text-primary flex items-center gap-1 mb-4 transition-colors">
             <ArrowLeft size={16} />
@@ -116,27 +116,27 @@ export default function FormValidationTestPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
-          <div className="bg-card rounded-lg shadow-md p-8 border border-border">
-            <SchemaForm<UserType>
-              schema={UserSchema}
-              defaultValues={formData}
-              onSubmit={handleSubmit}
-              fieldCustomizations={UserFields}
-              title="User Information"
-              description="Please fill out the form below with your information"
-              submitText="Save User"
-              showReset={true}
-            />
-          </div>
+        {/* Form section */}
+        <div className="bg-card rounded-lg shadow-md p-8 border border-border mb-10">
+          <SchemaForm<UserType>
+            schema={UserSchema}
+            defaultValues={formData}
+            onSubmit={handleSubmit}
+            fieldCustomizations={UserFields}
+            title="User Information"
+            description="Please fill out the form below with your information"
+            submitText="Save User"
+            showReset={true}
+          />
+        </div>
 
-          <div className="bg-card rounded-lg shadow-md p-8 border border-border">
-            <h2 className="text-2xl font-bold mb-4">Form Output</h2>
-            <div className="bg-muted rounded-md overflow-hidden">
-              <pre className="overflow-auto p-4 text-sm whitespace-pre-wrap h-[400px]">
-                {JSON.stringify(formData, null, 2)}
-              </pre>
-            </div>
+        {/* Form output section */}
+        <div className="bg-card rounded-lg shadow-md p-8 border border-border">
+          <h2 className="text-2xl font-bold mb-4">Form Output</h2>
+          <div className="bg-muted rounded-md overflow-hidden">
+            <pre className="overflow-auto p-4 text-sm whitespace-pre-wrap h-[300px]">
+              {JSON.stringify(formData, null, 2)}
+            </pre>
           </div>
         </div>
 
