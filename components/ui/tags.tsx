@@ -208,6 +208,39 @@ export function Tags({
     setOpen(true);
   };
 
+  // Handle input blur
+  const handleInputBlur = (e: React.FocusEvent) => {
+    // Don't close if clicking on a suggestion or inside the container
+    if (
+      containerRef.current?.contains(e.relatedTarget as Node) ||
+      e.currentTarget.contains(e.relatedTarget as Node)
+    ) {
+      return;
+    }
+    
+    // Add a small delay to allow for selecting items in the dropdown
+    setTimeout(() => {
+      setOpen(false);
+    }, 100);
+  };
+
+  // Add event listener for clicks outside the component
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current && 
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
     <div className={cn("relative w-full", className)}>
       <div
@@ -242,6 +275,7 @@ export function Tags({
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
           placeholder={value.length === 0 ? placeholder : ""}
           className={cn(
             "flex-1 bg-transparent px-1 py-1 outline-none placeholder:text-muted-foreground min-w-[120px]",
