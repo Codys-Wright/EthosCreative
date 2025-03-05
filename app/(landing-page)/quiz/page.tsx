@@ -1,6 +1,6 @@
 "use client";
 
-import { QuizTaker } from "@/features/quiz/components/QuizTaker/index"; 
+import { QuizTaker } from "@/features/quiz/components/QuizTaker/index";
 import { defaultQuiz } from "@/features/quiz/components/QuizCreator/defaultQuiz";
 import type { QuizAnalysisResult } from "@/features/quiz/components/QuizTaker/analysis/types";
 import { useSession, useListOrganizations } from "@/lib/auth-client";
@@ -21,14 +21,14 @@ export default function QuizPage() {
 
   const { data: session } = useSession();
   const { data: organizations } = useListOrganizations();
-  
+
   const hasMyArtistTypeOrg = organizations?.some(
-    (org) => org.name === "MyArtistType"
+    (org) => org.name === "MyArtistType",
   );
   return (
     <div className="">
-      <QuizTaker 
-        quiz={defaultQuiz} 
+      <QuizTaker
+        quiz={defaultQuiz}
         onComplete={handleQuizComplete}
         showQuestionTitle={true}
         isAdmin={hasMyArtistTypeOrg}

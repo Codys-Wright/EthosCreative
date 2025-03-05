@@ -1,24 +1,27 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Input } from "@/components/ui/input"
-import { cn } from "@/lib/utils"
-import { Search } from "lucide-react"
-import { useWidgets } from "./widget-context"
-import { getWidgetsByCategory, widgetCategories } from "./widget-registry"
-import type { WidgetDefinition, WidgetCategory } from "./widget-registry"
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { Search } from "lucide-react";
+import { useWidgets } from "./widget-context";
+import { getWidgetsByCategory, widgetCategories } from "./widget-registry";
+import type { WidgetDefinition, WidgetCategory } from "./widget-registry";
 
 interface WidgetPickerProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSelectWidget: (type: string, size: { width: number; height: number }) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSelectWidget: (
+    type: string,
+    size: { width: number; height: number },
+  ) => void;
 }
 
 export function WidgetPicker({
@@ -26,10 +29,10 @@ export function WidgetPicker({
   onOpenChange,
   onSelectWidget,
 }: WidgetPickerProps) {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-  const { getWidget } = useWidgets()
-  const allWidgets = getWidgetsByCategory()
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const { getWidget } = useWidgets();
+  const allWidgets = getWidgetsByCategory();
 
   // Filter widgets based on search query
   const filteredCategories = Object.entries(allWidgets).reduce(
@@ -37,20 +40,20 @@ export function WidgetPicker({
       const filteredWidgets = widgets.filter(
         (widget) =>
           widget.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          widget.description.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+          widget.description.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
       if (filteredWidgets.length > 0) {
-        acc[key] = filteredWidgets
+        acc[key] = filteredWidgets;
       }
-      return acc
+      return acc;
     },
-    {} as Record<string, Array<WidgetDefinition<unknown> & { type: string }>>
-  )
+    {} as Record<string, Array<WidgetDefinition<unknown> & { type: string }>>,
+  );
 
-  const displayCategories = searchQuery ? filteredCategories : allWidgets
+  const displayCategories = searchQuery ? filteredCategories : allWidgets;
   const currentCategory = selectedCategory
     ? { [selectedCategory]: displayCategories[selectedCategory] }
-    : displayCategories
+    : displayCategories;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -64,7 +67,7 @@ export function WidgetPicker({
           "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
           "data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%]",
           "data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
-          "sm:rounded-lg border bg-background"
+          "sm:rounded-lg border bg-background",
         )}
       >
         <DialogHeader className="p-6 pb-4 flex-none">
@@ -87,7 +90,7 @@ export function WidgetPicker({
               onClick={() => setSelectedCategory(null)}
               className={cn(
                 "flex items-center gap-2 px-4 py-2 text-sm hover:bg-accent transition-colors w-full",
-                !selectedCategory && "bg-accent"
+                !selectedCategory && "bg-accent",
               )}
             >
               <Search className="h-4 w-4" />
@@ -99,7 +102,7 @@ export function WidgetPicker({
                 onClick={() => setSelectedCategory(key)}
                 className={cn(
                   "flex items-center gap-2 px-4 py-2 text-sm hover:bg-accent transition-colors w-full",
-                  selectedCategory === key && "bg-accent"
+                  selectedCategory === key && "bg-accent",
                 )}
               >
                 {category.icon && <category.icon className="h-4 w-4" />}
@@ -119,8 +122,8 @@ export function WidgetPicker({
                 </div>
 
                 {Object.entries(currentCategory).map(([key, widgets]) => {
-                  const category = widgetCategories[key]
-                  if (!category || !widgets) return null
+                  const category = widgetCategories[key];
+                  if (!category || !widgets) return null;
 
                   return (
                     <div key={key}>
@@ -132,7 +135,9 @@ export function WidgetPicker({
                         {widgets.map((widget) => (
                           <button
                             key={widget.id}
-                            onClick={() => onSelectWidget(widget.type, widget.defaultSize)}
+                            onClick={() =>
+                              onSelectWidget(widget.type, widget.defaultSize)
+                            }
                             className="group rounded-lg border p-4 hover:border-primary hover:bg-accent/50 transition-colors text-left"
                           >
                             <h4 className="font-medium group-hover:text-primary">
@@ -145,7 +150,7 @@ export function WidgetPicker({
                         ))}
                       </div>
                     </div>
-                  )
+                  );
                 })}
               </div>
             </ScrollArea>
@@ -153,5 +158,5 @@ export function WidgetPicker({
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -20,7 +20,7 @@ export function SortableItem({ id, children, className }: SortableItemProps) {
     isDragging,
   } = useSortable({
     id,
-    animateLayoutChanges: () => false
+    animateLayoutChanges: () => false,
   });
 
   const style = {
@@ -28,7 +28,7 @@ export function SortableItem({ id, children, className }: SortableItemProps) {
       x: transform?.x ?? 0,
       y: transform?.y ?? 0,
       scaleX: 1,
-      scaleY: 1
+      scaleY: 1,
     }),
     transition,
   };
@@ -42,7 +42,7 @@ export function SortableItem({ id, children, className }: SortableItemProps) {
       className={cn(
         "touch-none cursor-grab active:cursor-grabbing",
         className,
-        isDragging && "opacity-50 z-50"
+        isDragging && "opacity-50 z-50",
       )}
     >
       {children}

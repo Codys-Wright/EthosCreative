@@ -6,4 +6,4 @@ export type Blog = {
   authorImage: string;
   thumbnail: string;
   content: string;
-}; 
+};

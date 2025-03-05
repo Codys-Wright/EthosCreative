@@ -1,6 +1,12 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
@@ -19,7 +25,8 @@ export default function MyResultsPage() {
         </CardHeader>
         <CardContent>
           <p className="mb-4">
-            Your results will be displayed here. If you haven't taken the quiz yet, you can do so now.
+            Your results will be displayed here. If you haven't taken the quiz
+            yet, you can do so now.
           </p>
           <Link href="/quiz">
             <Button variant="outline">Take the Quiz</Button>
@@ -28,4 +35,4 @@ export default function MyResultsPage() {
       </Card>
     </div>
   );
-} 
+}

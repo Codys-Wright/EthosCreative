@@ -1,0 +1,1 @@
+ALTER TABLE "artist_type" ADD COLUMN "order" integer;

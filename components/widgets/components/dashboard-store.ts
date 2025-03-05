@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 export interface DashboardItem {
   id: string;
@@ -45,14 +45,14 @@ export const useDashboardStore = create<DashboardState>()(
       items: deepClone(defaultItems),
       presets: [],
       activePresetId: null,
-      
+
       setItems: (items) => {
         set({ items: deepClone(items) });
       },
-      
+
       savePreset: (name, items, presetId) => {
         const timestamp = new Date().toISOString();
-        
+
         if (presetId) {
           // Update existing preset
           set((state) => ({
@@ -63,7 +63,7 @@ export const useDashboardStore = create<DashboardState>()(
                     items: deepClone(items),
                     updatedAt: timestamp,
                   }
-                : preset
+                : preset,
             ),
             activePresetId: presetId,
           }));
@@ -82,15 +82,17 @@ export const useDashboardStore = create<DashboardState>()(
           }));
         }
       },
-      
+
       removePreset: (id) => {
         set((state) => ({
           presets: state.presets.filter((preset) => preset.id !== id),
-          activePresetId: state.activePresetId === id ? null : state.activePresetId,
-          items: state.activePresetId === id ? deepClone(defaultItems) : state.items,
+          activePresetId:
+            state.activePresetId === id ? null : state.activePresetId,
+          items:
+            state.activePresetId === id ? deepClone(defaultItems) : state.items,
         }));
       },
-      
+
       applyPreset: (id) => {
         const preset = get().presets.find((p) => p.id === id);
         if (preset) {
@@ -102,13 +104,13 @@ export const useDashboardStore = create<DashboardState>()(
       },
     }),
     {
-      name: 'dashboard-storage',
+      name: "dashboard-storage",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         presets: deepClone(state.presets),
         items: deepClone(state.items),
         activePresetId: state.activePresetId,
       }),
-    }
-  )
+    },
+  ),
 );

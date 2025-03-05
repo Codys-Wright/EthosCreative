@@ -1,64 +1,67 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { ListChecks, Eye, Settings } from 'lucide-react'
-import { ResizableLayout, type ResizablePanel } from '@/components/layouts/resizeable-layouts'
-import { QuestionList } from './QuestionList'
-import { QuizPreview } from './QuizPreview'
-import { QuestionInspector } from './QuestionInspector'
-import { useQuizStore } from './store'
-import { useEffect } from 'react'
-import type { Quiz } from './store'
-import { defaultQuiz } from './defaultQuiz'
+import * as React from "react";
+import { ListChecks, Eye, Settings } from "lucide-react";
+import {
+  ResizableLayout,
+  type ResizablePanel,
+} from "@/components/layouts/resizeable-layouts";
+import { QuestionList } from "./QuestionList";
+import { QuizPreview } from "./QuizPreview";
+import { QuestionInspector } from "./QuestionInspector";
+import { useQuizStore } from "./store";
+import { useEffect } from "react";
+import type { Quiz } from "./store";
+import { defaultQuiz } from "./defaultQuiz";
 
 const panels: ResizablePanel[] = [
   {
-    id: 'question-list',
-    label: 'Questions',
+    id: "question-list",
+    label: "Questions",
     icon: ListChecks,
-    position: 'left',
+    position: "left",
     defaultActive: true,
-    shortcut: { key: 'q', ctrl: true },
-    render: () => <QuestionList />
+    shortcut: { key: "q", ctrl: true },
+    render: () => <QuestionList />,
   },
   {
-    id: 'quiz-preview',
-    label: 'Preview',
+    id: "quiz-preview",
+    label: "Preview",
     icon: Eye,
-    position: 'middle',
+    position: "middle",
     defaultActive: true,
-    shortcut: { key: 'p', ctrl: true },
-    render: () => <QuizPreview />
+    shortcut: { key: "p", ctrl: true },
+    render: () => <QuizPreview />,
   },
   {
-    id: 'question-inspector',
-    label: 'Inspector',
+    id: "question-inspector",
+    label: "Inspector",
     icon: Settings,
-    position: 'right',
+    position: "right",
     defaultActive: true,
-    shortcut: { key: 'i', ctrl: true },
-    render: () => <QuestionInspector />
-  }
-]
+    shortcut: { key: "i", ctrl: true },
+    render: () => <QuestionInspector />,
+  },
+];
 
 const defaultActiveIds = {
-  left: 'question-list',
-  middle: 'quiz-preview',
-  right: 'question-inspector'
-}
+  left: "question-list",
+  middle: "quiz-preview",
+  right: "question-inspector",
+};
 
 interface QuizCreatorProps {
-  initialQuiz?: Quiz
+  initialQuiz?: Quiz;
 }
 
 export function QuizCreator({ initialQuiz = defaultQuiz }: QuizCreatorProps) {
-  const { quiz, setQuizData } = useQuizStore()
+  const { quiz, setQuizData } = useQuizStore();
 
   useEffect(() => {
     if (initialQuiz) {
-      setQuizData(initialQuiz)
+      setQuizData(initialQuiz);
     }
-  }, [initialQuiz, setQuizData])
+  }, [initialQuiz, setQuizData]);
 
   return (
     <ResizableLayout
@@ -67,7 +70,7 @@ export function QuizCreator({ initialQuiz = defaultQuiz }: QuizCreatorProps) {
       defaultActiveIds={defaultActiveIds}
       courseTitle={quiz.title}
       courseSubtitle={`Version ${quiz.version}`}
-      onCourseClick={() => console.log('Edit quiz title')}
+      onCourseClick={() => console.log("Edit quiz title")}
     />
-  )
-} 
+  );
+}

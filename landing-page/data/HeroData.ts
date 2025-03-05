@@ -7,5 +7,4 @@ export const HeroData = {
   buttonText: "Take The Artist Quiz",
   navItems,
   backgroundImage: "/MAT-background-landing-page.jpg",
-}
-
+};

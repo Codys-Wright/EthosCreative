@@ -175,7 +175,7 @@ const LoginButton = () => {
       >
         My Results
       </Link>
-      
+
       {isAuthenticated && isMyArtistTypeOrg && (
         <Link
           href="/dashboard"

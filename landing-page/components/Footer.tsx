@@ -6,7 +6,6 @@ import {
   IconBrandYoutube,
   IconBrandSpotify,
 } from "@tabler/icons-react";
-import Image from "next/image";
 import Link from "next/link";
 import type React from "react";
 import { HeroData } from "../data/HeroData";
@@ -23,10 +22,6 @@ export function Footer() {
     <div className="relative w-full overflow-hidden border-t border-border bg-background px-8 py-16">
       <div className="mx-auto max-w-7xl items-start justify-between text-sm text-muted-foreground md:px-8">
         <div className="relative flex w-full flex-col items-center justify-center">
-          <div className="mb-8 mr-0 md:mr-4 md:flex">
-            <Logo />
-          </div>
-
           <ul className="mb-8 flex list-none flex-col gap-6 sm:flex-row">
             {mainLinks.map((item, idx) => (
               <li key={idx} className="list-none">
@@ -110,22 +105,5 @@ const GridLineHorizontal = ({
         className,
       )}
     ></div>
-  );
-};
-
-const Logo = () => {
-  return (
-    <Link
-      href="/"
-      className="flex items-center justify-center overflow-visible font-normal"
-    >
-      <Image
-        src="/myArtistTypeLogo.svg"
-        alt="My Artist Type Logo"
-        width={200}
-        height={200}
-        className="dark:invert"
-      />
-    </Link>
   );
 };

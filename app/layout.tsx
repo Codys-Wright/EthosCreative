@@ -27,14 +27,16 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta name="google-signin-client_id" content={env.NEXT_PUBLIC_GOOGLE_CLIENT_ID} />
+        <meta
+          name="google-signin-client_id"
+          content={env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning
       >
-        <Providers>
-        {children}
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

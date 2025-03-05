@@ -1,2 +1,1 @@
-
-export * from "./components/appSidebar"
+export * from "./components/appSidebar";

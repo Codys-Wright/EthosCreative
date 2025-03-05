@@ -10,9 +10,71 @@ services:
     volumes:
       - chips-db-data:/var/lib/postgresql/data
     ports:
-      - '5433:5432'
+      - "5433:5432"
     networks:
       - app_network
+
+  tempo-init:
+    image: grafana/tempo:latest
+    user: root
+    entrypoint:
+      - "chown"
+      - "10001:10001"
+      - "/var/tempo"
+    volumes:
+      - ./tempo-data:/var/tempo
+    networks:
+      - app_network
+
+  tempo:
+    image: grafana/tempo:latest
+    command:
+      - -config.file=/etc/tempo.yaml
+      - -distributor.otlp.http.cors.allowed-origins=http://localhost:3000
+      - -distributor.otlp.http.cors.allowed-headers=*
+    volumes:
+      - ./shared/tempo.yaml:/etc/tempo.yaml
+      - ./tempo-data:/var/tempo
+    ports:
+      - "14268:14268" # jaeger ingest
+      - "3200:3200" # tempo
+      - "9095:9095" # tempo grpc
+      - "4317:4317" # otlp grpc
+      - "4318:4318" # otlp http
+      - "9411:9411" # zipkin
+    depends_on:
+      - tempo-init
+    networks:
+      - app_network
+
+  prometheus:
+    image: prom/prometheus:latest
+    command:
+      - --config.file=/etc/prometheus.yaml
+      - --web.enable-remote-write-receiver
+      - --enable-feature=exemplar-storage
+      - --enable-feature=native-histograms
+    volumes:
+      - ./shared/prometheus.yaml:/etc/prometheus.yaml
+    ports:
+      - "9090:9090"
+    networks:
+      - app_network
+
+  grafana:
+    image: grafana/grafana:10.1.1
+    volumes:
+      - ./shared/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor metricsSummary
+    ports:
+      - "3001:3000"
+    networks:
+      - app_network
+
 networks:
   app_network:
 volumes:

@@ -1,40 +1,48 @@
-import type { ReactNode } from "react"
-import type { LucideIcon } from "lucide-react"
-import { GraduationCap, BarChart, ArrowRight, BookOpen, Clock, Target, LayoutDashboard } from "lucide-react"
+import type { ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
+import {
+  GraduationCap,
+  BarChart,
+  ArrowRight,
+  BookOpen,
+  Clock,
+  Target,
+  LayoutDashboard,
+} from "lucide-react";
 
 export interface WidgetSize {
-  width: number
-  height: number
+  width: number;
+  height: number;
 }
 
 export interface WidgetBreakpoint {
-  minWidth?: number  // in rem
-  maxWidth?: number  // in rem
-  minHeight?: number // in rem
-  maxHeight?: number // in rem
+  minWidth?: number; // in rem
+  maxWidth?: number; // in rem
+  minHeight?: number; // in rem
+  maxHeight?: number; // in rem
 }
 
 export interface WidgetCategory {
-  name: string
-  icon: LucideIcon
+  name: string;
+  icon: LucideIcon;
 }
 
 export interface WidgetDefinition<TProps = unknown> {
-  id: string
-  label: string
-  description: string
-  category: "courses" | "progress" | "analytics" | "general"
-  defaultSize: WidgetSize
-  maxSize: WidgetSize
-  type?: string
-  icon?: LucideIcon
+  id: string;
+  label: string;
+  description: string;
+  category: "courses" | "progress" | "analytics" | "general";
+  defaultSize: WidgetSize;
+  maxSize: WidgetSize;
+  type?: string;
+  icon?: LucideIcon;
   // Define different views based on breakpoints
   views: {
-    breakpoint: WidgetBreakpoint
-    component: (props: TProps & { size: WidgetSize; id: string }) => ReactNode
-  }[]
+    breakpoint: WidgetBreakpoint;
+    component: (props: TProps & { size: WidgetSize; id: string }) => ReactNode;
+  }[];
   // Default view if no breakpoints match
-  defaultView: (props: TProps & { size: WidgetSize; id: string }) => ReactNode
+  defaultView: (props: TProps & { size: WidgetSize; id: string }) => ReactNode;
 }
 
 export const widgetCategories: Record<string, WidgetCategory> = {
@@ -54,24 +62,24 @@ export const widgetCategories: Record<string, WidgetCategory> = {
     name: "General",
     icon: ArrowRight,
   },
-}
+};
 
-const registry = new Map<string, WidgetDefinition<unknown>>()
+const registry = new Map<string, WidgetDefinition<unknown>>();
 
 export function registerWidget<TProps>(
   type: string,
-  definition: WidgetDefinition<TProps>
+  definition: WidgetDefinition<TProps>,
 ) {
-  registry.set(type, definition as WidgetDefinition<unknown>)
+  registry.set(type, definition as WidgetDefinition<unknown>);
 }
 
 export function getWidget(type: string): WidgetDefinition<unknown> | undefined {
-  return registry.get(type)
+  return registry.get(type);
 }
 
 // Example widget registration
-import { RecentCoursesWidget } from "./RecentCoursesWidget"
-import { NextConceptWidget, CourseProgressWidget } from "./CourseWidgets"
+import { RecentCoursesWidget } from "./RecentCoursesWidget";
+import { NextConceptWidget, CourseProgressWidget } from "./CourseWidgets";
 
 registerWidget("recent-courses", {
   id: "recent-courses",
@@ -93,10 +101,10 @@ registerWidget("recent-courses", {
       component: ({ size, id }) => (
         <RecentCoursesWidget size={size} id={id} compact />
       ),
-    }
+    },
   ],
   defaultView: RecentCoursesWidget,
-})
+});
 
 registerWidget("next-concept", {
   id: "next-concept",
@@ -110,10 +118,10 @@ registerWidget("next-concept", {
     {
       breakpoint: { minWidth: 48 }, // 768px and up
       component: NextConceptWidget,
-    }
+    },
   ],
   defaultView: NextConceptWidget,
-})
+});
 
 registerWidget("course-progress", {
   id: "course-progress",
@@ -127,16 +135,17 @@ registerWidget("course-progress", {
     {
       breakpoint: { minWidth: 48 }, // 768px and up
       component: CourseProgressWidget,
-    }
+    },
   ],
   defaultView: CourseProgressWidget,
-})
+});
 
 // Add a new wide dashboard widget
 registerWidget("dashboard-overview", {
   id: "dashboard-overview",
   label: "Dashboard Overview",
-  description: "A comprehensive overview of your learning progress and upcoming content",
+  description:
+    "A comprehensive overview of your learning progress and upcoming content",
   category: "general",
   defaultSize: { width: 8, height: 2 },
   maxSize: { width: 12, height: 4 },
@@ -145,10 +154,13 @@ registerWidget("dashboard-overview", {
     {
       breakpoint: { minWidth: 64 },
       component: ({ size, id }) => (
-        <div className="grid h-full gap-4" style={{ 
-          gridTemplateColumns: `repeat(${size.width}, 1fr)`,
-          gridTemplateRows: `repeat(${size.height}, 1fr)`
-        }}>
+        <div
+          className="grid h-full gap-4"
+          style={{
+            gridTemplateColumns: `repeat(${size.width}, 1fr)`,
+            gridTemplateRows: `repeat(${size.height}, 1fr)`,
+          }}
+        >
           <div className="col-span-4 bg-muted/50 rounded-lg p-4">
             <h3 className="font-medium mb-2">Course Progress</h3>
             <div className="text-3xl font-bold">75%</div>
@@ -166,7 +178,7 @@ registerWidget("dashboard-overview", {
           </div>
         </div>
       ),
-    }
+    },
   ],
   defaultView: ({ size, id }) => (
     <div className="p-4">
@@ -174,49 +186,55 @@ registerWidget("dashboard-overview", {
       <p className="text-sm text-muted-foreground">Resize for more details</p>
     </div>
   ),
-})
+});
 
 // Helper to get all registered widget types
 export function getAvailableWidgetTypes(): string[] {
-  return Array.from(registry.keys())
+  return Array.from(registry.keys());
 }
 
 // Helper to get widgets by category
-export function getWidgetsByCategory(): Record<string, Array<WidgetDefinition<unknown> & { type: string }>> {
-  const categories: Record<string, Array<WidgetDefinition<unknown> & { type: string }>> = {}
-  
+export function getWidgetsByCategory(): Record<
+  string,
+  Array<WidgetDefinition<unknown> & { type: string }>
+> {
+  const categories: Record<
+    string,
+    Array<WidgetDefinition<unknown> & { type: string }>
+  > = {};
+
   for (const [type, widget] of registry.entries()) {
-    const category = widget.category
+    const category = widget.category;
     if (!categories[category]) {
-      categories[category] = []
+      categories[category] = [];
     }
     categories[category].push({
       ...widget,
-      type
-    })
+      type,
+    });
   }
-  
-  return categories
+
+  return categories;
 }
 
 // Helper to convert rem to pixels
 export function remToPixels(rem: number): number {
-  return rem * parseFloat(getComputedStyle(document.documentElement).fontSize)
+  return rem * parseFloat(getComputedStyle(document.documentElement).fontSize);
 }
 
 // Helper to check if a breakpoint matches current size
 export function matchesBreakpoint(breakpoint: WidgetBreakpoint): boolean {
-  const { minWidth, maxWidth, minHeight, maxHeight } = breakpoint
-  
-  if (typeof window === "undefined") return false
-  
-  const width = window.innerWidth / remToPixels(1)
-  const height = window.innerHeight / remToPixels(1)
-  
-  if (minWidth && width < minWidth) return false
-  if (maxWidth && width > maxWidth) return false
-  if (minHeight && height < minHeight) return false
-  if (maxHeight && height > maxHeight) return false
-  
-  return true
-} 
+  const { minWidth, maxWidth, minHeight, maxHeight } = breakpoint;
+
+  if (typeof window === "undefined") return false;
+
+  const width = window.innerWidth / remToPixels(1);
+  const height = window.innerHeight / remToPixels(1);
+
+  if (minWidth && width < minWidth) return false;
+  if (maxWidth && width > maxWidth) return false;
+  if (minHeight && height < minHeight) return false;
+  if (maxHeight && height > maxHeight) return false;
+
+  return true;
+}

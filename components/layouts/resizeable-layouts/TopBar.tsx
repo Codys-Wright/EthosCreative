@@ -1,39 +1,46 @@
-import React from 'react'
-import { ArrowLeft, LucideIcon } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import React from "react";
+import { ArrowLeft, LucideIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-type PanelPosition = 'left' | 'middle' | 'right'
-type PanelId = string
+type PanelPosition = "left" | "middle" | "right";
+type PanelId = string;
 
 interface PanelConfig {
-  id: PanelId
-  label: string
-  icon: LucideIcon
-  position: PanelPosition
+  id: PanelId;
+  label: string;
+  icon: LucideIcon;
+  position: PanelPosition;
   shortcut?: {
-    key: string
-    ctrl?: boolean
-    shift?: boolean
-    alt?: boolean
-  }
-  defaultSize?: number
-  minSize?: number
-  render: (props: { activeIds: Record<PanelPosition, PanelId> }) => React.ReactNode
+    key: string;
+    ctrl?: boolean;
+    shift?: boolean;
+    alt?: boolean;
+  };
+  defaultSize?: number;
+  minSize?: number;
+  render: (props: {
+    activeIds: Record<PanelPosition, PanelId>;
+  }) => React.ReactNode;
 }
 
 interface TopBarProps {
-  isMobileLayout: boolean
-  activeMobilePanel: PanelPosition
-  leftVisible: boolean
-  rightVisible: boolean
-  activeIds: Record<PanelPosition, PanelId>
-  handlePanelChange: (panelId: PanelId) => void
-  panels: PanelConfig[]
-  courseTitle?: string
-  courseSubtitle?: string
-  onCourseClick?: () => void
+  isMobileLayout: boolean;
+  activeMobilePanel: PanelPosition;
+  leftVisible: boolean;
+  rightVisible: boolean;
+  activeIds: Record<PanelPosition, PanelId>;
+  handlePanelChange: (panelId: PanelId) => void;
+  panels: PanelConfig[];
+  courseTitle?: string;
+  courseSubtitle?: string;
+  onCourseClick?: () => void;
 }
 
 export function TopBar({
@@ -46,32 +53,36 @@ export function TopBar({
   panels,
   courseTitle = "Course Editor",
   courseSubtitle = "Manage your course structure and content",
-  onCourseClick
+  onCourseClick,
 }: TopBarProps) {
   // Group panels by position
   const panelsByPosition = React.useMemo(() => {
-    const grouped = new Map<PanelPosition, PanelConfig[]>()
-    panels.forEach(panel => {
-      const positionPanels = grouped.get(panel.position) || []
-      positionPanels.push(panel)
-      grouped.set(panel.position, positionPanels)
-    })
-    return grouped
-  }, [panels])
+    const grouped = new Map<PanelPosition, PanelConfig[]>();
+    panels.forEach((panel) => {
+      const positionPanels = grouped.get(panel.position) || [];
+      positionPanels.push(panel);
+      grouped.set(panel.position, positionPanels);
+    });
+    return grouped;
+  }, [panels]);
 
   const renderPanelButtons = (position: PanelPosition) => {
-    const positionPanels = panelsByPosition.get(position) || []
-    return positionPanels.map(panel => (
+    const positionPanels = panelsByPosition.get(position) || [];
+    return positionPanels.map((panel) => (
       <Tooltip key={panel.id}>
         <TooltipTrigger asChild>
           <Button
             variant="ghost"
             className={cn(
               "hover:bg-muted",
-              (isMobileLayout 
-                ? activeMobilePanel === position && activeIds[position] === panel.id
-                : (position === 'middle' || ((position === 'left' && leftVisible) || (position === 'right' && rightVisible))) && activeIds[position] === panel.id
-              ) && "bg-accent hover:bg-accent"
+              (isMobileLayout
+                ? activeMobilePanel === position &&
+                  activeIds[position] === panel.id
+                : (position === "middle" ||
+                    (position === "left" && leftVisible) ||
+                    (position === "right" && rightVisible)) &&
+                  activeIds[position] === panel.id) &&
+                "bg-accent hover:bg-accent",
             )}
             size="icon"
             onClick={() => handlePanelChange(panel.id)}
@@ -84,8 +95,8 @@ export function TopBar({
           <p>{panel.label}</p>
         </TooltipContent>
       </Tooltip>
-    ))
-  }
+    ));
+  };
 
   return (
     <TooltipProvider>
@@ -108,18 +119,17 @@ export function TopBar({
           </div>
         </div>
         <div className="flex items-center gap-2 ml-auto">
-          {renderPanelButtons('left')}
-          {panelsByPosition.has('left') && panelsByPosition.has('middle') && (
+          {renderPanelButtons("left")}
+          {panelsByPosition.has("left") && panelsByPosition.has("middle") && (
             <div className="h-6 w-px bg-border mx-2" />
           )}
-          {renderPanelButtons('middle')}
-          {panelsByPosition.has('middle') && panelsByPosition.has('right') && (
+          {renderPanelButtons("middle")}
+          {panelsByPosition.has("middle") && panelsByPosition.has("right") && (
             <div className="h-6 w-px bg-border mx-2" />
           )}
-          {renderPanelButtons('right')}
+          {renderPanelButtons("right")}
         </div>
       </div>
     </TooltipProvider>
-  )
+  );
 }
-

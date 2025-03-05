@@ -1,20 +1,21 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useWidgetStore } from "./widget-context"
-import { ArrowRight } from "lucide-react"
-import type { WidgetSize } from "./widget-registry"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useWidgetStore } from "./widget-context";
+import { ArrowRight } from "lucide-react";
+import type { WidgetSize } from "./widget-registry";
 
 interface WidgetProps {
-  size: WidgetSize
-  id: string
-  compact?: boolean
+  size: WidgetSize;
+  id: string;
+  compact?: boolean;
 }
 
 const nextConcept = {
   name: "Color Theory Basics",
-  description: "Learn about color wheels, harmonies, and their psychological impact",
+  description:
+    "Learn about color wheels, harmonies, and their psychological impact",
   duration: "25 min",
-  category: "Art Fundamentals"
-}
+  category: "Art Fundamentals",
+};
 
 export function NextConceptWidget({ size, id, compact = false }: WidgetProps) {
   return (
@@ -25,7 +26,11 @@ export function NextConceptWidget({ size, id, compact = false }: WidgetProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          <h3 className={compact ? "text-sm font-medium" : "text-base font-medium"}>
+          <h3
+            className={
+              compact ? "text-sm font-medium" : "text-base font-medium"
+            }
+          >
             {nextConcept.name}
           </h3>
           <p className="text-sm text-muted-foreground">
@@ -38,5 +43,5 @@ export function NextConceptWidget({ size, id, compact = false }: WidgetProps) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

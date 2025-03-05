@@ -28,17 +28,16 @@ The result is a quiz that can organize this identity into a Primary Artist Type.
 
 After more than two decades working behind the scenes in the entertainment business (in the music, film, tv, fine art worlds and beyond), Watts noticed profoundly distinct personality traits in the wide variety of creatives he worked with and observed. It was as if artists fell into distinct categories. They each interacted in ways that were consistent and surprisingly predictable (even, paradoxically, in their unpredictability).
 
-*"I began to realize that artists are like their own species. I noticed that within that species, it's almost as if there are different breeds. Each with their own distinct traits and intrinsic ways of approaching the creative process.*
+_"I began to realize that artists are like their own species. I noticed that within that species, it's almost as if there are different breeds. Each with their own distinct traits and intrinsic ways of approaching the creative process._
 
-*I thought that it would be useful and fun to see if I could identify a concise list of distinct artist types. Ones that I'd seen not only in my own experience, but out in the world, beyond my own experiences and throughout history.*
+_I thought that it would be useful and fun to see if I could identify a concise list of distinct artist types. Ones that I'd seen not only in my own experience, but out in the world, beyond my own experiences and throughout history._
 
-*I felt that if I could accurately name and define these distinct types then it could be extremely helpful in similar ways that The Enneagram and The Big 5 Aspects Tests have been for people to not only understand themselves but how they interact with others.*
+_I felt that if I could accurately name and define these distinct types then it could be extremely helpful in similar ways that The Enneagram and The Big 5 Aspects Tests have been for people to not only understand themselves but how they interact with others._
 
-*Though every artist is incredibly complex, my aim was to define each type in such a way that every artist past and present could fit quite snuggly into a Primary Artist Type.*
+_Though every artist is incredibly complex, my aim was to define each type in such a way that every artist past and present could fit quite snuggly into a Primary Artist Type._
 
-*So after considerable thought, research, and development I'm very excited about the resulting quiz. The results form a nuanced picture of how the artist tends to function creatively and relationally.*
+_So after considerable thought, research, and development I'm very excited about the resulting quiz. The results form a nuanced picture of how the artist tends to function creatively and relationally._
 
-*As I began to share the quiz, the feedback from artists has been very validating with virtually everyone expressing that their results were extremely accurate, interesting, and helpful.*
+_As I began to share the quiz, the feedback from artists has been very validating with virtually everyone expressing that their results were extremely accurate, interesting, and helpful._
 
-*My goal has never been to pigeonhole artists or narrowly define them, but rather to give them a kind of mirror and magnifying glass to help them further understand their uniqueness relative to others so that they could have a sense of orientation and relativity not only in their inner creative worlds, but also in the context of collaborations, and in business situations."*
-
+_My goal has never been to pigeonhole artists or narrowly define them, but rather to give them a kind of mirror and magnifying glass to help them further understand their uniqueness relative to others so that they could have a sense of orientation and relativity not only in their inner creative worlds, but also in the context of collaborations, and in business situations."_

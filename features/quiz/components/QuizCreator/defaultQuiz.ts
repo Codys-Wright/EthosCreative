@@ -1,4 +1,4 @@
-import type { Quiz } from './store'
+import type { Quiz } from "./store";
 
 const questions = [
   "I prefer to work in a structured, organized environment",
@@ -50,8 +50,8 @@ const questions = [
   "I prefer working with organic shapes",
   "I enjoy creating interactive art",
   "I'm drawn to texture and tactile elements",
-  "I find inspiration in scientific concepts"
-]
+  "I find inspiration in scientific concepts",
+];
 
 const getTitleFromContent = (content: string) => {
   // Map of content keywords to concise two-word titles
@@ -105,13 +105,15 @@ const getTitleFromContent = (content: string) => {
     "organic shapes": "Organic",
     "interactive art": "Interactive",
     "texture and tactile": "Texture",
-    "scientific concepts": "Science"
-  }
+    "scientific concepts": "Science",
+  };
 
   // Find the matching key in the titleMap
-  const matchingKey = Object.keys(titleMap).find(key => content.toLowerCase().includes(key.toLowerCase()))
-  return matchingKey ? titleMap[matchingKey] : "General Question"
-}
+  const matchingKey = Object.keys(titleMap).find((key) =>
+    content.toLowerCase().includes(key.toLowerCase()),
+  );
+  return matchingKey ? titleMap[matchingKey] : "General Question";
+};
 
 export const defaultQuiz: Quiz = {
   title: "My Artist Type Quiz",
@@ -126,6 +128,6 @@ export const defaultQuiz: Quiz = {
     minLabel: "Strongly Disagree",
     maxLabel: "Strongly Agree",
     min: 0,
-    max: 10
-  }))
-} 
+    max: 10,
+  })),
+};

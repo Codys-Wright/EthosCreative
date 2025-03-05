@@ -1,7 +1,7 @@
 "use client";
 
-import React from 'react';
-import { Card } from "@/components/ui/card"
+import React from "react";
+import { Card } from "@/components/ui/card";
 
 interface ChartWidgetProps {
   width: number;
@@ -11,7 +11,7 @@ interface ChartWidgetProps {
 
 const getChartContent = (width: number, height: number) => {
   const key = `${width}x${height}`;
-  
+
   switch (key) {
     // 1x1 - Simple number or icon
     case "1x1":
@@ -130,7 +130,9 @@ const getChartContent = (width: number, height: number) => {
             <h2 className="text-lg font-semibold mb-2">Overview</h2>
             <div className="flex justify-between">
               <div>
-                <div className="text-sm text-muted-foreground">Total Revenue</div>
+                <div className="text-sm text-muted-foreground">
+                  Total Revenue
+                </div>
                 <div className="text-2xl font-bold">$123,456</div>
               </div>
               <div>
@@ -163,7 +165,9 @@ const getChartContent = (width: number, height: number) => {
               { label: "Avg. Order", value: "$123" },
             ].map((stat, i) => (
               <div key={i} className="bg-muted/30 rounded-lg p-4">
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
+                <div className="text-sm text-muted-foreground">
+                  {stat.label}
+                </div>
                 <div className="text-xl font-semibold mt-1">{stat.value}</div>
               </div>
             ))}
@@ -186,7 +190,9 @@ const getChartContent = (width: number, height: number) => {
                       style={{ height: `${day.value}%` }}
                     />
                   </div>
-                  <div className="text-xs text-muted-foreground">{day.label}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {day.label}
+                  </div>
                 </div>
               ))}
             </div>
@@ -202,7 +208,9 @@ const getChartContent = (width: number, height: number) => {
             <div className="flex justify-between items-center h-full">
               <div>
                 <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
-                <p className="text-muted-foreground">Complete overview of your business</p>
+                <p className="text-muted-foreground">
+                  Complete overview of your business
+                </p>
               </div>
               <div className="flex gap-4">
                 {["Daily", "Weekly", "Monthly", "Yearly"].map((period) => (
@@ -220,13 +228,31 @@ const getChartContent = (width: number, height: number) => {
             <h3 className="text-lg font-semibold mb-4">Revenue Overview</h3>
             <div className="h-[calc(100%-2rem)] flex items-end gap-2">
               {Array.from({ length: 12 }).map((_, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                <div
+                  key={i}
+                  className="flex-1 flex flex-col items-center gap-2"
+                >
                   <div
                     className="w-full bg-primary/60 rounded-t"
                     style={{ height: `${Math.random() * 80 + 20}%` }}
                   />
                   <div className="text-xs text-muted-foreground">
-                    {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][i]}
+                    {
+                      [
+                        "Jan",
+                        "Feb",
+                        "Mar",
+                        "Apr",
+                        "May",
+                        "Jun",
+                        "Jul",
+                        "Aug",
+                        "Sep",
+                        "Oct",
+                        "Nov",
+                        "Dec",
+                      ][i]
+                    }
                   </div>
                 </div>
               ))}
@@ -244,9 +270,13 @@ const getChartContent = (width: number, height: number) => {
                 <div key={i} className="flex items-center justify-between">
                   <div>
                     <div className="font-medium">{product.name}</div>
-                    <div className="text-sm text-muted-foreground">{product.sales} sales</div>
+                    <div className="text-sm text-muted-foreground">
+                      {product.sales} sales
+                    </div>
                   </div>
-                  <div className="text-primary font-medium">{product.growth}</div>
+                  <div className="text-primary font-medium">
+                    {product.growth}
+                  </div>
                 </div>
               ))}
             </div>
@@ -260,7 +290,9 @@ const getChartContent = (width: number, height: number) => {
                     <div className="w-10 h-10 rounded-full bg-primary/20" />
                     <div>
                       <div className="font-medium">Order #{1000 + i}</div>
-                      <div className="text-sm text-muted-foreground">2 items • $123</div>
+                      <div className="text-sm text-muted-foreground">
+                        2 items • $123
+                      </div>
                     </div>
                   </div>
                   <div className="text-sm text-muted-foreground">2 min ago</div>
@@ -269,7 +301,9 @@ const getChartContent = (width: number, height: number) => {
             </div>
           </div>
           <div className="col-span-3 row-span-2 bg-muted/30 rounded-lg p-4">
-            <h3 className="text-lg font-semibold mb-4">Customer Satisfaction</h3>
+            <h3 className="text-lg font-semibold mb-4">
+              Customer Satisfaction
+            </h3>
             <div className="flex items-center justify-center h-[calc(100%-2rem)]">
               <div className="relative w-32 h-32">
                 <div className="absolute inset-0 rounded-full border-8 border-primary/20" />
@@ -294,8 +328,12 @@ const getChartContent = (width: number, height: number) => {
       return (
         <div className="flex items-center justify-center h-full p-4 text-center">
           <div>
-            <div className="text-lg font-semibold">Chart {width}x{height}</div>
-            <div className="text-sm text-muted-foreground">Custom size chart content</div>
+            <div className="text-lg font-semibold">
+              Chart {width}x{height}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Custom size chart content
+            </div>
           </div>
         </div>
       );
@@ -303,9 +341,5 @@ const getChartContent = (width: number, height: number) => {
 };
 
 export function ChartWidget({ width, height, className }: ChartWidgetProps) {
-  return (
-    <Card className={className}>
-      {getChartContent(width, height)}
-    </Card>
-  );
+  return <Card className={className}>{getChartContent(width, height)}</Card>;
 }

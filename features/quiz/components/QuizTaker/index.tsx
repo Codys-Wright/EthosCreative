@@ -1,42 +1,64 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { motion } from 'framer-motion'
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { cn } from "@/lib/utils"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { ChevronLeft, ChevronRight, Clock } from 'lucide-react'
-import { useQuizTakerStore } from './store'
-import type { Quiz } from '../QuizCreator/store'
-import type { CarouselApi } from '@/components/ui/carousel'
-import type { AnalysisEngine, QuizAnalysisResult, ArtistType } from './analysis/types'
-import { ArtistTypeAnalysisEngine } from './analysis/artistTypeEngine'
-import { DefaultAnalysisEngine } from './analysis/engine'
-import { debounce } from 'lodash'
-import { useMyArtistTypeOrg } from '@/lib/hooks/useMyArtistTypeOrg'
+import * as React from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { ChevronLeft, ChevronRight, Clock } from "lucide-react";
+import { useQuizTakerStore } from "./store";
+import type { Quiz } from "../QuizCreator/store";
+import type { CarouselApi } from "@/components/ui/carousel";
+import type {
+  AnalysisEngine,
+  QuizAnalysisResult,
+  ArtistType,
+} from "./analysis/types";
+import { ArtistTypeAnalysisEngine } from "./analysis/artistTypeEngine";
+import { DefaultAnalysisEngine } from "./analysis/engine";
+import { debounce } from "lodash";
+import { useMyArtistTypeOrg } from "@/lib/hooks/useMyArtistTypeOrg";
 
 interface QuizTakerProps {
-  quiz: Quiz
-  analysisEngine?: AnalysisEngine
-  onComplete?: (responses: { questionId: string; response: number | null }[], analysis: QuizAnalysisResult) => void
-  showQuestionTitle?: boolean
-  isAdmin?: boolean
+  quiz: Quiz;
+  analysisEngine?: AnalysisEngine;
+  onComplete?: (
+    responses: { questionId: string; response: number | null }[],
+    analysis: QuizAnalysisResult,
+  ) => void;
+  showQuestionTitle?: boolean;
+  isAdmin?: boolean;
 }
 
 function formatTime(ms: number): string {
-  const seconds = Math.floor(ms / 1000)
-  const minutes = Math.floor(seconds / 60)
-  const remainingSeconds = seconds % 60
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+  const seconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 }
 
-export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle = true, isAdmin = false }: QuizTakerProps) {
+export function QuizTaker({
+  quiz,
+  analysisEngine,
+  onComplete,
+  showQuestionTitle = true,
+  isAdmin = false,
+}: QuizTakerProps) {
   const {
     currentQuestionIndex,
     responses,
@@ -49,161 +71,202 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
     completeQuiz,
     canAdvanceToIndex,
     fillWithDefaultResponses,
-    fillWithRandomResponses
-  } = useQuizTakerStore()
+    fillWithRandomResponses,
+  } = useQuizTakerStore();
 
   const { isMyArtistTypeOrg } = useMyArtistTypeOrg();
-  
+
   // Only show admin panel if user is admin or part of MyArtistType organization
   const showAdminControls = isAdmin || isMyArtistTypeOrg;
 
-  const [api, setApi] = React.useState<CarouselApi>()
-  const [showResults, setShowResults] = React.useState(false)
-  const [defaultResponse, setDefaultResponse] = React.useState(5)
-  const [currentTime, setCurrentTime] = React.useState(0)
-  const [showAdminPanel, setShowAdminPanel] = React.useState(false)
-  const [engine] = React.useState(() => 
-    analysisEngine || new ArtistTypeAnalysisEngine(quiz.questions.map(q => q.id))
-  )
+  const [api, setApi] = React.useState<CarouselApi>();
+  const [showResults, setShowResults] = React.useState(false);
+  const [defaultResponse, setDefaultResponse] = React.useState(5);
+  const [currentTime, setCurrentTime] = React.useState(0);
+  const [showAdminPanel, setShowAdminPanel] = React.useState(false);
+  const [engine] = React.useState(
+    () =>
+      analysisEngine ||
+      new ArtistTypeAnalysisEngine(quiz.questions.map((q) => q.id)),
+  );
 
   // Add state for input values
   const [inputValues, setInputValues] = React.useState({
-    PRIMARY_IDEAL_POINTS: String((engine as ArtistTypeAnalysisEngine).getScoringConfig().PRIMARY_IDEAL_POINTS),
-    SECONDARY_IDEAL_POINTS: String((engine as ArtistTypeAnalysisEngine).getScoringConfig().SECONDARY_IDEAL_POINTS),
-    POINT_FALLOFF: String((engine as ArtistTypeAnalysisEngine).getScoringConfig().POINT_FALLOFF),
-    MIN_POINTS: String((engine as ArtistTypeAnalysisEngine).getScoringConfig().MIN_POINTS ?? 0)
-  })
+    PRIMARY_IDEAL_POINTS: String(
+      (engine as ArtistTypeAnalysisEngine).getScoringConfig()
+        .PRIMARY_IDEAL_POINTS,
+    ),
+    SECONDARY_IDEAL_POINTS: String(
+      (engine as ArtistTypeAnalysisEngine).getScoringConfig()
+        .SECONDARY_IDEAL_POINTS,
+    ),
+    POINT_FALLOFF: String(
+      (engine as ArtistTypeAnalysisEngine).getScoringConfig().POINT_FALLOFF,
+    ),
+    MIN_POINTS: String(
+      (engine as ArtistTypeAnalysisEngine).getScoringConfig().MIN_POINTS ?? 0,
+    ),
+  });
 
   // Add debounced update function
   const updateAllResponses = React.useCallback(() => {
-    responses.forEach(response => {
+    responses.forEach((response) => {
       if (response.response !== null) {
-        setResponse(response.questionId, response.response)
+        setResponse(response.questionId, response.response);
       }
-    })
-  }, [responses, setResponse])
+    });
+  }, [responses, setResponse]);
 
   const debouncedUpdate = React.useMemo(
     () => debounce(updateAllResponses, 300),
-    [updateAllResponses]
-  )
+    [updateAllResponses],
+  );
 
   // Cleanup debounce on unmount
   React.useEffect(() => {
     return () => {
-      debouncedUpdate.cancel()
-    }
-  }, [debouncedUpdate])
+      debouncedUpdate.cancel();
+    };
+  }, [debouncedUpdate]);
 
-  const handleScoringConfigChange = React.useCallback((key: keyof typeof inputValues, value: string | null) => {
-    if (value === null) {
+  const handleScoringConfigChange = React.useCallback(
+    (key: keyof typeof inputValues, value: string | null) => {
+      if (value === null) {
+        (engine as ArtistTypeAnalysisEngine).updateScoringConfig({
+          [key]: null,
+        });
+        setInputValues((prev) => ({
+          ...prev,
+          [key]: "0",
+        }));
+        debouncedUpdate();
+        return;
+      }
+
+      const numValue = Number(value);
+      if (isNaN(numValue)) {
+        // Reset to current value if invalid
+        const config = (engine as ArtistTypeAnalysisEngine).getScoringConfig();
+        setInputValues((prev) => ({
+          ...prev,
+          [key]: String(config[key as keyof typeof config] ?? 0),
+        }));
+        return;
+      }
+
       (engine as ArtistTypeAnalysisEngine).updateScoringConfig({
-        [key]: null
-      })
-      setInputValues(prev => ({
-        ...prev,
-        [key]: '0'
-      }))
-      debouncedUpdate()
-      return
-    }
+        [key]: numValue,
+      });
+      debouncedUpdate();
+    },
+    [engine, debouncedUpdate],
+  );
 
-    const numValue = Number(value)
-    if (isNaN(numValue)) {
-      // Reset to current value if invalid
-      const config = (engine as ArtistTypeAnalysisEngine).getScoringConfig();
-      setInputValues(prev => ({
-        ...prev,
-        [key]: String(config[key as keyof typeof config] ?? 0)
-      }))
-      return
-    }
-
-    (engine as ArtistTypeAnalysisEngine).updateScoringConfig({
-      [key]: numValue
-    })
-    debouncedUpdate()
-  }, [engine, debouncedUpdate])
-
-  const currentQuestion = quiz.questions[currentQuestionIndex]
-  const progress = ((currentQuestionIndex + 1) / quiz.questions.length) * 100
-  const currentResponse = responses.find(r => r.questionId === currentQuestion?.id)?.response
+  const currentQuestion = quiz.questions[currentQuestionIndex];
+  const progress = ((currentQuestionIndex + 1) / quiz.questions.length) * 100;
+  const currentResponse = responses.find(
+    (r) => r.questionId === currentQuestion?.id,
+  )?.response;
 
   // Initialize quiz
   React.useEffect(() => {
-    setQuiz(quiz)
-  }, [quiz, setQuiz])
+    setQuiz(quiz);
+  }, [quiz, setQuiz]);
 
   // Live timer update
   React.useEffect(() => {
-    const questionAnalytics = analytics.questionAnalytics.find(qa => qa.questionId === currentQuestion?.id)
-    if (!questionAnalytics) return
+    const questionAnalytics = analytics.questionAnalytics.find(
+      (qa) => qa.questionId === currentQuestion?.id,
+    );
+    if (!questionAnalytics) return;
 
     const updateTimer = () => {
       if (questionAnalytics.startTime) {
-        const elapsed = questionAnalytics.timeSpent + (Date.now() - questionAnalytics.startTime)
-        setCurrentTime(elapsed)
+        const elapsed =
+          questionAnalytics.timeSpent +
+          (Date.now() - questionAnalytics.startTime);
+        setCurrentTime(elapsed);
       } else {
-        setCurrentTime(questionAnalytics.timeSpent)
+        setCurrentTime(questionAnalytics.timeSpent);
       }
-    }
+    };
 
-    updateTimer()
-    const interval = setInterval(updateTimer, 1000)
-    return () => clearInterval(interval)
-  }, [currentQuestion?.id, analytics.questionAnalytics])
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [currentQuestion?.id, analytics.questionAnalytics]);
 
   // Sync carousel with current question index
   React.useEffect(() => {
     if (api) {
-      api.scrollTo(currentQuestionIndex, false)
+      api.scrollTo(currentQuestionIndex, false);
     }
-  }, [api, currentQuestionIndex])
+  }, [api, currentQuestionIndex]);
 
   // Handle carousel changes
   React.useEffect(() => {
-    if (!api) return
+    if (!api) return;
 
     const handleSelect = () => {
-      const selectedIndex = api.selectedScrollSnap()
+      const selectedIndex = api.selectedScrollSnap();
       if (selectedIndex !== currentQuestionIndex) {
         // Only allow moving to this index if we can advance to it
-        if (selectedIndex > currentQuestionIndex && !canAdvanceToIndex(selectedIndex)) {
+        if (
+          selectedIndex > currentQuestionIndex &&
+          !canAdvanceToIndex(selectedIndex)
+        ) {
           // If we can't advance, scroll back to the current question
-          api.scrollTo(currentQuestionIndex, false)
-          return
+          api.scrollTo(currentQuestionIndex, false);
+          return;
         }
-        
+
         if (selectedIndex > currentQuestionIndex) {
-          nextQuestion()
+          nextQuestion();
         } else {
-          previousQuestion()
+          previousQuestion();
         }
       }
-    }
+    };
 
-    api.on("select", handleSelect)
+    api.on("select", handleSelect);
     return () => {
-      api.off("select", handleSelect)
-    }
-  }, [api, currentQuestionIndex, nextQuestion, previousQuestion, canAdvanceToIndex])
+      api.off("select", handleSelect);
+    };
+  }, [
+    api,
+    currentQuestionIndex,
+    nextQuestion,
+    previousQuestion,
+    canAdvanceToIndex,
+  ]);
 
   // Check if all questions are answered
-  const allQuestionsAnswered = quiz.questions.every(q => 
-    responses.find(r => r.questionId === q.id)?.response !== null
-  )
+  const allQuestionsAnswered = quiz.questions.every(
+    (q) => responses.find((r) => r.questionId === q.id)?.response !== null,
+  );
 
   // Get current points for admin card
-  const currentPoints = (engine as DefaultAnalysisEngine).getCurrentPoints(responses)
+  const currentPoints = (engine as DefaultAnalysisEngine).getCurrentPoints(
+    responses,
+  );
   const sortedPoints = Object.entries(currentPoints)
     .sort(([, a], [, b]) => (b as number) - (a as number))
     .map(([type, points]) => ({
       type,
       points: points as number,
-      percentage: Object.values(currentPoints).reduce((sum, p) => sum + Math.max(0, p as number), 0) > 0
-        ? (Math.max(0, points as number) / Object.values(currentPoints).reduce((sum, p) => sum + Math.max(0, p as number), 0)) * 100
-        : 0
-    }))
+      percentage:
+        Object.values(currentPoints).reduce(
+          (sum, p) => sum + Math.max(0, p as number),
+          0,
+        ) > 0
+          ? (Math.max(0, points as number) /
+              Object.values(currentPoints).reduce(
+                (sum, p) => sum + Math.max(0, p as number),
+                0,
+              )) *
+            100
+          : 0,
+    }));
 
   if (isComplete) {
     return (
@@ -214,15 +277,18 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              Thank you for completing the quiz. Your results are being processed.
+              Thank you for completing the quiz. Your results are being
+              processed.
             </p>
-            <Button 
+            <Button
               className="mt-4"
               onClick={() => {
-                setShowResults(true)
+                setShowResults(true);
                 // Cast engine to include analyze method
-                const engineWithAnalyze = engine as unknown as { analyze: (responses: any) => QuizAnalysisResult };
-                onComplete?.(responses, engineWithAnalyze.analyze(responses))
+                const engineWithAnalyze = engine as unknown as {
+                  analyze: (responses: any) => QuizAnalysisResult;
+                };
+                onComplete?.(responses, engineWithAnalyze.analyze(responses));
               }}
             >
               View Results
@@ -234,23 +300,25 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
           <DialogContent className="max-w-[90vw] h-[80vh] w-[600px]">
             <DialogHeader className="flex flex-row items-center justify-between border-b pb-4">
               <DialogTitle className="text-xl">Quiz Results</DialogTitle>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
                   const results = {
                     ...quiz,
                     completedAt: new Date().toISOString(),
-                    responses: responses
-                  }
-                  const blob = new Blob([JSON.stringify(results, null, 2)], { type: 'application/json' })
-                  const url = URL.createObjectURL(blob)
-                  const a = document.createElement('a')
-                  a.href = url
-                  a.download = `${quiz.title.toLowerCase().replace(/\s+/g, '-')}-results.json`
-                  document.body.appendChild(a)
-                  a.click()
-                  document.body.removeChild(a)
-                  URL.revokeObjectURL(url)
+                    responses: responses,
+                  };
+                  const blob = new Blob([JSON.stringify(results, null, 2)], {
+                    type: "application/json",
+                  });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `${quiz.title.toLowerCase().replace(/\s+/g, "-")}-results.json`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
                 }}
               >
                 Export Results
@@ -260,10 +328,15 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
               <div className="space-y-4 py-4">
                 <div className="grid gap-4">
                   {quiz.questions.map((question, index) => (
-                    <div key={question.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div
+                      key={question.id}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">Q{index + 1}: {question.content}</p>
-                        {question.type === 'rating' && (
+                        <p className="text-sm font-medium truncate">
+                          Q{index + 1}: {question.content}
+                        </p>
+                        {question.type === "rating" && (
                           <div className="flex gap-2 text-xs text-muted-foreground mt-1">
                             <span>{question.minLabel}</span>
                             <span>→</span>
@@ -271,14 +344,23 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
                           </div>
                         )}
                       </div>
-                      {question.type === 'rating' && (
+                      {question.type === "rating" && (
                         <div className="ml-4 flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">Rating:</span>
-                          <span className={cn(
-                            "font-medium",
-                            responses.find(r => r.questionId === question.id)?.response ? "text-primary" : "text-muted-foreground"
-                          )}>
-                            {responses.find(r => r.questionId === question.id)?.response || 'N/A'}
+                          <span className="text-sm text-muted-foreground">
+                            Rating:
+                          </span>
+                          <span
+                            className={cn(
+                              "font-medium",
+                              responses.find(
+                                (r) => r.questionId === question.id,
+                              )?.response
+                                ? "text-primary"
+                                : "text-muted-foreground",
+                            )}
+                          >
+                            {responses.find((r) => r.questionId === question.id)
+                              ?.response || "N/A"}
                           </span>
                         </div>
                       )}
@@ -290,38 +372,42 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
           </DialogContent>
         </Dialog>
       </div>
-    )
+    );
   }
 
   return (
-    <div className={cn(
-      "flex flex-col",
-      showAdminControls && !showAdminPanel ? "h-auto" : "h-full"
-    )}>
+    <div
+      className={cn(
+        "flex flex-col",
+        showAdminControls && !showAdminPanel ? "h-auto" : "h-full",
+      )}
+    >
       <div className="px-4 py-3 border-b flex items-center justify-between">
         <h2 className="text-lg font-bold">{quiz.title}</h2>
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">
             Question {currentQuestionIndex + 1} of {quiz.questions.length}
           </span>
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={() => previousQuestion()} 
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => previousQuestion()}
             disabled={currentQuestionIndex === 0}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
           {currentQuestionIndex === quiz.questions.length - 1 ? (
-            <Button 
-              variant="default" 
+            <Button
+              variant="default"
               onClick={() => {
-                completeQuiz()
+                completeQuiz();
                 if (allQuestionsAnswered) {
                   // Cast engine to include analyze method
-                  const engineWithAnalyze = engine as unknown as { analyze: (responses: any) => QuizAnalysisResult };
-                  const analysis = engineWithAnalyze.analyze(responses)
-                  onComplete?.(responses, analysis)
+                  const engineWithAnalyze = engine as unknown as {
+                    analyze: (responses: any) => QuizAnalysisResult;
+                  };
+                  const analysis = engineWithAnalyze.analyze(responses);
+                  onComplete?.(responses, analysis);
                 }
               }}
               disabled={!allQuestionsAnswered}
@@ -329,9 +415,9 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
               Complete Quiz
             </Button>
           ) : (
-            <Button 
-              variant="outline" 
-              size="icon" 
+            <Button
+              variant="outline"
+              size="icon"
               onClick={() => nextQuestion()}
               disabled={!canAdvanceToIndex(currentQuestionIndex + 1)}
             >
@@ -341,43 +427,51 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
         </div>
       </div>
 
-      <div className={cn(
-        "flex-1 flex flex-col overflow-hidden",
-        showAdminControls && !showAdminPanel && "h-auto"
-      )}>
+      <div
+        className={cn(
+          "flex-1 flex flex-col overflow-hidden",
+          showAdminControls && !showAdminPanel && "h-auto",
+        )}
+      >
         <div className="flex-1 overflow-hidden">
           <div className="p-4">
             <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-              <div 
+              <div
                 className="bg-primary h-full transition-all duration-300 ease-out rounded-full"
                 style={{ width: `${progress}%` }}
               />
             </div>
           </div>
 
-          <div className={cn(
-            "overflow-hidden px-6",
-            showAdminControls && !showAdminPanel ? "py-8" : "py-20",
-            showAdminControls && !showAdminPanel ? "flex-none" : "flex-1"
-          )}>
-            <Carousel 
+          <div
+            className={cn(
+              "overflow-hidden px-6",
+              showAdminControls && !showAdminPanel ? "py-8" : "py-20",
+              showAdminControls && !showAdminPanel ? "flex-none" : "flex-1",
+            )}
+          >
+            <Carousel
               className={cn(
-                showAdminControls && !showAdminPanel ? "h-auto" : "h-full"
-              )} 
+                showAdminControls && !showAdminPanel ? "h-auto" : "h-full",
+              )}
               setApi={setApi}
               opts={{
                 align: "start",
-                dragFree: false
+                dragFree: false,
               }}
             >
               <CarouselContent>
                 {quiz.questions.map((question) => (
                   <CarouselItem key={question.id}>
-                    <div className={cn(
-                      "flex items-center justify-center",
-                      showAdminControls && !showAdminPanel ? "h-auto" : "h-full"
-                    )}>
-                        <Card className="w-full max-w-3xl mx-auto">
+                    <div
+                      className={cn(
+                        "flex items-center justify-center",
+                        showAdminControls && !showAdminPanel
+                          ? "h-auto"
+                          : "h-full",
+                      )}
+                    >
+                      <Card className="w-full max-w-3xl mx-auto">
                         {showQuestionTitle && (
                           <CardHeader>
                             <CardTitle className="text-lg">
@@ -388,27 +482,35 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
                         <CardContent className="px-6 py-6">
                           <div className="space-y-8">
                             <p className="text-lg">{question.content}</p>
-                            {question.type === 'rating' && (
+                            {question.type === "rating" && (
                               <div className="space-y-4">
                                 <div className="flex flex-wrap justify-between gap-2">
                                   {Array.from(
                                     { length: question.max - question.min + 1 },
-                                    (_, i) => i + question.min
+                                    (_, i) => i + question.min,
                                   ).map((rating) => (
                                     <motion.div
                                       key={rating}
                                       initial={{ scale: 0.95, opacity: 0 }}
                                       animate={{ scale: 1, opacity: 1 }}
-                                      transition={{ duration: 0.2, delay: rating * 0.03 }}
+                                      transition={{
+                                        duration: 0.2,
+                                        delay: rating * 0.03,
+                                      }}
                                       whileHover={{ scale: 1.05 }}
                                       whileTap={{ scale: 0.95 }}
                                     >
                                       <Card
                                         className={cn(
                                           "cursor-pointer transition-colors hover:bg-accent/10 h-14 w-14",
-                                          responses.find(r => r.questionId === question.id)?.response === rating && "bg-accent border-accent"
+                                          responses.find(
+                                            (r) => r.questionId === question.id,
+                                          )?.response === rating &&
+                                            "bg-accent border-accent",
                                         )}
-                                        onClick={() => setResponse(question.id, rating)}
+                                        onClick={() =>
+                                          setResponse(question.id, rating)
+                                        }
                                       >
                                         <CardHeader className="p-0 h-full">
                                           <CardTitle className="flex items-center justify-center h-full font-normal text-lg">
@@ -439,167 +541,235 @@ export function QuizTaker({ quiz, analysisEngine, onComplete, showQuestionTitle 
         {showAdminControls && (
           <div className={showAdminPanel ? "p-4 border-t" : "p-2 border-t"}>
             <div className="flex justify-between items-center">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setShowAdminPanel(!showAdminPanel)}
               >
                 {showAdminPanel ? "Hide Admin Panel" : "Show Admin Panel"}
               </Button>
               {!showAdminPanel && (
-                <span className="text-sm text-muted-foreground">Admin panel is hidden</span>
+                <span className="text-sm text-muted-foreground">
+                  Admin panel is hidden
+                </span>
               )}
             </div>
-            
+
             {showAdminPanel && (
               <div className="grid grid-cols-2 gap-4 mt-4">
                 {/* Admin Analytics Card */}
                 <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Admin Analytics</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Scoring Configuration */}
-                <div className="space-y-4 border-b pb-4">
-                  <h3 className="font-medium">Scoring Configuration</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Primary Points</Label>
-                      <Input
-                        type="text"
-                        value={inputValues.PRIMARY_IDEAL_POINTS}
-                        onChange={(e) => setInputValues(prev => ({ ...prev, PRIMARY_IDEAL_POINTS: e.target.value }))}
-                        onBlur={(e) => handleScoringConfigChange('PRIMARY_IDEAL_POINTS', e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Secondary Points</Label>
-                      <Input
-                        type="text"
-                        value={inputValues.SECONDARY_IDEAL_POINTS}
-                        onChange={(e) => setInputValues(prev => ({ ...prev, SECONDARY_IDEAL_POINTS: e.target.value }))}
-                        onBlur={(e) => handleScoringConfigChange('SECONDARY_IDEAL_POINTS', e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Point Falloff</Label>
-                      <Input
-                        type="text"
-                        value={inputValues.POINT_FALLOFF}
-                        onChange={(e) => setInputValues(prev => ({ ...prev, POINT_FALLOFF: e.target.value }))}
-                        onBlur={(e) => handleScoringConfigChange('POINT_FALLOFF', e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Minimum Points</Label>
-                      <div className="flex items-center gap-4">
-                        <Input
-                          type="text"
-                          value={inputValues.MIN_POINTS}
-                          disabled={(engine as ArtistTypeAnalysisEngine).getScoringConfig().MIN_POINTS === null}
-                          onChange={(e) => setInputValues(prev => ({ ...prev, MIN_POINTS: e.target.value }))}
-                          onBlur={(e) => handleScoringConfigChange('MIN_POINTS', e.target.value)}
-                        />
-                        <div className="flex items-center gap-2">
-                          <Switch
-                            checked={(engine as ArtistTypeAnalysisEngine).getScoringConfig().MIN_POINTS !== null}
-                            onCheckedChange={(checked) => {
-                              handleScoringConfigChange('MIN_POINTS', checked ? '0' : null)
-                            }}
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Admin Analytics</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Scoring Configuration */}
+                    <div className="space-y-4 border-b pb-4">
+                      <h3 className="font-medium">Scoring Configuration</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Primary Points</Label>
+                          <Input
+                            type="text"
+                            value={inputValues.PRIMARY_IDEAL_POINTS}
+                            onChange={(e) =>
+                              setInputValues((prev) => ({
+                                ...prev,
+                                PRIMARY_IDEAL_POINTS: e.target.value,
+                              }))
+                            }
+                            onBlur={(e) =>
+                              handleScoringConfigChange(
+                                "PRIMARY_IDEAL_POINTS",
+                                e.target.value,
+                              )
+                            }
                           />
-                          <Label>Enable</Label>
                         </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Existing Analytics Content */}
-                <div className="grid grid-cols-3 gap-4">
-                  {/* Quiz Time */}
-                  <div className="space-y-1">
-                    <Label>Total Quiz Time</Label>
-                    <div className="flex items-center gap-2 text-lg">
-                      <Clock className="h-4 w-4" />
-                      <span>{formatTime(analytics.startTime ? Date.now() - analytics.startTime : 0)}</span>
-                    </div>
-                  </div>
-
-                  {/* Current Question Time */}
-                  <div className="space-y-1">
-                    <Label>Current Question Time</Label>
-                    <div className="text-lg">
-                      {formatTime(currentTime)}
-                    </div>
-                  </div>
-
-                  {/* Answer Changes */}
-                  <div className="space-y-1">
-                    <Label>Answer Changes</Label>
-                    <div className="text-lg">
-                      {analytics.questionAnalytics.find(qa => qa.questionId === currentQuestion?.id)?.answerChanges || 0}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Default Response Fill */}
-                <div className="flex items-center gap-4 pt-2">
-                  <div className="flex items-center gap-2">
-                    <Label>Fill with Default Response:</Label>
-                    <Input
-                      type="number"
-                      min={1}
-                      max={10}
-                      value={defaultResponse}
-                      onChange={(e) => setDefaultResponse(Number(e.target.value))}
-                      className="w-20"
-                    />
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => fillWithDefaultResponses(defaultResponse)}
-                  >
-                    Fill All
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={fillWithRandomResponses}
-                  >
-                    Fill Random
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Current Results Card */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Current Results</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-4">
-                  {sortedPoints.map(({ type, points, percentage }) => (
-                    <div key={type} className="space-y-1.5">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-sm font-medium">{type}</span>
-                        <div className="flex items-center justify-between text-sm">
-                          <Progress value={percentage} className="flex-1 h-2" />
-                          <div className="flex items-center gap-2 ml-2 min-w-[100px] justify-end">
-                            <span>{points.toFixed(1)}</span>
-                            <span className="text-muted-foreground">({percentage.toFixed(1)}%)</span>
+                        <div className="space-y-2">
+                          <Label>Secondary Points</Label>
+                          <Input
+                            type="text"
+                            value={inputValues.SECONDARY_IDEAL_POINTS}
+                            onChange={(e) =>
+                              setInputValues((prev) => ({
+                                ...prev,
+                                SECONDARY_IDEAL_POINTS: e.target.value,
+                              }))
+                            }
+                            onBlur={(e) =>
+                              handleScoringConfigChange(
+                                "SECONDARY_IDEAL_POINTS",
+                                e.target.value,
+                              )
+                            }
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Point Falloff</Label>
+                          <Input
+                            type="text"
+                            value={inputValues.POINT_FALLOFF}
+                            onChange={(e) =>
+                              setInputValues((prev) => ({
+                                ...prev,
+                                POINT_FALLOFF: e.target.value,
+                              }))
+                            }
+                            onBlur={(e) =>
+                              handleScoringConfigChange(
+                                "POINT_FALLOFF",
+                                e.target.value,
+                              )
+                            }
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Minimum Points</Label>
+                          <div className="flex items-center gap-4">
+                            <Input
+                              type="text"
+                              value={inputValues.MIN_POINTS}
+                              disabled={
+                                (
+                                  engine as ArtistTypeAnalysisEngine
+                                ).getScoringConfig().MIN_POINTS === null
+                              }
+                              onChange={(e) =>
+                                setInputValues((prev) => ({
+                                  ...prev,
+                                  MIN_POINTS: e.target.value,
+                                }))
+                              }
+                              onBlur={(e) =>
+                                handleScoringConfigChange(
+                                  "MIN_POINTS",
+                                  e.target.value,
+                                )
+                              }
+                            />
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                checked={
+                                  (
+                                    engine as ArtistTypeAnalysisEngine
+                                  ).getScoringConfig().MIN_POINTS !== null
+                                }
+                                onCheckedChange={(checked) => {
+                                  handleScoringConfigChange(
+                                    "MIN_POINTS",
+                                    checked ? "0" : null,
+                                  );
+                                }}
+                              />
+                              <Label>Enable</Label>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+
+                    {/* Existing Analytics Content */}
+                    <div className="grid grid-cols-3 gap-4">
+                      {/* Quiz Time */}
+                      <div className="space-y-1">
+                        <Label>Total Quiz Time</Label>
+                        <div className="flex items-center gap-2 text-lg">
+                          <Clock className="h-4 w-4" />
+                          <span>
+                            {formatTime(
+                              analytics.startTime
+                                ? Date.now() - analytics.startTime
+                                : 0,
+                            )}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Current Question Time */}
+                      <div className="space-y-1">
+                        <Label>Current Question Time</Label>
+                        <div className="text-lg">{formatTime(currentTime)}</div>
+                      </div>
+
+                      {/* Answer Changes */}
+                      <div className="space-y-1">
+                        <Label>Answer Changes</Label>
+                        <div className="text-lg">
+                          {analytics.questionAnalytics.find(
+                            (qa) => qa.questionId === currentQuestion?.id,
+                          )?.answerChanges || 0}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Default Response Fill */}
+                    <div className="flex items-center gap-4 pt-2">
+                      <div className="flex items-center gap-2">
+                        <Label>Fill with Default Response:</Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={10}
+                          value={defaultResponse}
+                          onChange={(e) =>
+                            setDefaultResponse(Number(e.target.value))
+                          }
+                          className="w-20"
+                        />
+                      </div>
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          fillWithDefaultResponses(defaultResponse)
+                        }
+                      >
+                        Fill All
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={fillWithRandomResponses}
+                      >
+                        Fill Random
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Current Results Card */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Current Results</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-4">
+                      {sortedPoints.map(({ type, points, percentage }) => (
+                        <div key={type} className="space-y-1.5">
+                          <div className="flex flex-col gap-1">
+                            <span className="text-sm font-medium">{type}</span>
+                            <div className="flex items-center justify-between text-sm">
+                              <Progress
+                                value={percentage}
+                                className="flex-1 h-2"
+                              />
+                              <div className="flex items-center gap-2 ml-2 min-w-[100px] justify-end">
+                                <span>{points.toFixed(1)}</span>
+                                <span className="text-muted-foreground">
+                                  ({percentage.toFixed(1)}%)
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             )}
           </div>
         )}
       </div>
     </div>
-  )
-} 
+  );
+}

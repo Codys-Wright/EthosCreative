@@ -10,7 +10,11 @@ import {
   openAPI,
   oidcProvider,
 } from "better-auth/plugins";
-import { reactInvitationEmail, reactResetPasswordEmail, resend } from "@/features/email";
+import {
+  reactInvitationEmail,
+  reactResetPasswordEmail,
+  resend,
+} from "@/features/email";
 import { nextCookies } from "better-auth/next-js";
 import { passkey } from "better-auth/plugins/passkey";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -34,7 +38,7 @@ export const auth = betterAuth({
         to: to || user.email,
         subject: "Verify your email address",
         html: `<a href="${url}">Verify your email address</a>`,
-      })
+      });
       console.log(res, user.email);
     },
   },
