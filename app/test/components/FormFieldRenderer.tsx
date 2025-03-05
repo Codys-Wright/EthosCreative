@@ -7,7 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -29,6 +33,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { ImageUploader } from "@/components/uploads/ImageUploader";
+import { ArtistTypeContentSelector } from "@/components/forms/ArtistTypeContentSelector";
 
 // Define custom field types beyond the basic HTML input types
 export type FormFieldType =
@@ -42,6 +48,8 @@ export type FormFieldType =
   | "select"
   | "checkbox"
   | "radio"
+  | "image-url" // For image uploader
+  | "blog-selector" // For blog content selector
   | "tags"; // For tag input
 
 export interface FormFieldRendererProps<TFieldValues extends FieldValues> {
@@ -81,16 +89,25 @@ export function FormFieldRenderer<TFieldValues extends FieldValues>({
             <FormLabel>
               {label}
               {isRequired && <span className="text-red-500 ml-1">*</span>}
-              {isReadOnly && <span className="text-gray-500 text-xs ml-2">(Read-only)</span>}
+              {isReadOnly && (
+                <span className="text-gray-500 text-xs ml-2">(Read-only)</span>
+              )}
             </FormLabel>
           )}
-          
+
           <FormControl>
             <div>
-              {renderFieldByType(fieldType, field, placeholder || "", isReadOnly || isDisabled, options, isRequired)}
+              {renderFieldByType(
+                fieldType,
+                field,
+                placeholder || "",
+                isReadOnly || isDisabled,
+                options,
+                isRequired,
+              )}
             </div>
           </FormControl>
-          
+
           {description && <FormDescription>{description}</FormDescription>}
           <FormMessage />
         </FormItem>
@@ -108,7 +125,7 @@ function renderFieldByType(
   placeholder: string,
   isReadonly: boolean,
   options: { label: string; value: string }[] = [],
-  isRequired: boolean = false
+  isRequired: boolean = false,
 ) {
   switch (fieldType) {
     case "textarea":
@@ -118,28 +135,49 @@ function renderFieldByType(
           placeholder={placeholder}
           readOnly={isReadonly}
           disabled={isReadonly}
-          value={field.value === null || field.value === undefined ? "" : field.value}
+          value={
+            field.value === null || field.value === undefined ? "" : field.value
+          }
           className={`min-h-[80px] ${isReadonly ? "bg-muted cursor-not-allowed opacity-70" : ""}`}
         />
       );
-      
+
     case "number":
       return (
         <Input
           {...field}
           type="number"
-          value={field.value === null || field.value === undefined ? "" : field.value}
+          value={
+            field.value === null || field.value === undefined ? "" : field.value
+          }
           placeholder={placeholder}
           readOnly={isReadonly}
           disabled={isReadonly}
           className={isReadonly ? "bg-muted cursor-not-allowed opacity-70" : ""}
           onChange={(e) => {
-            const value = e.target.value === "" ? undefined : Number(e.target.value);
+            // Ensure we convert empty strings to undefined and other values to numbers
+            const rawValue = e.target.value;
+            let value: number | undefined = undefined;
+
+            // Only parse if there's a value to parse
+            if (rawValue !== "") {
+              // Convert to number and validate - use parseFloat for decimals
+              value = Number(rawValue);
+
+              // Fallback to undefined if not a valid number
+              if (isNaN(value)) {
+                value = undefined;
+              }
+            }
+
+            console.log(
+              `Number field changed: from=${rawValue}, to=${value}, type=${typeof value}`,
+            );
             field.onChange(value);
           }}
         />
       );
-      
+
     case "checkbox":
       return (
         <div className="flex items-center space-x-2">
@@ -150,7 +188,7 @@ function renderFieldByType(
             disabled={isReadonly}
           />
           {placeholder && (
-            <label 
+            <label
               htmlFor={field.name}
               className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
@@ -159,7 +197,7 @@ function renderFieldByType(
           )}
         </div>
       );
-      
+
     case "select":
       return (
         <Select
@@ -167,7 +205,11 @@ function renderFieldByType(
           onValueChange={field.onChange}
           disabled={isReadonly}
         >
-          <SelectTrigger className={isReadonly ? "bg-muted cursor-not-allowed opacity-70" : ""}>
+          <SelectTrigger
+            className={
+              isReadonly ? "bg-muted cursor-not-allowed opacity-70" : ""
+            }
+          >
             <SelectValue placeholder={placeholder || "Select an option"} />
           </SelectTrigger>
           <SelectContent>
@@ -180,7 +222,7 @@ function renderFieldByType(
           </SelectContent>
         </Select>
       );
-      
+
     case "radio":
       return (
         <RadioGroup
@@ -191,13 +233,18 @@ function renderFieldByType(
         >
           {options.map((option) => (
             <div key={option.value} className="flex items-center space-x-2">
-              <RadioGroupItem value={option.value} id={`${field.name}-${option.value}`} />
-              <label htmlFor={`${field.name}-${option.value}`}>{option.label}</label>
+              <RadioGroupItem
+                value={option.value}
+                id={`${field.name}-${option.value}`}
+              />
+              <label htmlFor={`${field.name}-${option.value}`}>
+                {option.label}
+              </label>
             </div>
           ))}
         </RadioGroup>
       );
-      
+
     case "date":
       return (
         <Input
@@ -207,12 +254,14 @@ function renderFieldByType(
           readOnly={isReadonly}
           disabled={isReadonly}
           className={isReadonly ? "bg-muted cursor-not-allowed opacity-70" : ""}
-          value={(field.value as any) instanceof Date 
-            ? (field.value as Date).toISOString().split('T')[0] 
-            : (field.value || "")}
+          value={
+            (field.value as any) instanceof Date
+              ? (field.value as Date).toISOString().split("T")[0]
+              : field.value || ""
+          }
         />
       );
-      
+
     case "calendar":
       return (
         <Popover>
@@ -222,39 +271,41 @@ function renderFieldByType(
               className={cn(
                 "w-full justify-start text-left font-normal",
                 !field.value && "text-muted-foreground",
-                isReadonly && "bg-muted cursor-not-allowed opacity-70"
+                isReadonly && "bg-muted cursor-not-allowed opacity-70",
               )}
               disabled={isReadonly}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {field.value ? (
-                (field.value as any) instanceof Date 
+              {field.value
+                ? (field.value as any) instanceof Date
                   ? format(field.value as Date, "PPP")
-                  : typeof field.value === 'string' && !isNaN(new Date(field.value).getTime())
+                  : typeof field.value === "string" &&
+                      !isNaN(new Date(field.value).getTime())
                     ? format(new Date(field.value), "PPP")
                     : placeholder || "Pick a date"
-              ) : (
-                placeholder || "Pick a date"
-              )}
+                : placeholder || "Pick a date"}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="single"
-              selected={(field.value as any) instanceof Date 
-                ? field.value as Date
-                : typeof field.value === 'string' && !isNaN(new Date(field.value).getTime())
-                  ? new Date(field.value)
-                  : undefined}
+              selected={
+                (field.value as any) instanceof Date
+                  ? (field.value as Date)
+                  : typeof field.value === "string" &&
+                      !isNaN(new Date(field.value).getTime())
+                    ? new Date(field.value)
+                    : undefined
+              }
               onSelect={(date: Date | undefined) => field.onChange(date)}
               disabled={isReadonly}
               initialFocus
             />
             {field.value && (
               <div className="p-3 border-t border-border">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => field.onChange(null)}
                   className="w-full"
                 >
@@ -265,7 +316,7 @@ function renderFieldByType(
           </PopoverContent>
         </Popover>
       );
-      
+
     case "tags":
       return (
         <TagsInput
@@ -277,40 +328,63 @@ function renderFieldByType(
           className={isReadonly ? "bg-muted cursor-not-allowed opacity-70" : ""}
         />
       );
-      
+
     case "email":
       return (
         <Input
           {...field}
           type="email"
-          value={field.value === null || field.value === undefined ? "" : field.value}
+          value={
+            field.value === null || field.value === undefined ? "" : field.value
+          }
           placeholder={placeholder}
           readOnly={isReadonly}
           disabled={isReadonly}
           className={isReadonly ? "bg-muted cursor-not-allowed opacity-70" : ""}
         />
       );
-      
+
     case "password":
       return (
         <Input
           {...field}
           type="password"
-          value={field.value === null || field.value === undefined ? "" : field.value}
+          value={
+            field.value === null || field.value === undefined ? "" : field.value
+          }
           placeholder={placeholder}
           readOnly={isReadonly}
           disabled={isReadonly}
           className={isReadonly ? "bg-muted cursor-not-allowed opacity-70" : ""}
         />
       );
-      
+
+    case "image-url":
+      return (
+        <ImageUploader
+          value={field.value}
+          onChange={field.onChange}
+          className={isReadonly ? "pointer-events-none opacity-70" : ""}
+        />
+      );
+
+    case "blog-selector":
+      return (
+        <ArtistTypeContentSelector
+          value={field.value}
+          onChange={field.onChange}
+        />
+      );
+
     // Default to text input
     default:
       return (
         <Input
           {...field}
           type="text"
-          value={field.value === null || field.value === undefined ? "" : field.value}
+          value={
+            field.value === null || field.value === undefined ? "" : field.value
+          }
           placeholder={placeholder}
           readOnly={isReadonly}
           disabled={isReadonly}
@@ -318,4 +392,4 @@ function renderFieldByType(
         />
       );
   }
-} 
+}

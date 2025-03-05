@@ -24,7 +24,7 @@ export default async function DashboardPage() {
       throw redirect("/sign-in");
     });
   return (
-    <div className="w-full">
+    <div className="w-full p-4">
       <div className="flex gap-4 flex-col">
         <AccountSwitcher
           sessions={JSON.parse(JSON.stringify(deviceSessions))}

@@ -7,12 +7,25 @@ import {
   IconChevronUp,
   IconPalette,
 } from "@tabler/icons-react";
-import { ArtistTypeData } from "../data/ArtistTypeData";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-export function ArtistTypeFolddown() {
+// Define interface locally
+interface LandingPageArtistType {
+  id: string;
+  name: string;
+  shortDescription: string;
+  image: string;
+  order: number;
+}
+
+export function ArtistTypeFolddown({
+  artistTypes = [],
+}: {
+  artistTypes: LandingPageArtistType[];
+}) {
   const [open, setOpen] = useState<string | null>(null);
+  const hasData = artistTypes && artistTypes.length > 0;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-24">
@@ -46,15 +59,22 @@ export function ArtistTypeFolddown() {
         </div>
 
         <div className="min-h-[400px] divide-y divide-border">
-          {ArtistTypeData.map((artistType, index) => (
-            <ArtistTypeItem
-              key={index}
-              name={artistType.name}
-              shortDescription={artistType.shortDescription}
-              open={open}
-              setOpen={setOpen}
-            />
-          ))}
+          {hasData ? (
+            artistTypes.map((artistType, index) => (
+              <ArtistTypeItem
+                key={artistType.id}
+                id={artistType.id}
+                name={artistType.name}
+                shortDescription={artistType.shortDescription}
+                open={open}
+                setOpen={setOpen}
+              />
+            ))
+          ) : (
+            <div className="py-8 text-center text-muted-foreground">
+              No artist types available
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -62,17 +82,19 @@ export function ArtistTypeFolddown() {
 }
 
 const ArtistTypeItem = ({
+  id,
   name,
   shortDescription,
   setOpen,
   open,
 }: {
+  id: string;
   name: string;
   shortDescription: string;
   open: string | null;
   setOpen: (open: string | null) => void;
 }) => {
-  const isOpen = open === name;
+  const isOpen = open === id;
 
   return (
     <div
@@ -81,7 +103,7 @@ const ArtistTypeItem = ({
         if (isOpen) {
           setOpen(null);
         } else {
-          setOpen(name);
+          setOpen(id);
         }
       }}
     >

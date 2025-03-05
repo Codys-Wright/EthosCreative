@@ -182,18 +182,25 @@ const tsVector = customType<{ data: string }>({
 });
 
 export const example = pgTable(
-  "example", 
+  "example",
   {
-    id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+    id: text("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
     title: text("title"),
     subtitle: text("subtitle"),
     content: text("content").notNull(),
-    createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
     deletedAt: timestamp("deleted_at"),
     // Add a generated column for full-text search
     contentSearch: tsVector("content_search").generatedAlwaysAs(
-      (): SQL => sql`to_tsvector('english', COALESCE(${example.title}, '') || ' ' || COALESCE(${example.subtitle}, '') || ' ' || ${example.content})`
+      (): SQL =>
+        sql`to_tsvector('english', COALESCE(${example.title}, '') || ' ' || COALESCE(${example.subtitle}, '') || ' ' || ${example.content})`,
     ),
     // Add generated display name that combines title and subtitle
     displayName: text("display_name").generatedAlwaysAs(
@@ -201,13 +208,15 @@ export const example = pgTable(
                       THEN ${example.title} || ' - ' || ${example.subtitle} 
                       WHEN ${example.title} IS NOT NULL THEN ${example.title} 
                       WHEN ${example.subtitle} IS NOT NULL THEN ${example.subtitle} 
-                      ELSE 'Untitled Example' END`
+                      ELSE 'Untitled Example' END`,
     ),
   },
   (table) => ({
     // Add a GIN index for efficient full-text search
-    contentSearchIdx: index("idx_example_content_search").on(table.contentSearch),
-  })
+    contentSearchIdx: index("idx_example_content_search").on(
+      table.contentSearch,
+    ),
+  }),
 );
 
 // Artist Type table
@@ -219,11 +228,13 @@ export const artistType = pgTable(
       .notNull()
       .default(sql`gen_random_uuid()`),
     title: text("title").notNull(),
+    order: integer("order"),
     subtitle: text("subtitle"),
     elevatorPitch: text("elevator_pitch"),
     description: text("description"),
     blog: jsonb("blog"),
     tags: jsonb("tags").$type<string[]>(),
+    imageUrl: text("image_url"),
     icon: text("icon"),
     metadata: jsonb("metadata"),
     notes: text("notes"),
@@ -233,7 +244,8 @@ export const artistType = pgTable(
     deletedAt: timestamp("deleted_at"),
     // Add a generated column for full-text search
     contentSearch: tsVector("content_search").generatedAlwaysAs(
-      (): SQL => sql`to_tsvector('english', COALESCE(${artistType.title}, '') || ' ' || COALESCE(${artistType.subtitle}, '') || ' ' || COALESCE(${artistType.description}, '') || ' ' || COALESCE(${artistType.elevatorPitch}, ''))`
+      (): SQL =>
+        sql`to_tsvector('english', COALESCE(${artistType.title}, '') || ' ' || COALESCE(${artistType.subtitle}, '') || ' ' || COALESCE(${artistType.description}, '') || ' ' || COALESCE(${artistType.elevatorPitch}, '') || ' ' || COALESCE(${artistType.imageUrl}, ''))`,
     ),
     // Add generated display name
     displayName: text("display_name").generatedAlwaysAs(
@@ -241,13 +253,15 @@ export const artistType = pgTable(
                       THEN ${artistType.title} || ' - ' || ${artistType.subtitle} 
                       WHEN ${artistType.title} IS NOT NULL THEN ${artistType.title} 
                       WHEN ${artistType.subtitle} IS NOT NULL THEN ${artistType.subtitle} 
-                      ELSE 'Untitled Artist Type' END`
+                      ELSE 'Untitled Artist Type' END`,
     ),
   },
   (table) => ({
     // Add a GIN index for efficient full-text search
-    contentSearchIdx: index("idx_artist_type_content_search").on(table.contentSearch),
-  })
+    contentSearchIdx: index("idx_artist_type_content_search").on(
+      table.contentSearch,
+    ),
+  }),
 );
 
 // Export combined schema

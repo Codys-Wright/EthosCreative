@@ -1,49 +1,67 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
+/**
+ * Next.js configuration with Turbopack and Sentry compatibility
+ *
+ * This solves the warning: "Webpack is configured while Turbopack is not"
+ * by conditionally applying Sentry only in production builds and
+ * using a clean configuration for Turbopack in development.
+ */
+
+// Base configuration used by both Webpack and Turbopack
+const baseConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-
   typescript: {
     ignoreBuildErrors: true,
-  } /* config options here */,
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "x4ml1657p3.ufs.sh",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "placehold.co",
+        pathname: "/**",
+      },
+      // Add other patterns as needed
+    ],
+    domains: ["localhost"],
+    unoptimized: true, // Disable image optimization to avoid issues with external domains
+  },
 };
 
-export default withSentryConfig(nextConfig, {
-  // For all available options, see:
-  // https://www.npmjs.com/package/@sentry/webpack-plugin#options
+// Development-only configuration (will use Turbopack)
+const devConfig: NextConfig = {
+  ...baseConfig,
+  // Empty webpack config to avoid conflicts with Turbopack
+  webpack: undefined,
+};
 
+// Production configuration with Sentry integration
+const prodConfig = withSentryConfig(baseConfig, {
   org: "fasttrackaudio",
   project: "my-artist-type",
-
-  // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
-
-  // For all available options, see:
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
-
-  // Upload a larger set of source maps for prettier stack traces (increases build time)
   widenClientFileUpload: true,
-
-  // Automatically annotate React components to show their full name in breadcrumbs and session replay
   reactComponentAnnotation: {
     enabled: true,
   },
-
-  // Uncomment to route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
-  // This can increase your server load as well as your hosting bill.
-  // Note: Check that the configured route will not match with your Next.js middleware, otherwise reporting of client-
-  // side errors will fail.
-  // tunnelRoute: "/monitoring",
-
-  // Automatically tree-shake Sentry logger statements to reduce bundle size
   disableLogger: true,
-
-  // Enables automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)
-  // See the following for more information:
-  // https://docs.sentry.io/product/crons/
-  // https://vercel.com/docs/cron-jobs
   automaticVercelMonitors: true,
 });
+
+// Use different configs based on environment
+const config = process.env.NODE_ENV === "development" ? devConfig : prodConfig;
+
+export default config;

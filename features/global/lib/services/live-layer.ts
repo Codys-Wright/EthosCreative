@@ -9,6 +9,7 @@ export const LiveLayer = Layer.mergeAll(
   NetworkMonitor.Default,
   ExampleService.Default,
   ArtistTypeService.Default,
+
   SpansExportLive,
 ).pipe(Layer.provide(Logger.pretty));
 

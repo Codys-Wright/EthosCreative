@@ -23,14 +23,16 @@ export namespace ArtistTypeHooks {
   };
 
   // Create a typed query key creator that accepts variables
-  export const artistTypeQueryKey = createQueryKey<"artistType", ArtistTypeVars>(
+  export const artistTypeQueryKey = createQueryKey<
     "artistType",
-  );
+    ArtistTypeVars
+  >("artistType");
 
   // Create a single data helper for managing all example cache data
-  export const artistTypeData = createQueryDataHelpers<ArtistTypeType[], ArtistTypeVars>(
-    artistTypeQueryKey,
-  );
+  export const artistTypeData = createQueryDataHelpers<
+    ArtistTypeType[],
+    ArtistTypeVars
+  >(artistTypeQueryKey);
 
   export const useGetAll = () => {
     return useEffectQuery({
@@ -73,7 +75,7 @@ export namespace ArtistTypeHooks {
 
             toast.error("Failed to load artist type", {
               description: mappedError.message,
-            id: `get-artist-type-${id}-error`,
+              id: `get-artist-type-${id}-error`,
             });
 
             return mappedError;
@@ -90,7 +92,13 @@ export namespace ArtistTypeHooks {
   export const useUpdate = () => {
     return useEffectMutation({
       mutationKey: ["updateArtistType"],
-      mutationFn: ({ id, data }: { id: string; data: Partial<NewArtistTypeType> }) => {
+      mutationFn: ({
+        id,
+        data,
+      }: {
+        id: string;
+        data: Partial<NewArtistTypeType>;
+      }) => {
         // Apply optimistic updates directly
         const timestamp = new Date().getTime();
 
@@ -125,7 +133,7 @@ export namespace ArtistTypeHooks {
             E.sync(() => {
               // Update the individual cache with server response
               if (updatedArtistType) {
-                    artistTypeData.setData({ id }, () => updatedArtistType);
+                artistTypeData.setData({ id }, () => updatedArtistType);
               }
 
               // Update the list cache with server response
@@ -135,7 +143,8 @@ export namespace ArtistTypeHooks {
                   (artistType) => String(artistType.id) === String(id),
                 );
                 if (artistTypeIndex !== -1 && updatedArtistType) {
-                  artistTypeList[artistTypeIndex] = updatedArtistType as ArtistTypeType;
+                  artistTypeList[artistTypeIndex] =
+                    updatedArtistType as ArtistTypeType;
                 }
               });
 
@@ -180,9 +189,9 @@ export namespace ArtistTypeHooks {
         const optimisticArtistType: ArtistTypeType = {
           ...input,
           id: tempId as any, // Cast to satisfy the type system
-          createdAt: timestamp,
-          updatedAt: timestamp,
-          deletedAt: null,
+          createdAt: timestamp.toISOString(),
+          updatedAt: timestamp.toISOString(),
+          deletedAt: undefined,
         };
 
         // Update individual cache with optimistic data
@@ -234,8 +243,9 @@ export namespace ArtistTypeHooks {
 
                 // Show success toast
                 toast.success("Example created", {
-                  description: "Your new artist type has been created successfully",
-                id: `create-artist-type-${newId}-success`,
+                  description:
+                    "Your new artist type has been created successfully",
+                  id: `create-artist-type-${newId}-success`,
                 });
               }
             }),
@@ -260,7 +270,7 @@ export namespace ArtistTypeHooks {
               description: String(
                 error.message || "An unexpected error occurred",
               ),
-                id: `create-artist-type-error`,
+              id: `create-artist-type-error`,
             });
 
             return E.fail(error);
@@ -273,7 +283,7 @@ export namespace ArtistTypeHooks {
   export const useDelete = () => {
     // Create the undo mutation that will be used internally
     const undoDeleteMutation = useUndoDelete();
-    
+
     return useEffectMutation({
       mutationKey: ["deleteExample"],
       mutationFn: (id: string) => {
@@ -344,27 +354,28 @@ export namespace ArtistTypeHooks {
       mutationKey: ["undoDeleteExample"],
       mutationFn: (id: string) => {
         return ArtistTypeService.undoDelete(id).pipe(
-          E.tap((response) => 
+          E.tap((response) =>
             E.sync(() => {
               artistTypeData.invalidateAllQueries();
-              
+
               toast.success("Artist type restored", {
                 description: "The artist type has been successfully restored",
                 id: `restore-artist-type-${id}-success`,
               });
-            })
+            }),
           ),
           E.catchAll((error) => {
             toast.error("Failed to restore artist type", {
-              description: String(error.message || "An unexpected error occurred"),
+              description: String(
+                error.message || "An unexpected error occurred",
+              ),
               id: `restore-artist-type-${id}-error`,
             });
-            
+
             return E.fail(error);
-          })
+          }),
         );
-      }
+      },
     });
   };
-
 }

@@ -1,0 +1,3 @@
+ALTER TABLE "artist_type" drop column "content_search";--> statement-breakpoint
+ALTER TABLE "artist_type" ADD COLUMN "content_search" "tsvector" GENERATED ALWAYS AS (to_tsvector('english', COALESCE("artist_type"."title", '') || ' ' || COALESCE("artist_type"."subtitle", '') || ' ' || COALESCE("artist_type"."description", '') || ' ' || COALESCE("artist_type"."elevator_pitch", '') || ' ' || COALESCE("artist_type"."image_url", ''))) STORED;--> statement-breakpoint
+ALTER TABLE "artist_type" ADD COLUMN "image_url" text;

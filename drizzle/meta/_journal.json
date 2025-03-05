@@ -78,6 +78,20 @@
       "when": 1740908185901,
       "tag": "0010_daffy_solo",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1741116649968,
+      "tag": "0011_steady_vargas",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1741117793502,
+      "tag": "0012_careless_mentor",
+      "breakpoints": true
     }
   ]
 }
