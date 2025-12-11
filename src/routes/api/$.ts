@@ -9,7 +9,8 @@ import { DomainRpc } from "@/api/domain-rpc";
 import { DomainApi } from "@/api/domain-api";
 import { TodosRpcLive } from "./-lib/todos-rpc-live";
 import { TodosApiLive } from "./-lib/todos-api-live";
-import { memoMap } from "./-lib/server-runtime";
+import * as ManagedRuntime from "effect/ManagedRuntime";
+import { TodosService } from "./-lib/todos-service";
 import * as RpcMiddleware from "@effect/rpc/RpcMiddleware";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
@@ -65,6 +66,8 @@ const AllRoutes = Layer.mergeAll(RpcRouter, HttpApiRouter, HealthRoute).pipe(
   Layer.provide(Logger.pretty),
 );
 
+const memoMap = Effect.runSync(Layer.makeMemoMap);
+
 const globalHmr = globalThis as unknown as {
   __EFFECT_DISPOSE__?: () => Promise<void>;
 };
@@ -75,8 +78,13 @@ if (globalHmr.__EFFECT_DISPOSE__) {
 
 const { handler, dispose } = HttpLayerRouter.toWebHandler(AllRoutes, { memoMap });
 const effectHandler = ({ request }: { request: Request }) => handler(request);
+
+// ManagedRuntime for use in loaders/server functions
+export const serverRuntime = ManagedRuntime.make(TodosService.Default, memoMap);
+
 globalHmr.__EFFECT_DISPOSE__ = async () => {
   await dispose();
+  await serverRuntime.dispose();
 };
 
 export const Route = createFileRoute("/api/$")({
