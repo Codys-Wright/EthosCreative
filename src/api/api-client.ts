@@ -1,6 +1,6 @@
+import * as FetchHttpClient from "@effect/platform/FetchHttpClient";
 import * as HttpApiClient from "@effect/platform/HttpApiClient";
 import * as HttpClient from "@effect/platform/HttpClient";
-import * as FetchHttpClient from "@effect/platform/FetchHttpClient";
 import * as RpcClient from "@effect/rpc/RpcClient";
 import * as RpcSerialization from "@effect/rpc/RpcSerialization";
 import * as Effect from "effect/Effect";
@@ -8,8 +8,8 @@ import * as Layer from "effect/Layer";
 import { hasProperty } from "effect/Predicate";
 import * as Schedule from "effect/Schedule";
 import * as Stream from "effect/Stream";
-import { DomainRpc } from "./domain-rpc";
 import { DomainApi } from "./domain-api";
+import { DomainRpc } from "./domain-rpc";
 
 export const addRpcErrorLogging = <Client>(client: Client): Client => {
   const isStream = (

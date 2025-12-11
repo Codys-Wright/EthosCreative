@@ -9,6 +9,7 @@ import { DomainRpc } from "@/api/domain-rpc";
 import { DomainApi } from "@/api/domain-api";
 import { TodosRpcLive } from "./-lib/todos-rpc-live";
 import { TodosApiLive } from "./-lib/todos-api-live";
+import { memoMap } from "./-lib/server-runtime";
 import * as RpcMiddleware from "@effect/rpc/RpcMiddleware";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
@@ -72,7 +73,7 @@ if (globalHmr.__EFFECT_DISPOSE__) {
   globalHmr.__EFFECT_DISPOSE__ = undefined;
 }
 
-const { handler, dispose } = HttpLayerRouter.toWebHandler(AllRoutes);
+const { handler, dispose } = HttpLayerRouter.toWebHandler(AllRoutes, { memoMap });
 const effectHandler = ({ request }: { request: Request }) => handler(request);
 globalHmr.__EFFECT_DISPOSE__ = async () => {
   await dispose();

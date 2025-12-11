@@ -12,12 +12,28 @@ import {
   useAtomValue,
   useAtomRefresh,
 } from "@effect-atom/atom-react";
+import { HydrationBoundary } from "@effect-atom/atom-react/ReactHydration";
 import { createFileRoute } from "@tanstack/react-router";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
+import * as Schema from "effect/Schema";
 import { useState } from "react";
+import { serverRuntime } from "./api/-lib/server-runtime";
+import { TodosService } from "./api/-lib/todos-service";
+import { dehydrate, serializable } from "@/lib/atom-utils";
+import * as RpcClientError from "@effect/rpc/RpcClientError";
 
-export const Route = createFileRoute("/")({ component: App });
+const TodosSchema = Schema.Array(Todo);
+
+export const Route = createFileRoute("/")({
+  loader: async () => {
+    const todos = await serverRuntime.runPromiseExit(
+      Effect.flatMap(TodosService, (s) => s.list),
+    );
+    return dehydrate(todosAtom, Result.fromExit(todos));
+  },
+  component: AppWrapper,
+});
 
 class Api extends Effect.Service<Api>()("@app/index/Api", {
   dependencies: [ApiClient.Default],
@@ -36,12 +52,22 @@ class Api extends Effect.Service<Api>()("@app/index/Api", {
 
 const runtime = Atom.runtime(Api.Default);
 
-const todosAtom = runtime.atom(
-  Effect.gen(function* () {
-    const api = yield* Api;
-    return yield* api.list();
-  }),
-);
+const todosAtom = runtime
+  .atom(
+    Effect.gen(function* () {
+      const api = yield* Api;
+      return yield* api.list();
+    }),
+  )
+  .pipe(
+    serializable({
+      key: "@app/index/todos",
+      schema: Result.Schema({
+        success: TodosSchema,
+        error: RpcClientError.RpcClientError,
+      }),
+    }),
+  );
 
 const createTodoAtom = runtime.fn<CreateTodoInput>()(
   Effect.fnUntraced(function* (input, get) {
@@ -71,6 +97,16 @@ const deleteTodoAtom = runtime.fn<TodoId>()(
     get.refresh(todosAtom);
   }),
 );
+
+function AppWrapper() {
+  const dehydrated = Route.useLoaderData();
+
+  return (
+    <HydrationBoundary state={[dehydrated]}>
+      <App />
+    </HydrationBoundary>
+  );
+}
 
 function App() {
   return (
@@ -133,10 +169,14 @@ function TodoList() {
   return (
     <div>
       {Result.builder(result)
-        .onInitial(() => <p className="text-gray-500 dark:text-gray-400">Loading todos...</p>)
+        .onInitial(() => (
+          <p className="text-gray-500 dark:text-gray-400">Loading todos...</p>
+        ))
         .onSuccess((todos) =>
           todos.length === 0 ? (
-            <p className="text-gray-500 dark:text-gray-400">No todos yet. Add one above!</p>
+            <p className="text-gray-500 dark:text-gray-400">
+              No todos yet. Add one above!
+            </p>
           ) : (
             <ul className="space-y-2">
               {todos.map((todo) => (
@@ -250,7 +290,9 @@ function TodoItem({ todo }: { readonly todo: Todo }) {
           <>
             <span
               className={`flex-1 cursor-pointer ${
-                todo.completed ? "line-through text-gray-400 dark:text-gray-500" : "text-gray-900 dark:text-gray-100"
+                todo.completed
+                  ? "line-through text-gray-400 dark:text-gray-500"
+                  : "text-gray-900 dark:text-gray-100"
               }`}
               onDoubleClick={() => setIsEditing(true)}
             >
