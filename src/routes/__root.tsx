@@ -36,7 +36,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <RegistryProvider>{children}</RegistryProvider>
+        <RegistryProvider defaultIdleTTL={60_000}>{children}</RegistryProvider>
         <TanStackDevtools
           config={{
             position: "bottom-right",
