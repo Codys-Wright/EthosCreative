@@ -8,8 +8,8 @@ import * as Layer from "effect/Layer";
 import { hasProperty } from "effect/Predicate";
 import * as Schedule from "effect/Schedule";
 import * as Stream from "effect/Stream";
-import { DomainApi } from "./domain-api";
-import { DomainRpc } from "./domain-rpc";
+import { DomainApi } from "../domain/domain-api.js";
+import { DomainRpc } from "../domain/domain-rpc.js";
 
 export const addRpcErrorLogging = <Client>(client: Client): Client => {
   const isStream = (
@@ -89,3 +89,4 @@ export class ApiClient extends Effect.Service<ApiClient>()("ApiClient", {
     };
   }),
 }) {}
+

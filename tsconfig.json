@@ -24,12 +24,8 @@
       "@/*": ["./src/*"],
       "@shadcn": ["./src/features/ui/shadcn"],
       "@shadcn/*": ["./src/features/ui/shadcn/*"],
-      "@ui/shadcn/*": ["./src/features/ui/shadcn/*"],
-      "@/utils": ["./src/features/ui/shadcn/lib/utils"],
-      "@/ui": ["./src/features/ui/shadcn/components/ui"],
-      "@/components": ["./src/features/ui/shadcn/components"],
-      "@/lib": ["./src/features/ui/shadcn/lib"],
-      "@/hooks": ["./src/features/ui/shadcn/hooks"]
+      "@/components/ui": ["./src/features/ui/shadcn/components/ui"],
+      "@/components/ui/*": ["./src/features/ui/shadcn/components/ui/*"]
     },
 
     "plugins": [

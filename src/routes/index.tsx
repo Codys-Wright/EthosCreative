@@ -1,4 +1,4 @@
-import { dehydrate } from "@/lib/atom-utils";
+import { dehydrate } from "@/features/core/client";
 import { Result } from "@effect-atom/atom-react";
 import { HydrationBoundary } from "@effect-atom/atom-react/ReactHydration";
 import { createFileRoute } from "@tanstack/react-router";

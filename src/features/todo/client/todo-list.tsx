@@ -1,6 +1,7 @@
 import { Result, useAtomRefresh, useAtomValue } from "@effect-atom/atom-react";
 import { todosAtom } from "./todos-atoms.js";
 import { TodoItem } from "./todo-item.js";
+import { Alert, AlertDescription, AlertTitle, Button } from "@shadcn";
 
 export function TodoList() {
   const result = useAtomValue(todosAtom);
@@ -10,11 +11,11 @@ export function TodoList() {
     <div>
       {Result.builder(result)
         .onInitial(() => (
-          <p className="text-gray-500 dark:text-gray-400">Loading todos...</p>
+          <p className="text-muted-foreground">Loading todos...</p>
         ))
         .onSuccess((todos) =>
           todos.length === 0 ? (
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-muted-foreground">
               No todos yet. Add one above!
             </p>
           ) : (
@@ -26,17 +27,19 @@ export function TodoList() {
           ),
         )
         .onFailure(() => (
-          <div className="p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
-            <p className="text-red-700 dark:text-red-200 mb-2">
-              Something went wrong loading todos.
-            </p>
-            <button
-              onClick={refreshTodos}
-              className="px-3 py-1 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded hover:bg-red-200 dark:hover:bg-red-800"
-            >
-              Retry
-            </button>
-          </div>
+          <Alert variant="destructive">
+            <AlertTitle>Something went wrong loading todos.</AlertTitle>
+            <AlertDescription>
+              <Button
+                onClick={refreshTodos}
+                variant="outline"
+                size="sm"
+                className="mt-2"
+              >
+                Retry
+              </Button>
+            </AlertDescription>
+          </Alert>
         ))
         .render()}
     </div>

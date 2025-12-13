@@ -35,3 +35,4 @@ export const dehydrate = <A, I>(
   value: atom[Atom.SerializableTypeId].encode(value) as {},
   dehydratedAt: Date.now(),
 });
+

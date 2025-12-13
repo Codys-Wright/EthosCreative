@@ -5,9 +5,9 @@ import * as HttpLayerRouter from "@effect/platform/HttpLayerRouter";
 import * as RpcSerialization from "@effect/rpc/RpcSerialization";
 import * as RpcServer from "@effect/rpc/RpcServer";
 import * as Layer from "effect/Layer";
-import { DomainRpc } from "@/api/domain-rpc";
-import { DomainApi } from "@/api/domain-api";
+import { DomainRpc, DomainApi } from "@/features/core/domain";
 import { TodosRpcLive, TodosApiLive, TodosService } from "@/features/todo/server";
+import { EventStreamRpcLive } from "@/features/event-stream/server";
 import * as ManagedRuntime from "effect/ManagedRuntime";
 import * as RpcMiddleware from "@effect/rpc/RpcMiddleware";
 import * as Effect from "effect/Effect";
@@ -47,6 +47,7 @@ const RpcRouter = RpcServer.layerHttpRouter({
   disableFatalDefects: true,
 }).pipe(
   Layer.provide(TodosRpcLive),
+  Layer.provide(EventStreamRpcLive),
   Layer.provide(RpcLoggerLive),
   Layer.provide(RpcSerialization.layerNdjson),
 );

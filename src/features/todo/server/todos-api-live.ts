@@ -1,4 +1,4 @@
-import { DomainApi } from "@/api/domain-api";
+import { DomainApi } from "@/features/core/domain";
 import * as HttpApiBuilder from "@effect/platform/HttpApiBuilder";
 import * as Layer from "effect/Layer";
 import * as Effect from "effect/Effect";
