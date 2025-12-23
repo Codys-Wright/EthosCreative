@@ -1,4 +1,3 @@
-import * as HttpApi from "@effect/platform/HttpApi";
 import * as HttpApiGroup from "@effect/platform/HttpApiGroup";
 import * as HttpApiEndpoint from "@effect/platform/HttpApiEndpoint";
 import * as Schema from "effect/Schema";
@@ -36,4 +35,3 @@ export class TodosApiGroup extends HttpApiGroup.make("todos")
       .addSuccess(Schema.Void)
       .addError(TodoNotFound),
   ) {}
-

@@ -120,4 +120,3 @@ export const deleteTodoAtom = runtime.fn<TodoId>()(
     get.set(todosAtom, { _tag: "Delete", id });
   }),
 );
-
