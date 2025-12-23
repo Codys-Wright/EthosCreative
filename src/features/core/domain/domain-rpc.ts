@@ -8,7 +8,6 @@ import {
   TodoNotFound,
   UpdateTodoInput,
 } from "@/features/todo/domain/todo-schema";
-import { EventStreamRpc } from "@/features/event-stream/domain";
 
 export class TodosRpc extends RpcGroup.make(
   Rpc.make("list", {
@@ -39,5 +38,4 @@ export class TodosRpc extends RpcGroup.make(
   }),
 ).prefix("todos_") {}
 
-export class DomainRpc extends RpcGroup.make().merge(TodosRpc).merge(EventStreamRpc) {}
-
+export class DomainRpc extends RpcGroup.make().merge(TodosRpc) {}

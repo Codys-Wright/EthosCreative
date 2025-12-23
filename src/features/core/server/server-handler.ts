@@ -8,10 +8,11 @@ import * as RpcMiddleware from "@effect/rpc/RpcMiddleware";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
 import * as Logger from "effect/Logger";
+import * as Context from "effect/Context";
 import { DomainRpc, DomainApi } from "@/features/core/domain";
 import { TodosRpcLive, TodosApiLive } from "@/features/todo/server";
-import { EventStreamRpcLive } from "@/features/event-stream/server";
 import { CurrentUserRpcMiddlewareLive } from "@/features/auth/auth-middleware-live";
+import { BetterAuthRouter, Auth } from "@/features/auth";
 import { serverRuntime } from "./server-runtime.js";
 
 class RpcLogger extends RpcMiddleware.Tag<RpcLogger>()("RpcLogger", {
@@ -49,7 +50,6 @@ const RpcRouter = RpcServer.layerHttpRouter({
   disableFatalDefects: true,
 }).pipe(
   Layer.provide(TodosRpcLive),
-  Layer.provide(EventStreamRpcLive),
   Layer.provide(RpcLoggerLive),
   Layer.provide(CurrentUserRpcMiddlewareLive),
   Layer.provide(RpcSerialization.layerNdjson),
@@ -64,7 +64,8 @@ const HealthRoute = HttpLayerRouter.use((router) =>
   router.add("GET", "/api/health", HttpServerResponse.text("OK")),
 );
 
-const AllRoutes = Layer.mergeAll(RpcRouter, HttpApiRouter, HealthRoute).pipe(
+const AllRoutes = Layer.mergeAll(RpcRouter, HttpApiRouter, HealthRoute, BetterAuthRouter).pipe(
+  Layer.provide(Auth.Default),
   Layer.provide(Logger.pretty),
 );
 
@@ -86,4 +87,4 @@ globalHmr.__EFFECT_DISPOSE__ = async () => {
   await serverRuntime.dispose();
 };
 
-export const effectHandler = ({ request }: { request: Request }) => handler(request);
+export const effectHandler = ({ request }: { request: Request }) => handler(request, Context.empty() as any);
