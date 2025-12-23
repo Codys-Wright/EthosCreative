@@ -7,7 +7,7 @@ import {
 	TodoNotFound,
 	UpdateTodoInput,
 } from "../domain/todo-schema.js";
-import { TodoRepository } from "./todo.repository.js";
+import { TodoRepository } from "../database/todo.repository.js";
 
 /**
  * TodosService - Business logic layer for todos.
