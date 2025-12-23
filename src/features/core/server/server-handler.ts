@@ -20,6 +20,10 @@ import {
 	BetterAuthRouter,
 } from "@/features/auth/server";
 import { serverRuntime } from "./server-runtime.js";
+import * as NodeContext from "@effect/platform-node/NodeContext";
+import * as PgMigrator from "@effect/sql-pg/PgMigrator";
+import { PgLive } from "@/features/core/database/pg-live.js";
+import { fromFeatures } from "@/features/core/database/scripts/feature-migration-loader.js";
 
 class RpcLogger extends RpcMiddleware.Tag<RpcLogger>()("RpcLogger", {
   wrap: true,
@@ -108,6 +112,36 @@ const AllRoutes = Layer.mergeAll(
   //   allowedOrigins: ["http://localhost:3000"],
   //   credentials: true
   // }))
+);
+
+// Run auto-migration on startup
+await Effect.runPromise(
+  Effect.gen(function* () {
+    yield* Effect.log("[AutoMigration] Starting database migration check...");
+
+    const migrations = yield* PgMigrator.run({
+      loader: fromFeatures(),
+    });
+
+    if (migrations.length === 0) {
+      yield* Effect.log("[AutoMigration] No new migrations to apply.");
+    } else {
+      yield* Effect.log(
+        `[AutoMigration] Applied ${migrations.length} migration(s):`,
+      );
+      for (const [id, name] of migrations) {
+        yield* Effect.log(`  - ${id.toString().padStart(4, "0")}_${name}`);
+      }
+    }
+
+    yield* Effect.log("[AutoMigration] Database schema is up-to-date.");
+  }).pipe(
+    Effect.provide(Layer.merge(PgLive, NodeContext.layer)),
+    Effect.tapError((error) =>
+      Effect.logError(`[AutoMigration] Migration failed: ${error}`),
+    ),
+    Effect.orDie,
+  )
 );
 
 const memoMap = Effect.runSync(Layer.makeMemoMap);
