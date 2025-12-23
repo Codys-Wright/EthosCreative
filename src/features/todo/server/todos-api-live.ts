@@ -1,6 +1,7 @@
 import { DomainApi } from "@/features/core/domain";
 import { AuthContext } from "@/features/auth";
 import * as HttpApiBuilder from "@effect/platform/HttpApiBuilder";
+import * as HttpApiError from "@effect/platform/HttpApiError";
 import * as Layer from "effect/Layer";
 import * as Effect from "effect/Effect";
 import { TodosService } from "./todos-service";
@@ -18,7 +19,11 @@ export const TodosApiLive = HttpApiBuilder.group(
           );
           const todos = yield* TodosService;
           return yield* todos.list(currentUser.userId);
-        }),
+        }).pipe(
+          Effect.mapError((error) => new HttpApiError.InternalServerError({
+            message: error.message || "Database error"
+          })),
+        ),
       )
       .handle("getById", ({ path }) =>
         Effect.gen(function* () {

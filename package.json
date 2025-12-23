@@ -13,7 +13,7 @@
     "db:migrate": "dotenv -- tsx ./src/features/core/database/scripts/migrator.ts",
     "db:reset": "dotenv -- tsx ./src/features/core/database/scripts/reset-database.ts",
     "auth:migrate": "dotenv -- pnpx @better-auth/cli migrate --config ./src/features/auth/auth.ts",
-    "auth:generate": "dotenv -- pnpx @better-auth/cli generate --config ./src/features/auth/auth.ts"
+    "auth:generate": "dotenv -- pnpx @better-auth/cli generate --config ./src/features/auth/auth.ts --output ./src/features/auth/database/migrations/better-auth-schema.sql -y"
   },
   "dependencies": {
     "@better-auth/passkey": "^1.4.7",

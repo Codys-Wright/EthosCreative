@@ -77,11 +77,11 @@ export function Navigation() {
                 </Button>
               </>
             ) : (
-              <Link to="/login">
-                <Button variant="default" size="sm">
-                  Sign In
-                </Button>
-              </Link>
+               <Link to="/sign-in">
+                 <Button variant="default" size="sm">
+                   Sign In
+                 </Button>
+               </Link>
             )}
           </div>
         </div>

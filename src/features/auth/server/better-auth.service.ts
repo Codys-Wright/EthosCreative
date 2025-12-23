@@ -1,4 +1,5 @@
 import { betterAuth } from "better-auth";
+import type { BetterAuthOptions } from "better-auth";
 import { getMigrations } from "better-auth/db";
 import * as Effect from "effect/Effect";
 import { openAPI } from "better-auth/plugins";
@@ -7,24 +8,40 @@ import { BetterAuthDatabase } from "./better-auth.database.js";
 
 export type BetterAuthInstance = ReturnType<typeof betterAuth>;
 
+/**
+ * Creates Better Auth options.
+ * Exported so it can be reused in auth.ts for CLI tools.
+ */
+export const makeBetterAuthOptions = (params: {
+	baseURL: string;
+	secret: string;
+	clientOrigin: string;
+	db: unknown; // Kysely instance
+}): BetterAuthOptions => ({
+	baseURL: params.baseURL,
+	secret: params.secret,
+	emailAndPassword: {
+		enabled: true,
+	},
+	database: {
+		db: params.db,
+		type: "postgres" as const,
+		casing: "camel" as const,
+	},
+	plugins: [openAPI()],
+	trustedOrigins: [params.clientOrigin, params.baseURL],
+});
+
 const makeBetterAuth = Effect.gen(function* () {
 	const env = yield* BetterAuthConfig;
 	const kysely = yield* BetterAuthDatabase;
 
-	const options = {
+	const options = makeBetterAuthOptions({
 		baseURL: env.BETTER_AUTH_URL,
 		secret: getAuthSecret(env),
-		emailAndPassword: {
-			enabled: true,
-		},
-		database: {
-			db: kysely,
-			type: "postgres" as const,
-			casing: "camel" as const,
-		},
-		plugins: [openAPI()],
-		trustedOrigins: [env.CLIENT_ORIGIN, env.BETTER_AUTH_URL],
-	};
+		clientOrigin: env.CLIENT_ORIGIN,
+		db: kysely,
+	});
 
 	const { runMigrations } = yield* Effect.promise(() =>
 		getMigrations(options),
