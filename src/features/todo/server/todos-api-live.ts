@@ -1,5 +1,5 @@
 import { DomainApi } from "@/features/core/domain";
-import { Authentication } from "@/features/auth";
+import { AuthContext } from "@/features/auth";
 import * as HttpApiBuilder from "@effect/platform/HttpApiBuilder";
 import * as Layer from "effect/Layer";
 import * as Effect from "effect/Effect";
@@ -12,7 +12,7 @@ export const TodosApiLive = HttpApiBuilder.group(
     handlers
       .handle("list", () =>
         Effect.gen(function* () {
-          const currentUser = yield* Authentication;
+          const currentUser = yield* AuthContext;
           yield* Effect.log(
             `[HTTP API] Listing todos for user: ${currentUser.userId}`,
           );
@@ -22,7 +22,7 @@ export const TodosApiLive = HttpApiBuilder.group(
       )
       .handle("getById", ({ path }) =>
         Effect.gen(function* () {
-          const currentUser = yield* Authentication;
+          const currentUser = yield* AuthContext;
           yield* Effect.log(
             `[HTTP API] Getting todo ${path.id} for user: ${currentUser.userId}`,
           );
@@ -32,7 +32,7 @@ export const TodosApiLive = HttpApiBuilder.group(
       )
       .handle("create", ({ payload }) =>
         Effect.gen(function* () {
-          const currentUser = yield* Authentication;
+          const currentUser = yield* AuthContext;
           yield* Effect.log(
             `[HTTP API] Creating todo for user: ${currentUser.userId}`,
           );
@@ -42,7 +42,7 @@ export const TodosApiLive = HttpApiBuilder.group(
       )
       .handle("update", ({ path, payload }) =>
         Effect.gen(function* () {
-          const currentUser = yield* Authentication;
+          const currentUser = yield* AuthContext;
           yield* Effect.log(
             `[HTTP API] Updating todo ${path.id} for user: ${currentUser.userId}`,
           );
@@ -52,7 +52,7 @@ export const TodosApiLive = HttpApiBuilder.group(
       )
       .handle("remove", ({ path }) =>
         Effect.gen(function* () {
-          const currentUser = yield* Authentication;
+          const currentUser = yield* AuthContext;
           yield* Effect.log(
             `[HTTP API] Removing todo ${path.id} for user: ${currentUser.userId}`,
           );

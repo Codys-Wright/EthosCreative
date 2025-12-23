@@ -2,7 +2,7 @@ import * as Option from "effect/Option";
 import * as DateTime from "effect/DateTime";
 import * as Ref from "effect/Ref";
 import * as Effect from "effect/Effect";
-import type { UserId } from "@/features/auth/domain/user-id";
+import type { UserId } from "@/features/auth/domain/auth.user-id";
 import {
   CreateTodoInput,
   Todo,

@@ -1,24 +1,24 @@
 import * as HttpApiError from "@effect/platform/HttpApiError";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import type { UserId } from "../domain/user-id.js";
-import { AuthenticationRpcMiddleware } from "../policy.js";
-import { Auth } from "./service.js";
+import type { UserId } from "../domain/auth.user-id.js";
+import { RpcAuthenticationMiddleware } from "../auth.policy.js";
+import { BetterAuthService } from "./better-auth.service.js";
 
 /**
- * Live implementation of AuthenticationRpcMiddleware.
+ * Live implementation of RpcAuthenticationMiddleware.
  * For RPC calls, we attempt to get the session from Better Auth.
  * 
  * Note: RPC authentication in SSR context may require different handling
  * depending on whether RPC calls are server-side only or from the browser.
  * Currently this implementation attempts to validate with Better Auth.
  */
-export const AuthenticationRpcMiddlewareLive = Layer.effect(
-  AuthenticationRpcMiddleware,
+export const RpcAuthenticationMiddlewareLive = Layer.effect(
+  RpcAuthenticationMiddleware,
   Effect.gen(function* () {
-    const auth = yield* Auth;
+    const auth = yield* BetterAuthService;
 
-    return AuthenticationRpcMiddleware.of((options) =>
+    return RpcAuthenticationMiddleware.of((options) =>
       Effect.gen(function* () {
         // Get session from Better Auth using the actual request headers
         const session = yield* Effect.tryPromise({
@@ -30,7 +30,7 @@ export const AuthenticationRpcMiddlewareLive = Layer.effect(
           return yield* Effect.fail(new HttpApiError.Unauthorized());
         }
 
-        // Return Authentication context
+        // Return AuthContext
         return { userId: session.user.id as UserId };
       }),
     );

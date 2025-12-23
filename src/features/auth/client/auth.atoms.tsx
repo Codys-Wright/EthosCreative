@@ -5,7 +5,7 @@ import {
 	type SignInInput,
 	type SignUpInput,
 } from "../domain/index.js";
-import { authClient } from "./auth-client.js";
+import { authClient } from "./auth.client.js";
 
 /**
  * AuthApi - Effect Service wrapper around Better Auth client

@@ -1,6 +1,6 @@
 import * as Layer from "effect/Layer";
 import * as Effect from "effect/Effect";
-import { Authentication } from "@/features/auth";
+import { AuthContext } from "@/features/auth";
 import { TodosRpc } from "../domain/todo-rpc";
 import { TodosService } from "./todos-service";
 
@@ -11,7 +11,7 @@ export const TodosRpcLive = TodosRpc.toLayer(
     return TodosRpc.of({
       todos_list: () =>
         Effect.gen(function* () {
-          const currentUser = yield* Authentication;
+          const currentUser = yield* AuthContext;
           yield* Effect.log(
             `[RPC] Listing todos for user: ${currentUser.userId}`,
           );
@@ -20,7 +20,7 @@ export const TodosRpcLive = TodosRpc.toLayer(
 
       todos_getById: ({ id }) =>
         Effect.gen(function* () {
-          const currentUser = yield* Authentication;
+          const currentUser = yield* AuthContext;
           yield* Effect.log(
             `[RPC] Getting todo ${id} for user: ${currentUser.userId}`,
           );
@@ -29,7 +29,7 @@ export const TodosRpcLive = TodosRpc.toLayer(
 
       todos_create: ({ input }) =>
         Effect.gen(function* () {
-          const currentUser = yield* Authentication;
+          const currentUser = yield* AuthContext;
           yield* Effect.log(
             `[RPC] Creating todo for user: ${currentUser.userId}`,
           );
@@ -38,7 +38,7 @@ export const TodosRpcLive = TodosRpc.toLayer(
 
       todos_update: ({ id, input }) =>
         Effect.gen(function* () {
-          const currentUser = yield* Authentication;
+          const currentUser = yield* AuthContext;
           yield* Effect.log(
             `[RPC] Updating todo ${id} for user: ${currentUser.userId}`,
           );
@@ -47,7 +47,7 @@ export const TodosRpcLive = TodosRpc.toLayer(
 
       todos_remove: ({ id }) =>
         Effect.gen(function* () {
-          const currentUser = yield* Authentication;
+          const currentUser = yield* AuthContext;
           yield* Effect.log(
             `[RPC] Removing todo ${id} for user: ${currentUser.userId}`,
           );

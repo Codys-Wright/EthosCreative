@@ -1,6 +1,6 @@
 import * as HttpApiSchema from "@effect/platform/HttpApiSchema";
 import * as Schema from "effect/Schema";
-import { UserId } from "@/features/auth/domain/user-id";
+import { UserId } from "@/features/auth/domain/auth.user-id";
 
 export const TodoId = Schema.String.pipe(Schema.brand("TodoId"));
 export type TodoId = typeof TodoId.Type;

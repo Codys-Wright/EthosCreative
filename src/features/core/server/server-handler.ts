@@ -14,9 +14,9 @@ import * as Context from "effect/Context";
 import { DomainRpc, DomainApi } from "@/features/core/domain";
 import { TodosRpcLive, TodosApiLive } from "@/features/todo/server";
 import {
-	AuthenticationHttpMiddlewareLive,
-	AuthenticationRpcMiddlewareLive,
-	Auth,
+	HttpAuthenticationMiddlewareLive,
+	RpcAuthenticationMiddlewareLive,
+	BetterAuthService,
 	BetterAuthRouter,
 } from "@/features/auth/server";
 import { serverRuntime } from "./server-runtime.js";
@@ -57,7 +57,7 @@ const RpcRouter = RpcServer.layerHttpRouter({
 }).pipe(
   Layer.provide(TodosRpcLive),
   Layer.provide(RpcLoggerLive),
-  Layer.provide(AuthenticationRpcMiddlewareLive),
+  Layer.provide(RpcAuthenticationMiddlewareLive),
   Layer.provide(RpcSerialization.layerNdjson),
 );
 
@@ -66,7 +66,7 @@ const HttpApiRouter = HttpLayerRouter.addHttpApi(DomainApi, {
   openapiPath: "/api/openapi.json", // Built-in OpenAPI endpoint
 }).pipe(
   Layer.provide(TodosApiLive),
-  Layer.provide(AuthenticationHttpMiddlewareLive), // Provide real auth middleware
+  Layer.provide(HttpAuthenticationMiddlewareLive), // Provide real auth middleware
   Layer.provide(HttpServer.layerContext),
 );
 
@@ -101,7 +101,7 @@ const AllRoutes = Layer.mergeAll(
   HealthRoute,
   BetterAuthRouter,
 ).pipe(
-  Layer.provideMerge(Auth.Default),
+  Layer.provideMerge(BetterAuthService.Default),
   Layer.provide(Logger.pretty),
   // Apply CORS globally if needed
   // Layer.provide(HttpLayerRouter.cors({
