@@ -169,6 +169,9 @@ importers:
       effect:
         specifier: ^3.19.10
         version: 3.19.10
+      effect-better-auth:
+        specifier: ^0.1.0
+        version: 0.1.0(@effect/platform@0.93.6(effect@3.19.10))(@tanstack/react-start@1.140.3(crossws@0.4.1(srvx@0.9.7(patch_hash=8a34d6459f74e4a7a0151f9d61e8bcb2353da227c8435a9baf0491f69347d68c)))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(vite@7.2.7(@types/node@22.19.2)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)))(better-sqlite3@12.5.0)(effect@3.19.10)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(solid-js@1.9.10)(vitest@3.2.4(@types/node@22.19.2)(jiti@2.6.1)(jsdom@27.3.0(postcss@8.5.6))(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))
       embla-carousel-react:
         specifier: ^8.6.0
         version: 8.6.0(react@19.2.1)
@@ -3192,6 +3195,12 @@ packages:
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
 
+  effect-better-auth@0.1.0:
+    resolution: {integrity: sha512-LNVNJE60n4s98SdVsuGtNSkzzqV3pmGmJgSvGwy2n6rjvBHUbkS+obuO6aIdBDKrsMd3nGrG3Wte6dBlHUigsg==}
+    peerDependencies:
+      '@effect/platform': ^0.92.0
+      effect: ^3.18.0
+
   effect@3.19.10:
     resolution: {integrity: sha512-kT1vSSUIgTPNOOFnnqWwb0xb7K/VYuMFOoMOm71wYv3VJGcFMl3ojCdCCKtiiGqn8fMQPk7Fl9bBShQO6bgyFg==}
 
@@ -3511,6 +3520,10 @@ packages:
 
   kubernetes-types@1.30.0:
     resolution: {integrity: sha512-Dew1okvhM/SQcIa2rcgujNndZwU8VnSapDgdxlYoB84ZlpAD43U6KLAFqYo17ykSFGHNPrg0qry0bP+GJd9v7Q==}
+
+  kysely@0.27.6:
+    resolution: {integrity: sha512-FIyV/64EkKhJmjgC0g2hygpBv5RNWVPyNCqSAD7eTCv6eFWNIi4PN1UvdSJGicN/o35bnevgis4Y0UDC0qi8jQ==}
+    engines: {node: '>=14.0.0'}
 
   kysely@0.28.9:
     resolution: {integrity: sha512-3BeXMoiOhpOwu62CiVpO6lxfq4eS6KMYfQdMsN/2kUCRNuF2YiEr7u0HLHaQU+O4Xu8YXE3bHVkwaQ85i72EuA==}
@@ -7624,6 +7637,33 @@ snapshots:
 
   eastasianwidth@0.2.0: {}
 
+  effect-better-auth@0.1.0(@effect/platform@0.93.6(effect@3.19.10))(@tanstack/react-start@1.140.3(crossws@0.4.1(srvx@0.9.7(patch_hash=8a34d6459f74e4a7a0151f9d61e8bcb2353da227c8435a9baf0491f69347d68c)))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(vite@7.2.7(@types/node@22.19.2)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)))(better-sqlite3@12.5.0)(effect@3.19.10)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(solid-js@1.9.10)(vitest@3.2.4(@types/node@22.19.2)(jiti@2.6.1)(jsdom@27.3.0(postcss@8.5.6))(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)):
+    dependencies:
+      '@effect/platform': 0.93.6(effect@3.19.10)
+      better-auth: 1.4.7(@tanstack/react-start@1.140.3(crossws@0.4.1(srvx@0.9.7(patch_hash=8a34d6459f74e4a7a0151f9d61e8bcb2353da227c8435a9baf0491f69347d68c)))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(vite@7.2.7(@types/node@22.19.2)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)))(better-sqlite3@12.5.0)(pg@8.16.3)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(solid-js@1.9.10)(vitest@3.2.4(@types/node@22.19.2)(jiti@2.6.1)(jsdom@27.3.0(postcss@8.5.6))(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2))
+      effect: 3.19.10
+      kysely: 0.27.6
+      pg: 8.16.3
+    transitivePeerDependencies:
+      - '@lynx-js/react'
+      - '@prisma/client'
+      - '@sveltejs/kit'
+      - '@tanstack/react-start'
+      - better-sqlite3
+      - drizzle-kit
+      - drizzle-orm
+      - mongodb
+      - mysql2
+      - next
+      - pg-native
+      - prisma
+      - react
+      - react-dom
+      - solid-js
+      - svelte
+      - vitest
+      - vue
+
   effect@3.19.10:
     dependencies:
       '@standard-schema/spec': 1.0.0
@@ -7959,6 +7999,8 @@ snapshots:
   json5@2.2.3: {}
 
   kubernetes-types@1.30.0: {}
+
+  kysely@0.27.6: {}
 
   kysely@0.28.9: {}
 
