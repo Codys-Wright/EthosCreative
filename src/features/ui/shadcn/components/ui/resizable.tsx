@@ -4,7 +4,7 @@ import * as ResizablePrimitive from "react-resizable-panels"
 
 import { cn } from "@/features/ui/shadcn/lib/utils"
 
-function ResizablePanelGroup({
+function ResizablePanelGroupRoot({
   className,
   ...props
 }: React.ComponentProps<typeof ResizablePrimitive.PanelGroup>) {
@@ -51,4 +51,10 @@ function ResizableHandle({
   )
 }
 
-export { ResizablePanelGroup, ResizablePanel, ResizableHandle }
+export const ResizablePanelGroup: React.FC<React.ComponentProps<typeof ResizablePrimitive.PanelGroup>> & {
+  Panel: typeof ResizablePanel
+  Handle: typeof ResizableHandle
+} = Object.assign(ResizablePanelGroupRoot, {
+  Panel: ResizablePanel,
+  Handle: ResizableHandle,
+})

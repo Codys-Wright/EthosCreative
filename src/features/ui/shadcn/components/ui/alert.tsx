@@ -19,7 +19,7 @@ const alertVariants = cva(
   }
 )
 
-function Alert({
+function AlertRoot({
   className,
   variant,
   ...props
@@ -63,4 +63,10 @@ function AlertDescription({
   )
 }
 
-export { Alert, AlertTitle, AlertDescription }
+export const Alert: React.FC<React.ComponentProps<"div"> & VariantProps<typeof alertVariants>> & {
+  Title: typeof AlertTitle
+  Description: typeof AlertDescription
+} = Object.assign(AlertRoot, {
+  Title: AlertTitle,
+  Description: AlertDescription,
+})

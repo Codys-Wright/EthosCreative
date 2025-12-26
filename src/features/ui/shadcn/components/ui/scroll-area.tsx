@@ -5,7 +5,7 @@ import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area"
 
 import { cn } from "@/features/ui/shadcn/lib/utils"
 
-function ScrollArea({
+function ScrollAreaRoot({
   className,
   children,
   ...props
@@ -55,4 +55,8 @@ function ScrollBar({
   )
 }
 
-export { ScrollArea, ScrollBar }
+export const ScrollArea: React.FC<React.ComponentProps<typeof ScrollAreaPrimitive.Root>> & {
+  Bar: typeof ScrollBar
+} = Object.assign(ScrollAreaRoot, {
+  Bar: ScrollBar,
+})

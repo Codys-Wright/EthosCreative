@@ -5,7 +5,7 @@ import * as TabsPrimitive from "@radix-ui/react-tabs"
 
 import { cn } from "@/features/ui/shadcn/lib/utils"
 
-function Tabs({
+function TabsRoot({
   className,
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.Root>) {
@@ -63,4 +63,12 @@ function TabsContent({
   )
 }
 
-export { Tabs, TabsList, TabsTrigger, TabsContent }
+export const Tabs: React.FC<React.ComponentProps<typeof TabsPrimitive.Root>> & {
+  List: typeof TabsList
+  Trigger: typeof TabsTrigger
+  Content: typeof TabsContent
+} = Object.assign(TabsRoot, {
+  List: TabsList,
+  Trigger: TabsTrigger,
+  Content: TabsContent,
+})

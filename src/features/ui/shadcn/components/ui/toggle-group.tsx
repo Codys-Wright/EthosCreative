@@ -15,7 +15,7 @@ const ToggleGroupContext = React.createContext<
   spacing: 0,
 })
 
-function ToggleGroup({
+function ToggleGroupRoot({
   className,
   variant,
   size,
@@ -78,4 +78,8 @@ function ToggleGroupItem({
   )
 }
 
-export { ToggleGroup, ToggleGroupItem }
+export const ToggleGroup: React.FC<React.ComponentProps<typeof ToggleGroupPrimitive.Root> & VariantProps<typeof toggleVariants> & { spacing?: number }> & {
+  Item: typeof ToggleGroupItem
+} = Object.assign(ToggleGroupRoot, {
+  Item: ToggleGroupItem,
+})

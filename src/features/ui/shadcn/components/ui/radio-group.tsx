@@ -6,7 +6,7 @@ import { CircleIcon } from "lucide-react"
 
 import { cn } from "@/features/ui/shadcn/lib/utils"
 
-function RadioGroup({
+function RadioGroupRoot({
   className,
   ...props
 }: React.ComponentProps<typeof RadioGroupPrimitive.Root>) {
@@ -42,4 +42,8 @@ function RadioGroupItem({
   )
 }
 
-export { RadioGroup, RadioGroupItem }
+export const RadioGroup: React.FC<React.ComponentProps<typeof RadioGroupPrimitive.Root>> & {
+  Item: typeof RadioGroupItem
+} = Object.assign(RadioGroupRoot, {
+  Item: RadioGroupItem,
+})

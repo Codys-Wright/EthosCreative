@@ -18,7 +18,7 @@ function TooltipProvider({
   )
 }
 
-function Tooltip({
+function TooltipRoot({
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Root>) {
   return (
@@ -58,4 +58,12 @@ function TooltipContent({
   )
 }
 
-export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
+export const Tooltip: React.FC<React.ComponentProps<typeof TooltipPrimitive.Root>> & {
+  Trigger: typeof TooltipTrigger
+  Content: typeof TooltipContent
+  Provider: typeof TooltipProvider
+} = Object.assign(TooltipRoot, {
+  Trigger: TooltipTrigger,
+  Content: TooltipContent,
+  Provider: TooltipProvider,
+})
