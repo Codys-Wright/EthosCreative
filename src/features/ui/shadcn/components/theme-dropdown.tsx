@@ -3,17 +3,7 @@
 import * as React from "react"
 import { Moon, Sun, Palette, CornerDownLeft, Shuffle } from "lucide-react"
 import { Button } from "./ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu"
+import { DropdownMenu } from "./ui/dropdown-menu"
 import { useTheme } from "./theme-provider"
 import { useThemeSystem } from "./theme-system-provider"
 import { themes } from "../lib/themes"
@@ -34,42 +24,42 @@ export function ThemeDropdown() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+      <DropdownMenu.Trigger asChild>
         <Button variant="outline" size="icon">
           <Palette className="h-[1.2rem] w-[1.2rem]" />
           <span className="sr-only">Theme settings</span>
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content align="end" className="w-56">
         {/* Color Mode Toggle */}
-        <DropdownMenuLabel>Color Mode</DropdownMenuLabel>
-        <DropdownMenuItem onClick={() => setTheme("light")}>
+        <DropdownMenu.Label>Color Mode</DropdownMenu.Label>
+        <DropdownMenu.Item onClick={() => setTheme("light")}>
           <Sun className="mr-2 h-4 w-4" />
           <span>Light</span>
           {colorMode === "light" && <span className="ml-auto">✓</span>}
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
+        </DropdownMenu.Item>
+        <DropdownMenu.Item onClick={() => setTheme("dark")}>
           <Moon className="mr-2 h-4 w-4" />
           <span>Dark</span>
           {colorMode === "dark" && <span className="ml-auto">✓</span>}
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
+        </DropdownMenu.Item>
+        <DropdownMenu.Item onClick={() => setTheme("system")}>
           <span className="mr-2 h-4 w-4 flex items-center justify-center">
             ⚙️
           </span>
           <span>System</span>
           {colorMode === "system" && <span className="ml-auto">✓</span>}
-        </DropdownMenuItem>
+        </DropdownMenu.Item>
 
-        <DropdownMenuSeparator />
+        <DropdownMenu.Separator />
 
         {/* Theme Presets */}
-        <DropdownMenuLabel>Theme</DropdownMenuLabel>
+        <DropdownMenu.Label>Theme</DropdownMenu.Label>
         {Object.entries(themes).map(([name, theme]) => {
           // Get the primary color from the theme for the indicator
           const primaryColor = theme.cssVars.light.primary || "oklch(0.205 0 0)"
           return (
-            <DropdownMenuItem
+            <DropdownMenu.Item
               key={name}
               onClick={() => setThemeName(name)}
               className="capitalize"
@@ -82,43 +72,43 @@ export function ThemeDropdown() {
               />
               <span>{name}</span>
               {themeName === name && <span className="ml-auto">✓</span>}
-            </DropdownMenuItem>
+            </DropdownMenu.Item>
           )
         })}
 
-        <DropdownMenuSeparator />
+        <DropdownMenu.Separator />
 
         {/* Radius Selector */}
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
+        <DropdownMenu.Sub>
+          <DropdownMenu.SubTrigger>
             <CornerDownLeft className="mr-2 h-4 w-4" />
             <span>Radius</span>
             <span className="ml-auto text-xs text-muted-foreground capitalize">
               {currentRadius.name}
             </span>
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent>
+          </DropdownMenu.SubTrigger>
+          <DropdownMenu.SubContent>
             {RADII.map((r) => (
-              <DropdownMenuItem
+              <DropdownMenu.Item
                 key={r.name}
                 onClick={() => setRadius(r.name)}
                 className="capitalize"
               >
                 <span>{r.name}</span>
                 {radius === r.name && <span className="ml-auto">✓</span>}
-              </DropdownMenuItem>
+              </DropdownMenu.Item>
             ))}
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
+          </DropdownMenu.SubContent>
+        </DropdownMenu.Sub>
 
-        <DropdownMenuSeparator />
+        <DropdownMenu.Separator />
 
         {/* Randomize Button */}
-        <DropdownMenuItem onClick={handleRandomize}>
+        <DropdownMenu.Item onClick={handleRandomize}>
           <Shuffle className="mr-2 h-4 w-4" />
           <span>Randomize</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
+        </DropdownMenu.Item>
+      </DropdownMenu.Content>
     </DropdownMenu>
   )
 }

@@ -2,12 +2,7 @@
 
 import { Palette } from "lucide-react"
 import { Button } from "./ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu"
+import { DropdownMenu } from "./ui/dropdown-menu"
 import { useThemeSystem } from "./theme-system-provider"
 import { themes } from "../lib/themes"
 
@@ -16,24 +11,24 @@ export function ThemeSwitcher() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+      <DropdownMenu.Trigger asChild>
         <Button variant="outline" size="icon">
           <Palette className="h-[1.2rem] w-[1.2rem]" />
           <span className="sr-only">Switch theme</span>
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content align="end">
         {Object.keys(themes).map((name) => (
-          <DropdownMenuItem
+          <DropdownMenu.Item
             key={name}
             onClick={() => setThemeName(name)}
             data-active={themeName === name}
             className="capitalize data-[active=true]:bg-accent"
           >
             {name}
-          </DropdownMenuItem>
+          </DropdownMenu.Item>
         ))}
-      </DropdownMenuContent>
+      </DropdownMenu.Content>
     </DropdownMenu>
   )
 }
