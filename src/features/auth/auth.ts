@@ -27,6 +27,13 @@ const options = makeBetterAuthOptions({
 	secret: process.env.BETTER_AUTH_SECRET || "placeholder-secret",
 	clientOrigin: process.env.CLIENT_ORIGIN || "http://localhost:3000",
 	db,
+	googleClientId: process.env.GOOGLE_CLIENT_ID,
+	googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
+	appName: process.env.APP_NAME || "TanStack App",
+	sendEmail: async (to, subject, _html) => {
+		// Mock implementation for CLI - just log to stderr
+		process.stderr.write(`[Email] To: ${to}, Subject: ${subject}\n`);
+	},
 });
 
 export const auth = betterAuth(options);
