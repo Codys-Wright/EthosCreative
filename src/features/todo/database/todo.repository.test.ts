@@ -1,130 +1,273 @@
-import { expect, it } from "bun:test";
+import { PgTest } from "@/features/core/database";
+import { describe, expect, it } from "@effect/vitest";
+import type { UserId } from "@/features/auth/domain/auth.user-id";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import { PgTest, withTransactionRollback } from "@/features/core/database";
-import { TodoRepository } from "./todo.repository";
-import type { UserId } from "@/features/auth/domain/auth.user-id";
+import { randomUUID } from "node:crypto";
+import { TodoRepository } from "./todo.repository.js";
 
 const Live = TodoRepository.DefaultWithoutDependencies.pipe(
-	Layer.provideMerge(PgTest),
+  Layer.provideMerge(PgTest),
 );
 
-it.layer(Live)("TodoRepository", (it) => {
-	it.scoped(
-		"insert and findByUserId",
-		Effect.fn(function* () {
-			const repo = yield* TodoRepository;
+const makeUserId = () => randomUUID() as UserId;
 
-			// Insert a test todo
-			const created = yield* repo.insert({
-				userId: "test-user-123" as UserId,
-				title: "Test Todo Item",
-				completed: false,
-			});
+it.layer(Live, { timeout: "30 seconds" })("TodoRepository", (it) => {
+  describe("insert", () => {
+    it.effect(
+      "creates a todo with generated id and timestamps",
+      Effect.fn(function* () {
+        const repo = yield* TodoRepository;
+        const userId = makeUserId();
 
-			expect(created.title).toBe("Test Todo Item");
-			expect(created.completed).toBe(false);
-			expect(created.userId).toBe("test-user-123");
-			expect(created.id).toBeDefined();
-			expect(created.createdAt).toBeDefined();
-			expect(created.updatedAt).toBeDefined();
+        const created = yield* repo.insert({
+          userId,
+          title: "Test Todo Item",
+          completed: false,
+        });
 
-			// Find todos by user ID
-			const found = yield* repo.findByUserId({ userId: "test-user-123" as UserId });
+        expect(created.title).toBe("Test Todo Item");
+        expect(created.completed).toBe(false);
+        expect(created.userId).toBe(userId);
+        expect(created.id).toBeDefined();
+        expect(created.createdAt).toBeDefined();
+        expect(created.updatedAt).toBeDefined();
+      }),
+    );
+  });
 
-			expect(found).toHaveLength(1);
-			expect(found[0].title).toBe("Test Todo Item");
-		}, withTransactionRollback),
-	);
+  describe("findByUserId", () => {
+    it.effect(
+      "returns todos for a specific user",
+      Effect.fn(function* () {
+        const repo = yield* TodoRepository;
+        const userId = makeUserId();
 
-	it.scoped(
-		"update todo",
-		Effect.fn(function* () {
-			const repo = yield* TodoRepository;
+        yield* repo.insert({
+          userId,
+          title: "User's Todo",
+          completed: false,
+        });
 
-			// Insert a test todo
-			const created = yield* repo.insert({
-				userId: "test-user-456" as UserId,
-				title: "Original Title",
-				completed: false,
-			});
+        const found = yield* repo.findByUserId({ userId });
 
-			// Update the todo
-			const updated = yield* repo.update({
-				id: created.id,
-				userId: "test-user-456" as UserId,
-				title: "Updated Title",
-				completed: true,
-			});
+        expect(found).toHaveLength(1);
+        expect(found[0].title).toBe("User's Todo");
+      }),
+    );
 
-			expect(updated.title).toBe("Updated Title");
-			expect(updated.completed).toBe(true);
-			expect(updated.id).toBe(created.id);
-		}, withTransactionRollback),
-	);
+    it.effect(
+      "returns empty array for user with no todos",
+      Effect.fn(function* () {
+        const repo = yield* TodoRepository;
+        const userId = makeUserId();
 
-	it.scoped(
-		"delete todo",
-		Effect.fn(function* () {
-			const repo = yield* TodoRepository;
+        const found = yield* repo.findByUserId({ userId });
 
-			// Insert a test todo
-			const created = yield* repo.insert({
-				userId: "test-user-789" as UserId,
-				title: "To Be Deleted",
-				completed: false,
-			});
+        expect(found).toHaveLength(0);
+      }),
+    );
 
-			// Delete the todo
-			yield* repo.delete({
-				id: created.id,
-				userId: "test-user-789" as UserId,
-			});
+    it.effect(
+      "isolates data between users",
+      Effect.fn(function* () {
+        const repo = yield* TodoRepository;
+        const userId1 = makeUserId();
+        const userId2 = makeUserId();
 
-			// Verify it's gone
-			const found = yield* repo.findByUserId({ userId: "test-user-789" as UserId });
-			expect(found).toHaveLength(0);
-		}, withTransactionRollback),
-	);
+        yield* repo.insert({
+          userId: userId1,
+          title: "User1 Todo",
+          completed: false,
+        });
+        yield* repo.insert({
+          userId: userId2,
+          title: "User2 Todo",
+          completed: false,
+        });
 
-	it.scoped(
-		"ownership isolation",
-		Effect.fn(function* () {
-			const repo = yield* TodoRepository;
+        const user1Todos = yield* repo.findByUserId({ userId: userId1 });
+        expect(user1Todos).toHaveLength(1);
+        expect(user1Todos[0].title).toBe("User1 Todo");
 
-			// User 1 creates a todo
-			const user1Todo = yield* repo.insert({
-				userId: "user-1" as UserId,
-				title: "User 1 Todo",
-				completed: false,
-			});
+        const user2Todos = yield* repo.findByUserId({ userId: userId2 });
+        expect(user2Todos).toHaveLength(1);
+        expect(user2Todos[0].title).toBe("User2 Todo");
+      }),
+    );
+  });
 
-			// User 2 creates a todo
-			yield* repo.insert({
-				userId: "user-2" as UserId,
-				title: "User 2 Todo",
-				completed: false,
-			});
+  describe("update", () => {
+    it.effect(
+      "updates todo fields",
+      Effect.fn(function* () {
+        const repo = yield* TodoRepository;
+        const userId = makeUserId();
 
-			// User 1 should only see their own todo
-			const user1Todos = yield* repo.findByUserId({ userId: "user-1" as UserId });
-			expect(user1Todos).toHaveLength(1);
-			expect(user1Todos[0].title).toBe("User 1 Todo");
+        const created = yield* repo.insert({
+          userId,
+          title: "Original Title",
+          completed: false,
+        });
 
-			// User 2 should only see their own todo
-			const user2Todos = yield* repo.findByUserId({ userId: "user-2" as UserId });
-			expect(user2Todos).toHaveLength(1);
-			expect(user2Todos[0].title).toBe("User 2 Todo");
+        const updated = yield* repo.update({
+          id: created.id,
+          userId,
+          title: "Updated Title",
+          completed: true,
+        });
 
-			// User 2 cannot access User 1's todo
-			const result = yield* Effect.either(
-				repo.findById({
-					id: user1Todo.id,
-					userId: "user-2" as UserId,
-				}),
-			);
+        expect(updated.title).toBe("Updated Title");
+        expect(updated.completed).toBe(true);
+        expect(updated.id).toBe(created.id);
+      }),
+    );
 
-			expect(result._tag).toBe("Left"); // Should fail
-		}, withTransactionRollback),
-	);
+    it.effect(
+      "does not update todos belonging to other users",
+      Effect.fn(function* () {
+        const repo = yield* TodoRepository;
+        const userId1 = makeUserId();
+        const userId2 = makeUserId();
+
+        const todo = yield* repo.insert({
+          userId: userId1,
+          title: "Protected Todo",
+          completed: false,
+        });
+
+        const result = yield* Effect.either(
+          repo.update({
+            id: todo.id,
+            userId: userId2,
+            title: "Hacked Title",
+            completed: true,
+          }),
+        );
+
+        expect(result._tag).toBe("Left"); // Should fail
+
+        // Verify the todo wasn't changed
+        const found = yield* repo.findByUserId({ userId: userId1 });
+        expect(found).toHaveLength(1);
+        expect(found[0].title).toBe("Protected Todo");
+        expect(found[0].completed).toBe(false);
+      }),
+    );
+  });
+
+  describe("delete", () => {
+    it.effect(
+      "removes todo",
+      Effect.fn(function* () {
+        const repo = yield* TodoRepository;
+        const userId = makeUserId();
+
+        const created = yield* repo.insert({
+          userId,
+          title: "To Be Deleted",
+          completed: false,
+        });
+
+        yield* repo.delete({
+          id: created.id,
+          userId,
+        });
+
+        const found = yield* repo.findByUserId({ userId });
+        expect(found).toHaveLength(0);
+      }),
+    );
+
+    it.effect(
+      "does not delete todos belonging to other users",
+      Effect.fn(function* () {
+        const repo = yield* TodoRepository;
+        const userId1 = makeUserId();
+        const userId2 = makeUserId();
+
+        const todo = yield* repo.insert({
+          userId: userId1,
+          title: "Protected Todo",
+          completed: false,
+        });
+
+        yield* repo.delete({
+          id: todo.id,
+          userId: userId2,
+        });
+
+        // Todo should still exist
+        const found = yield* repo.findByUserId({ userId: userId1 });
+        expect(found).toHaveLength(1);
+        expect(found[0].id).toBe(todo.id);
+      }),
+    );
+  });
+
+  describe("findById", () => {
+    it.effect(
+      "returns todo when it exists and belongs to user",
+      Effect.fn(function* () {
+        const repo = yield* TodoRepository;
+        const userId = makeUserId();
+
+        const created = yield* repo.insert({
+          userId,
+          title: "My Todo",
+          completed: false,
+        });
+
+        const found = yield* repo.findById({
+          id: created.id,
+          userId,
+        });
+
+        expect(found.title).toBe("My Todo");
+        expect(found.id).toBe(created.id);
+      }),
+    );
+
+    it.effect(
+      "fails when todo doesn't exist",
+      Effect.fn(function* () {
+        const repo = yield* TodoRepository;
+        const userId = makeUserId();
+
+        const result = yield* Effect.either(
+          repo.findById({
+            id: "nonexistent-id",
+            userId,
+          }),
+        );
+
+        expect(result._tag).toBe("Left");
+      }),
+    );
+
+    it.effect(
+      "fails when todo belongs to another user",
+      Effect.fn(function* () {
+        const repo = yield* TodoRepository;
+        const userId1 = makeUserId();
+        const userId2 = makeUserId();
+
+        const todo = yield* repo.insert({
+          userId: userId1,
+          title: "Private Todo",
+          completed: false,
+        });
+
+        const result = yield* Effect.either(
+          repo.findById({
+            id: todo.id,
+            userId: userId2,
+          }),
+        );
+
+        expect(result._tag).toBe("Left");
+      }),
+    );
+  });
 });
+
