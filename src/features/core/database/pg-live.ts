@@ -78,14 +78,15 @@ export const PgTest = ApplySchemaDump.pipe(Layer.provideMerge(PgClientTest));
 // Test Utils
 // ===============================
 
-class TransactionRollback extends Schema.TaggedError<TransactionRollback>("TestRollback")(
+class TransactionRollback extends Schema.TaggedError<TransactionRollback>(
   "TestRollback",
-  {
-    value: Schema.Any,
-  },
-) {}
+)("TestRollback", {
+  value: Schema.Any,
+}) {}
 
-export const withTransactionRollback = <A, E, R>(self: Effect.Effect<A, E, R>) =>
+export const withTransactionRollback = <A, E, R>(
+  self: Effect.Effect<A, E, R>,
+) =>
   Effect.gen(function* () {
     const sql = yield* SqlClient.SqlClient;
     return yield* sql
@@ -96,6 +97,8 @@ export const withTransactionRollback = <A, E, R>(self: Effect.Effect<A, E, R>) =
         }),
       )
       .pipe(
-        Effect.catchIf(Schema.is(TransactionRollback), (error) => Effect.succeed(error.value as A)),
+        Effect.catchIf(Schema.is(TransactionRollback), (error) =>
+          Effect.succeed(error.value as A),
+        ),
       );
   });
