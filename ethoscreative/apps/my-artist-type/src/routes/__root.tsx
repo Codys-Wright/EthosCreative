@@ -60,7 +60,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   });
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+    >
       <head>
         {/* Blocking theme script - runs synchronously before any rendering */}
         <script
@@ -73,9 +76,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <ThemeProvider>
           <ThemeSystemProviderWithContext>
             <Navigation />
-            <RegistryProvider defaultIdleTTL={60_000}>
-              {children}
-            </RegistryProvider>
+            <RegistryProvider defaultIdleTTL={60_000}>{children}</RegistryProvider>
             <TanStackDevtools
               config={{
                 position: "bottom-right",
