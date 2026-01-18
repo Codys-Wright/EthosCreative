@@ -21,17 +21,12 @@ export interface AdminCheckResult {
 export const checkAdmin = createServerFn({ method: 'GET' }).handler(
   async (): Promise<AdminCheckResult> => {
     try {
-      // Get the request headers from the server context
-      const { getWebRequest } = await import('vinxi/http');
-      const request = getWebRequest();
-      const headers = new Headers(request.headers);
-
       const result = await serverRuntime.runPromise(
         Effect.gen(function* () {
           const auth = yield* AuthService;
-          const session = yield* Effect.promise(() =>
-            auth.api.getSession({ headers }),
-          );
+
+          // Better Auth automatically reads session from request context
+          const session = yield* Effect.promise(() => auth.api.getSession());
 
           if (!session) {
             return {
