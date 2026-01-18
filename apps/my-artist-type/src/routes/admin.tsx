@@ -1,6 +1,5 @@
 import { Result, useAtomSet, useAtomValue } from '@effect-atom/atom-react';
 import { HydrationBoundary } from '@effect-atom/atom-react/ReactHydration';
-import { authClient } from '@auth';
 import {
   AdminSidebar,
   adminSidebarVisibleAtom,
@@ -20,6 +19,7 @@ import { createFileRoute, Link, Outlet, redirect, useLocation } from '@tanstack/
 import { Button, SidebarInset, SidebarProvider } from '@shadcn';
 import { ChevronLeftIcon, ChevronRightIcon, EditIcon } from 'lucide-react';
 import React from 'react';
+import { checkAdmin } from '../features/auth/check-admin.js';
 
 // ============================================================================
 // Admin Layout Content (inside HydrationBoundary)
@@ -168,9 +168,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ loaderData }) => {
 
 export const Route = createFileRoute('/admin')({
   beforeLoad: async () => {
-    const session = await authClient.getSession();
+    const adminCheck = await checkAdmin();
 
-    if (!session.data) {
+    if (!adminCheck.isAuthenticated) {
       throw redirect({
         to: '/auth/$authView',
         params: { authView: 'sign-in' },
@@ -178,10 +178,7 @@ export const Route = createFileRoute('/admin')({
       });
     }
 
-    const user = session.data.user;
-    const isAdmin = user.role === 'admin' || user.role === 'superadmin';
-
-    if (!isAdmin) {
+    if (!adminCheck.isAdmin) {
       throw redirect({
         to: '/',
       });
