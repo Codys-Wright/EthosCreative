@@ -6,13 +6,6 @@
   NODE_VERSION = "20"
 
 [dev]
-  command = "bun run dev"
+  command = "bun --bun vite dev"
   targetPort = 3000
   autoLaunch = false
-
-# Redirects for SPA routing
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-  conditions = {Role = ["admin"]}
