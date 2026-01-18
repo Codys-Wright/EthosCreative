@@ -30,7 +30,7 @@ export function NavbarHome({ children }: { children?: ReactNode }) {
   // Determine if user has taken the quiz before
   // On SSR, always show default "Take the Quiz!" to match initial client render
   const hasResults = isClient && lastResponseId !== null;
-  const quizButtonText = hasResults ? 'Your Results' : 'Take the Quiz!';
+  const quizButtonText = hasResults ? 'My Results' : 'Take the Quiz!';
   const quizButtonLink = hasResults ? `/my-response/${lastResponseId}` : '/quiz';
 
   const navItems = useMemo(
