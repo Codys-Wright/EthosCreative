@@ -48,14 +48,15 @@ class AuthApi extends Effect.Service<AuthApi>()('@features/auth/AuthApi', {
     signInWithGoogle: () =>
       Effect.tryPromise({
         try: async () => {
+          const currentUrl = new URL(window.location.href);
+          const redirectTo = currentUrl.searchParams.get('redirect') || '/';
           const result = await authClient.signIn.social({
             provider: 'google',
-            callbackURL: `${window.location.origin}/auth/callback`,
+            callbackURL: redirectTo, // Where user goes after successful auth
           });
           if (result.error) {
             throw new Error(result.error.message || 'Google sign in failed');
           }
-          // OAuth redirect happens automatically, this won't return
           return result.data;
         },
         catch: (error) => new Error(`Google sign in failed: ${error}`),
