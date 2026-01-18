@@ -1,5 +1,6 @@
 import { Result, useAtomSet, useAtomValue } from '@effect-atom/atom-react';
 import { HydrationBoundary } from '@effect-atom/atom-react/ReactHydration';
+import { authClient } from '@auth';
 import {
   AdminSidebar,
   adminSidebarVisibleAtom,
@@ -15,7 +16,7 @@ import {
   type AnalysisResult,
   type QuizResponse,
 } from '@quiz';
-import { createFileRoute, Link, Outlet, useLocation } from '@tanstack/react-router';
+import { createFileRoute, Link, Outlet, redirect, useLocation } from '@tanstack/react-router';
 import { Button, SidebarInset, SidebarProvider } from '@shadcn';
 import { ChevronLeftIcon, ChevronRightIcon, EditIcon } from 'lucide-react';
 import React from 'react';
@@ -166,6 +167,26 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ loaderData }) => {
 // ============================================================================
 
 export const Route = createFileRoute('/admin')({
+  beforeLoad: async () => {
+    const session = await authClient.getSession();
+
+    if (!session.data) {
+      throw redirect({
+        to: '/auth/$authView',
+        params: { authView: 'sign-in' },
+        search: { redirect: '/admin' },
+      });
+    }
+
+    const user = session.data.user;
+    const isAdmin = user.role === 'admin' || user.role === 'superadmin';
+
+    if (!isAdmin) {
+      throw redirect({
+        to: '/',
+      });
+    }
+  },
   loader: () => loadAdmin(),
   component: AdminPageWrapper,
 });
