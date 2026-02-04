@@ -1,5 +1,5 @@
 [build]
-  command = "cd ../.. && bun install --no-save && cd apps/my-artist-type && bun run build"
+  command = "bun install --no-save && cd apps/my-artist-type && bun run build"
   publish = ".output/public"
 
 [build.environment]
