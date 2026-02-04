@@ -5,14 +5,14 @@
  * Follows the same pattern as @example/features/feature/client/atoms.ts
  */
 
-import { serializable } from '@core/client/atom-utils';
-import { Atom, Result } from '@effect-atom/atom-react';
-import * as RpcClientError from '@effect/rpc/RpcClientError';
-import * as Arr from 'effect/Array';
-import * as Data from 'effect/Data';
-import * as Effect from 'effect/Effect';
-import * as Option from 'effect/Option';
-import * as S from 'effect/Schema';
+import { serializable } from "@core/client/atom-utils";
+import { Atom, Result } from "@effect-atom/atom-react";
+import * as RpcClientError from "@effect/rpc/RpcClientError";
+import * as Arr from "effect/Array";
+import * as Data from "effect/Data";
+import * as Effect from "effect/Effect";
+import * as Option from "effect/Option";
+import * as S from "effect/Schema";
 
 import {
   type ChatMessage,
@@ -25,8 +25,8 @@ import {
   type SendMessageInput,
   type UserId,
   type UserStatus,
-} from '../domain/schema.js';
-import { ChatClient } from './client.js';
+} from "../domain/schema.js";
+import { ChatClient } from "./client.js";
 
 // =============================================================================
 // Schemas for serialization
@@ -52,10 +52,10 @@ export const draftAtom = Atom.family((roomId: RoomId) =>
     replyToId: MessageId | null;
     replyToPreview: { author: string; content: string } | null;
   }>({
-    content: '',
+    content: "",
     replyToId: null,
     replyToPreview: null,
-  }),
+  })
 );
 
 /**
@@ -64,15 +64,15 @@ export const draftAtom = Atom.family((roomId: RoomId) =>
 export const typingAtom = Atom.family((roomId: RoomId) =>
   Atom.make<{
     users: readonly { userId: UserId; username: string; expiresAt: number }[];
-  }>({ users: [] }),
+  }>({ users: [] })
 );
 
 /**
  * User presence map (local tracking from events)
  */
-export const presenceAtom = Atom.make<Map<UserId, { status: UserStatus; lastSeenAt: number }>>(
-  new Map(),
-);
+export const presenceAtom = Atom.make<
+  Map<UserId, { status: UserStatus; lastSeenAt: number }>
+>(new Map());
 
 /**
  * Chat UI state
@@ -84,7 +84,7 @@ export const chatUiAtom = Atom.make<{
 }>({
   isMemberListVisible: true,
   isSearchOpen: false,
-  searchQuery: '',
+  searchQuery: "",
 });
 
 // =============================================================================
@@ -111,17 +111,17 @@ export const roomsAtom = (() => {
     .atom(
       Effect.gen(function* () {
         const client = yield* ChatClient;
-        return yield* client('chat_listRooms', undefined);
-      }),
+        return yield* client("chat_listRooms", undefined);
+      })
     )
     .pipe(
       serializable({
-        key: '@chat/rooms',
+        key: "@chat/rooms",
         schema: Result.Schema({
           success: RoomsSchema,
           error: RpcClientError.RpcClientError,
         }),
-      }),
+      })
     );
 
   // Writable atom with local cache updates
@@ -134,27 +134,30 @@ export const roomsAtom = (() => {
 
         const nextValue = (() => {
           switch (update._tag) {
-            case 'Upsert': {
+            case "Upsert": {
               const existingIndex = Arr.findFirstIndex(
                 current.value,
-                (r) => r.room.id === update.room.room.id,
+                (r) => r.room.id === update.room.room.id
               );
               return Option.match(existingIndex, {
                 onNone: () => Arr.prepend(current.value, update.room),
-                onSome: (index) => Arr.replace(current.value, index, update.room),
+                onSome: (index) =>
+                  Arr.replace(current.value, index, update.room),
               });
             }
-            case 'IncrementUnread': {
+            case "IncrementUnread": {
               return Arr.map(current.value, (r) =>
-                r.room.id === update.roomId ? { ...r, unreadCount: r.unreadCount + 1 } : r,
+                r.room.id === update.roomId
+                  ? { ...r, unreadCount: r.unreadCount + 1 }
+                  : r
               );
             }
-            case 'ClearUnread': {
+            case "ClearUnread": {
               return Arr.map(current.value, (r) =>
-                r.room.id === update.roomId ? { ...r, unreadCount: 0 } : r,
+                r.room.id === update.roomId ? { ...r, unreadCount: 0 } : r
               );
             }
-            case 'UpdateLastMessage': {
+            case "UpdateLastMessage": {
               return Arr.map(current.value, (r) =>
                 r.room.id === update.roomId
                   ? {
@@ -162,7 +165,7 @@ export const roomsAtom = (() => {
                       lastMessage: Option.some(update.message),
                       lastMessageSender: Option.some(update.sender),
                     }
-                  : r,
+                  : r
               );
             }
           }
@@ -172,9 +175,9 @@ export const roomsAtom = (() => {
       },
       (refresh) => {
         refresh(remoteAtom);
-      },
+      }
     ),
-    { remote: remoteAtom },
+    { remote: remoteAtom }
   );
 })();
 
@@ -216,7 +219,7 @@ export const messagesAtom = Atom.family((roomId: RoomId) => {
   const remoteAtom = ChatClient.runtime.atom(
     Effect.gen(function* () {
       const client = yield* ChatClient;
-      const result = yield* client('chat_listMessages', {
+      const result = yield* client("chat_listMessages", {
         roomId,
         cursor: Option.none(),
         limit: 50,
@@ -227,7 +230,7 @@ export const messagesAtom = Atom.family((roomId: RoomId) => {
         nextCursor: Option.getOrNull(result.nextCursor),
         isLoading: false,
       } as MessagesState;
-    }),
+    })
   );
 
   return Atom.writable(
@@ -238,17 +241,17 @@ export const messagesAtom = Atom.family((roomId: RoomId) => {
 
       const nextValue = ((): MessagesState => {
         switch (update._tag) {
-          case 'SetMessages':
+          case "SetMessages":
             return {
               messages: update.messages,
               hasMore: update.hasMore,
               nextCursor: update.nextCursor,
               isLoading: false,
             };
-          case 'PrependMessage': {
+          case "PrependMessage": {
             // Check if message already exists (optimistic update)
             const exists = current.value.messages.some(
-              (m) => m.message.id === update.message.message.id,
+              (m) => m.message.id === update.message.message.id
             );
             if (exists) return current.value;
             return {
@@ -256,29 +259,31 @@ export const messagesAtom = Atom.family((roomId: RoomId) => {
               messages: Arr.prepend(current.value.messages, update.message),
             };
           }
-          case 'AppendMessages':
+          case "AppendMessages":
             return {
               messages: [...current.value.messages, ...update.messages],
               hasMore: update.hasMore,
               nextCursor: update.nextCursor,
               isLoading: false,
             };
-          case 'UpdateMessage':
+          case "UpdateMessage":
             return {
               ...current.value,
               messages: Arr.map(current.value.messages, (m) =>
-                m.message.id === update.messageId ? { ...m, message: update.message } : m,
+                m.message.id === update.messageId
+                  ? { ...m, message: update.message }
+                  : m
               ),
             };
-          case 'DeleteMessage':
+          case "DeleteMessage":
             return {
               ...current.value,
               messages: Arr.filter(
                 current.value.messages,
-                (m) => m.message.id !== update.messageId,
+                (m) => m.message.id !== update.messageId
               ),
             };
-          case 'SetLoading':
+          case "SetLoading":
             return { ...current.value, isLoading: update.isLoading };
         }
       })();
@@ -287,7 +292,7 @@ export const messagesAtom = Atom.family((roomId: RoomId) => {
     },
     (refresh) => {
       refresh(remoteAtom);
-    },
+    }
   );
 });
 
@@ -304,9 +309,9 @@ export const selectRoomAtom = ChatClient.runtime.fn<RoomId | null>()(
 
     if (roomId) {
       // Clear unread count
-      get.set(roomsAtom, { _tag: 'ClearUnread', roomId });
+      get.set(roomsAtom, { _tag: "ClearUnread", roomId });
     }
-  }),
+  })
 );
 
 /**
@@ -321,7 +326,7 @@ export const sendMessageAtom = ChatClient.runtime.fn<{
     const client = yield* ChatClient;
 
     // Send the message
-    const result = yield* client('chat_sendMessage', {
+    const result = yield* client("chat_sendMessage", {
       input: {
         roomId: input.roomId,
         content: input.content,
@@ -332,13 +337,13 @@ export const sendMessageAtom = ChatClient.runtime.fn<{
 
     // Optimistic update - prepend message
     get.set(messagesAtom(input.roomId), {
-      _tag: 'PrependMessage',
+      _tag: "PrependMessage",
       message: result,
     });
 
     // Update room's last message
     get.set(roomsAtom, {
-      _tag: 'UpdateLastMessage',
+      _tag: "UpdateLastMessage",
       roomId: input.roomId,
       message: result.message,
       sender: result.sender,
@@ -346,13 +351,13 @@ export const sendMessageAtom = ChatClient.runtime.fn<{
 
     // Clear draft
     get.set(draftAtom(input.roomId), {
-      content: '',
+      content: "",
       replyToId: null,
       replyToPreview: null,
     });
 
     return result;
-  }),
+  })
 );
 
 /**
@@ -367,11 +372,11 @@ export const loadMoreMessagesAtom = ChatClient.runtime.fn<{
 
     // Set loading
     get.set(messagesAtom(input.roomId), {
-      _tag: 'SetLoading',
+      _tag: "SetLoading",
       isLoading: true,
     });
 
-    const result = yield* client('chat_listMessages', {
+    const result = yield* client("chat_listMessages", {
       roomId: input.roomId,
       cursor: Option.some(input.cursor),
       limit: 50,
@@ -379,14 +384,14 @@ export const loadMoreMessagesAtom = ChatClient.runtime.fn<{
 
     // Append messages
     get.set(messagesAtom(input.roomId), {
-      _tag: 'AppendMessages',
+      _tag: "AppendMessages",
       messages: result.messages,
       hasMore: result.hasMore,
       nextCursor: Option.getOrNull(result.nextCursor),
     });
 
     return result;
-  }),
+  })
 );
 
 /**
@@ -399,12 +404,12 @@ export const addReactionAtom = ChatClient.runtime.fn<{
 }>()(
   Effect.fnUntraced(function* (input, _get) {
     const client = yield* ChatClient;
-    yield* client('chat_addReaction', {
+    yield* client("chat_addReaction", {
       messageId: input.messageId,
       emoji: input.emoji,
     });
     // Real-time event will update the UI
-  }),
+  })
 );
 
 /**
@@ -417,12 +422,12 @@ export const removeReactionAtom = ChatClient.runtime.fn<{
 }>()(
   Effect.fnUntraced(function* (input, _get) {
     const client = yield* ChatClient;
-    yield* client('chat_removeReaction', {
+    yield* client("chat_removeReaction", {
       messageId: input.messageId,
       emoji: input.emoji,
     });
     // Real-time event will update the UI
-  }),
+  })
 );
 
 /**
@@ -434,8 +439,8 @@ export const sendTypingAtom = ChatClient.runtime.fn<{
 }>()(
   Effect.fnUntraced(function* (input, _get) {
     const client = yield* ChatClient;
-    yield* client('chat_sendTyping', input);
-  }),
+    yield* client("chat_sendTyping", input);
+  })
 );
 
 /**
@@ -445,10 +450,10 @@ export const updateDraftAtom = ChatClient.runtime.fn<{
   roomId: RoomId;
   content: string;
 }>()(
-  Effect.fnUntraced(function* (input, get) {
-    const current = get.get(draftAtom(input.roomId));
-    get.set(draftAtom(input.roomId), { ...current, content: input.content });
-  }),
+  Effect.fnUntraced(function* (input, ctx) {
+    const current = ctx(draftAtom(input.roomId));
+    ctx.set(draftAtom(input.roomId), { ...current, content: input.content });
+  })
 );
 
 /**
@@ -458,10 +463,10 @@ export const setReplyAtom = ChatClient.runtime.fn<{
   roomId: RoomId;
   replyTo: { messageId: MessageId; author: string; content: string } | null;
 }>()(
-  Effect.fnUntraced(function* (input, get) {
-    const current = get.get(draftAtom(input.roomId));
+  Effect.fnUntraced(function* (input, ctx) {
+    const current = ctx(draftAtom(input.roomId));
     if (input.replyTo) {
-      get.set(draftAtom(input.roomId), {
+      ctx.set(draftAtom(input.roomId), {
         ...current,
         replyToId: input.replyTo.messageId,
         replyToPreview: {
@@ -470,26 +475,26 @@ export const setReplyAtom = ChatClient.runtime.fn<{
         },
       });
     } else {
-      get.set(draftAtom(input.roomId), {
+      ctx.set(draftAtom(input.roomId), {
         ...current,
         replyToId: null,
         replyToPreview: null,
       });
     }
-  }),
+  })
 );
 
 /**
  * Toggle member list visibility
  */
 export const toggleMemberListAtom = ChatClient.runtime.fn()(
-  Effect.fnUntraced(function* (_input, get) {
-    const ui = get.get(chatUiAtom);
-    get.set(chatUiAtom, {
+  Effect.fnUntraced(function* (_input, ctx) {
+    const ui = ctx(chatUiAtom);
+    ctx.set(chatUiAtom, {
       ...ui,
       isMemberListVisible: !ui.isMemberListVisible,
     });
-  }),
+  })
 );
 
 // =============================================================================
@@ -530,6 +535,6 @@ export const selectedRoomTypingAtom = Atom.make((get) => {
  */
 export const selectedRoomDraftAtom = Atom.make((get) => {
   const roomId = get(selectedRoomIdAtom);
-  if (!roomId) return { content: '', replyToId: null, replyToPreview: null };
+  if (!roomId) return { content: "", replyToId: null, replyToPreview: null };
   return get(draftAtom(roomId));
 });

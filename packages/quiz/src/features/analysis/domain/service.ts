@@ -117,7 +117,7 @@ export class AnalysisService extends Effect.Service<AnalysisService>()(
             weight: number;
           }> = [];
 
-          let matchedRulesCount = 0;
+          let _matchedRulesCount = 0;
           let processedResponsesCount = 0;
 
           for (const response of responses) {
@@ -131,7 +131,7 @@ export class AnalysisService extends Effect.Service<AnalysisService>()(
               continue;
             }
 
-            matchedRulesCount++;
+            _matchedRulesCount++;
 
             // Skip secondary points if disabled
             if (runtimeConfig.disableSecondaryPoints && !rule.isPrimary) {

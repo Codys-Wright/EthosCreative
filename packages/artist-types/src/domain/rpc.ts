@@ -7,10 +7,10 @@
  * - getBySlug: Get a single artist type by slug (short name or full ID)
  */
 
-import * as Rpc from '@effect/rpc/Rpc';
-import * as RpcGroup from '@effect/rpc/RpcGroup';
-import * as S from 'effect/Schema';
-import { ArtistType, ArtistTypeNotFoundError } from './schema.js';
+import * as Rpc from "@effect/rpc/Rpc";
+import * as RpcGroup from "@effect/rpc/RpcGroup";
+import * as S from "effect/Schema";
+import { ArtistType, ArtistTypeNotFoundError } from "./schema.js";
 
 // =============================================================================
 // RPC GROUP
@@ -25,7 +25,7 @@ export class ArtistTypeRpc extends RpcGroup.make(
   /**
    * List all artist types, ordered by their display order
    */
-  Rpc.make('list', {
+  Rpc.make("list", {
     success: S.Array(ArtistType),
   }),
 
@@ -33,7 +33,7 @@ export class ArtistTypeRpc extends RpcGroup.make(
    * Get a single artist type by its full ID
    * @param id - The full ID (e.g., "the-visionary-artist")
    */
-  Rpc.make('getById', {
+  Rpc.make("getById", {
     success: ArtistType,
     error: ArtistTypeNotFoundError,
     payload: {
@@ -45,11 +45,11 @@ export class ArtistTypeRpc extends RpcGroup.make(
    * Get a single artist type by slug (flexible lookup)
    * @param slug - Either short name ("visionary") or full ID ("the-visionary-artist")
    */
-  Rpc.make('getBySlug', {
+  Rpc.make("getBySlug", {
     success: ArtistType,
     error: ArtistTypeNotFoundError,
     payload: {
       slug: S.String,
     },
-  }),
-).prefix('artistType_') {}
+  })
+).prefix("artistType_") {}

@@ -132,7 +132,10 @@ export function ClaimAccountForm({
       setSuccess(true);
       onSuccess?.();
       // Redirect to account page after successful signup
-      router.navigate({ to: callbackURL as "/account/settings" });
+      router.navigate({
+        to: "/account/$accountView",
+        params: { accountView: "settings" },
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create account");
     } finally {

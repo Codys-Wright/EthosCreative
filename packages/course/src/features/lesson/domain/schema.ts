@@ -1,28 +1,34 @@
 // Lesson Domain Schema
 // Defines lessons with MDX content support for rich course content
 
-import * as HttpApiSchema from '@effect/platform/HttpApiSchema';
-import * as S from 'effect/Schema';
+import * as HttpApiSchema from "@effect/platform/HttpApiSchema";
+import * as S from "effect/Schema";
 
-import { CourseId } from '../../course/domain/schema.js';
-import { SectionId } from '../../section/domain/schema.js';
-import { PathId } from '../../path/domain/schema.js';
+import { CourseId } from "../../course/domain/schema.js";
+import { SectionId } from "../../section/domain/schema.js";
+import { PathId } from "../../path/domain/schema.js";
 
 // ===========================================
 // Branded IDs
 // ===========================================
 
-export const LessonId = S.UUID.pipe(S.brand('LessonId'));
+export const LessonId = S.UUID.pipe(S.brand("LessonId"));
 export type LessonId = typeof LessonId.Type;
 
 // ===========================================
 // Enums / Literals
 // ===========================================
 
-export const LessonType = S.Literal('video', 'text', 'quiz', 'assignment', 'download');
+export const LessonType = S.Literal(
+  "video",
+  "text",
+  "quiz",
+  "assignment",
+  "download"
+);
 export type LessonType = typeof LessonType.Type;
 
-export const VideoProvider = S.Literal('youtube', 'vimeo', 'custom');
+export const VideoProvider = S.Literal("youtube", "vimeo", "custom");
 export type VideoProvider = typeof VideoProvider.Type;
 
 // ===========================================
@@ -33,7 +39,7 @@ export type VideoProvider = typeof VideoProvider.Type;
  * Video content configuration
  * Supports YouTube, Vimeo, or custom video sources
  */
-export class VideoContent extends S.Class<VideoContent>('VideoContent')({
+export class VideoContent extends S.Class<VideoContent>("VideoContent")({
   provider: VideoProvider,
   videoId: S.String,
   durationSeconds: S.Number,
@@ -43,7 +49,7 @@ export class VideoContent extends S.Class<VideoContent>('VideoContent')({
 /**
  * Download file metadata
  */
-export class DownloadFile extends S.Class<DownloadFile>('DownloadFile')({
+export class DownloadFile extends S.Class<DownloadFile>("DownloadFile")({
   name: S.String,
   url: S.String,
   sizeBytes: S.Number,
@@ -69,7 +75,7 @@ export class DownloadFile extends S.Class<DownloadFile>('DownloadFile')({
  * - <CodePlayground /> - Interactive code editor
  * - <VideoEmbed /> - Video within text content
  */
-export class Lesson extends S.Class<Lesson>('Lesson')({
+export class Lesson extends S.Class<Lesson>("Lesson")({
   id: LessonId,
   sectionId: SectionId,
   courseId: CourseId,
@@ -109,6 +115,9 @@ export class Lesson extends S.Class<Lesson>('Lesson')({
   isFree: S.Boolean,
   isPreview: S.Boolean,
 
+  // Publishing status
+  isPublished: S.Boolean,
+
   // Timestamps
   createdAt: S.DateTimeUtc,
   updatedAt: S.DateTimeUtc,
@@ -118,12 +127,14 @@ export class Lesson extends S.Class<Lesson>('Lesson')({
 // Input Schemas
 // ===========================================
 
-export class CreateLessonInput extends S.Class<CreateLessonInput>('CreateLessonInput')({
+export class CreateLessonInput extends S.Class<CreateLessonInput>(
+  "CreateLessonInput"
+)({
   sectionId: SectionId,
   courseId: CourseId,
   title: S.Trim.pipe(
-    S.nonEmptyString({ message: () => 'Title is required' }),
-    S.maxLength(200, { message: () => 'Title must be at most 200 characters' }),
+    S.nonEmptyString({ message: () => "Title is required" }),
+    S.maxLength(200, { message: () => "Title must be at most 200 characters" })
   ),
   description: S.optional(S.NullOr(S.String.pipe(S.maxLength(1000)))),
   type: LessonType,
@@ -137,16 +148,19 @@ export class CreateLessonInput extends S.Class<CreateLessonInput>('CreateLessonI
   durationMinutes: S.optional(S.Number.pipe(S.int(), S.nonNegative())),
   isFree: S.optional(S.Boolean),
   isPreview: S.optional(S.Boolean),
+  isPublished: S.optional(S.Boolean),
 }) {}
 
-export class UpdateLessonInput extends S.Class<UpdateLessonInput>('UpdateLessonInput')({
+export class UpdateLessonInput extends S.Class<UpdateLessonInput>(
+  "UpdateLessonInput"
+)({
   title: S.optional(
     S.Trim.pipe(
-      S.nonEmptyString({ message: () => 'Title is required' }),
+      S.nonEmptyString({ message: () => "Title is required" }),
       S.maxLength(200, {
-        message: () => 'Title must be at most 200 characters',
-      }),
-    ),
+        message: () => "Title must be at most 200 characters",
+      })
+    )
   ),
   description: S.optional(S.NullOr(S.String.pipe(S.maxLength(1000)))),
   type: S.optional(LessonType),
@@ -160,12 +174,15 @@ export class UpdateLessonInput extends S.Class<UpdateLessonInput>('UpdateLessonI
   durationMinutes: S.optional(S.Number.pipe(S.int(), S.nonNegative())),
   isFree: S.optional(S.Boolean),
   isPreview: S.optional(S.Boolean),
+  isPublished: S.optional(S.Boolean),
 }) {}
 
 /**
  * Input for reordering lessons within a section
  */
-export class ReorderLessonsInput extends S.Class<ReorderLessonsInput>('ReorderLessonsInput')({
+export class ReorderLessonsInput extends S.Class<ReorderLessonsInput>(
+  "ReorderLessonsInput"
+)({
   sectionId: SectionId,
   lessonIds: S.Array(LessonId),
 }) {}
@@ -174,10 +191,12 @@ export class ReorderLessonsInput extends S.Class<ReorderLessonsInput>('ReorderLe
 // Errors
 // ===========================================
 
-export class LessonNotFoundError extends S.TaggedError<LessonNotFoundError>('LessonNotFoundError')(
-  'LessonNotFoundError',
+export class LessonNotFoundError extends S.TaggedError<LessonNotFoundError>(
+  "LessonNotFoundError"
+)(
+  "LessonNotFoundError",
   { id: LessonId },
-  HttpApiSchema.annotations({ status: 404 }),
+  HttpApiSchema.annotations({ status: 404 })
 ) {
   override get message() {
     return `Lesson with id ${this.id} not found`;
@@ -185,8 +204,12 @@ export class LessonNotFoundError extends S.TaggedError<LessonNotFoundError>('Les
 }
 
 export class LessonAccessDeniedError extends S.TaggedError<LessonAccessDeniedError>(
-  'LessonAccessDeniedError',
-)('LessonAccessDeniedError', { id: LessonId }, HttpApiSchema.annotations({ status: 403 })) {
+  "LessonAccessDeniedError"
+)(
+  "LessonAccessDeniedError",
+  { id: LessonId },
+  HttpApiSchema.annotations({ status: 403 })
+) {
   override get message() {
     return `Access denied to lesson ${this.id}. Enrollment required.`;
   }

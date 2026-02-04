@@ -5,31 +5,36 @@
  * Uses @faker-js/faker for realistic data.
  */
 
-import * as SqlClient from '@effect/sql/SqlClient';
-import * as Effect from 'effect/Effect';
-import { faker } from '@faker-js/faker';
+import * as SqlClient from "@effect/sql/SqlClient";
+import * as Effect from "effect/Effect";
+import { faker } from "@faker-js/faker";
 
-import { makeCleanup, makeSeeder, type CleanupEntry, type SeederEntry } from '@core/database';
+import {
+  makeCleanup,
+  makeSeeder,
+  type CleanupEntry,
+  type SeederEntry,
+} from "@core/database";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Category Seeder
 // ─────────────────────────────────────────────────────────────────────────────
 
 const CATEGORY_NAMES = [
-  'Web Development',
-  'Mobile Development',
-  'Data Science',
-  'Machine Learning',
-  'DevOps',
-  'Cloud Computing',
-  'Cybersecurity',
-  'Game Development',
-  'UI/UX Design',
-  'Database Management',
+  "Web Development",
+  "Mobile Development",
+  "Data Science",
+  "Machine Learning",
+  "DevOps",
+  "Cloud Computing",
+  "Cybersecurity",
+  "Game Development",
+  "UI/UX Design",
+  "Database Management",
 ];
 
 export const categories = makeSeeder(
-  { name: 'course_categories', defaultCount: 10, dependsOn: [] },
+  { name: "course_categories", defaultCount: 10, dependsOn: [] },
   (count) =>
     Effect.gen(function* () {
       const sql = yield* SqlClient.SqlClient;
@@ -41,7 +46,7 @@ export const categories = makeSeeder(
 
       if (existingCount >= count) {
         return {
-          name: 'course_categories',
+          name: "course_categories",
           existing: existingCount,
           created: 0,
         };
@@ -54,8 +59,8 @@ export const categories = makeSeeder(
         const name = `${CATEGORY_NAMES[i]} (Seed)`;
         const slug = name
           .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/^-|-$/g, '');
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
         const description = faker.lorem.sentence();
 
         yield* sql`
@@ -67,8 +72,8 @@ export const categories = makeSeeder(
         created++;
       }
 
-      return { name: 'course_categories', existing: existingCount, created };
-    }),
+      return { name: "course_categories", existing: existingCount, created };
+    })
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -76,7 +81,7 @@ export const categories = makeSeeder(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const instructors = makeSeeder(
-  { name: 'instructor_profiles', defaultCount: 5, dependsOn: [] },
+  { name: "instructor_profiles", defaultCount: 5, dependsOn: [] },
   (count) =>
     Effect.gen(function* () {
       const sql = yield* SqlClient.SqlClient;
@@ -88,7 +93,7 @@ export const instructors = makeSeeder(
 
       if (existingCount >= count) {
         return {
-          name: 'instructor_profiles',
+          name: "instructor_profiles",
           existing: existingCount,
           created: 0,
         };
@@ -132,8 +137,8 @@ export const instructors = makeSeeder(
         created++;
       }
 
-      return { name: 'instructor_profiles', existing: existingCount, created };
-    }),
+      return { name: "instructor_profiles", existing: existingCount, created };
+    })
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -141,34 +146,34 @@ export const instructors = makeSeeder(
 // ─────────────────────────────────────────────────────────────────────────────
 
 const COURSE_TOPICS = [
-  'Complete Guide to',
-  'Master',
-  'Learn',
-  'Introduction to',
-  'Advanced',
-  'Professional',
-  'Practical',
-  'Ultimate',
+  "Complete Guide to",
+  "Master",
+  "Learn",
+  "Introduction to",
+  "Advanced",
+  "Professional",
+  "Practical",
+  "Ultimate",
 ];
 
 const COURSE_SUBJECTS = [
-  'React',
-  'TypeScript',
-  'Node.js',
-  'Python',
-  'Machine Learning',
-  'Docker',
-  'Kubernetes',
-  'AWS',
-  'GraphQL',
-  'Next.js',
+  "React",
+  "TypeScript",
+  "Node.js",
+  "Python",
+  "Machine Learning",
+  "Docker",
+  "Kubernetes",
+  "AWS",
+  "GraphQL",
+  "Next.js",
 ];
 
 export const courses = makeSeeder(
   {
-    name: 'courses',
+    name: "courses",
     defaultCount: 10,
-    dependsOn: ['instructor_profiles', 'course_categories'],
+    dependsOn: ["instructor_profiles", "course_categories"],
   },
   (count) =>
     Effect.gen(function* () {
@@ -180,7 +185,7 @@ export const courses = makeSeeder(
       const existingCount = Number(existing[0].count);
 
       if (existingCount >= count) {
-        return { name: 'courses', existing: existingCount, created: 0 };
+        return { name: "courses", existing: existingCount, created: 0 };
       }
 
       // Get instructors and categories
@@ -193,10 +198,10 @@ export const courses = makeSeeder(
 
       if (instructorRows.length === 0) {
         return {
-          name: 'courses',
+          name: "courses",
           existing: existingCount,
           created: 0,
-          skipped: 'No instructors',
+          skipped: "No instructors",
         };
       }
 
@@ -209,31 +214,24 @@ export const courses = makeSeeder(
         const title = `${topic} ${subject} (Seed)`;
         const slug = `${topic}-${subject}-${Date.now()}-${i}`
           .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/^-|-$/g, '');
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
 
         const instructor = faker.helpers.arrayElement(instructorRows);
-        const category = categoryRows.length > 0 ? faker.helpers.arrayElement(categoryRows) : null;
+        const category =
+          categoryRows.length > 0
+            ? faker.helpers.arrayElement(categoryRows)
+            : null;
         const level = faker.helpers.arrayElement([
-          'beginner',
-          'intermediate',
-          'advanced',
-          'all-levels',
+          "beginner",
+          "intermediate",
+          "advanced",
+          "all-levels",
         ]);
-        const pricingModel = faker.helpers.arrayElement(['free', 'one-time', 'freemium']);
-        const price = pricingModel === 'free' ? null : faker.number.int({ min: 9, max: 199 });
-
-        const pricing = JSON.stringify({
-          model: pricingModel,
-          price: price,
-          currency: price ? 'USD' : undefined,
-          freeLessonCount: pricingModel === 'freemium' ? 3 : undefined,
-        });
-
         yield* sql`
           INSERT INTO courses (
             id, instructor_id, title, slug, subtitle, description,
-            category_id, level, language, pricing, status,
+            category_id, level, language, status,
             total_duration_minutes, lesson_count, section_count,
             enrollment_count, review_count,
             created_at, updated_at
@@ -248,7 +246,6 @@ export const courses = makeSeeder(
             ${category?.id ?? null},
             ${level},
             'en',
-            ${pricing}::jsonb,
             'published',
             ${faker.number.int({ min: 60, max: 600 })},
             ${faker.number.int({ min: 10, max: 100 })},
@@ -263,8 +260,8 @@ export const courses = makeSeeder(
         created++;
       }
 
-      return { name: 'courses', existing: existingCount, created };
-    }),
+      return { name: "courses", existing: existingCount, created };
+    })
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -272,7 +269,7 @@ export const courses = makeSeeder(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const sections = makeSeeder(
-  { name: 'course_sections', defaultCount: 30, dependsOn: ['courses'] },
+  { name: "course_sections", defaultCount: 30, dependsOn: ["courses"] },
   (count) =>
     Effect.gen(function* () {
       const sql = yield* SqlClient.SqlClient;
@@ -283,7 +280,7 @@ export const sections = makeSeeder(
       const existingCount = Number(existing[0].count);
 
       if (existingCount >= count) {
-        return { name: 'course_sections', existing: existingCount, created: 0 };
+        return { name: "course_sections", existing: existingCount, created: 0 };
       }
 
       // Get seeded courses
@@ -293,10 +290,10 @@ export const sections = makeSeeder(
 
       if (courseRows.length === 0) {
         return {
-          name: 'course_sections',
+          name: "course_sections",
           existing: existingCount,
           created: 0,
-          skipped: 'No courses',
+          skipped: "No courses",
         };
       }
 
@@ -331,8 +328,8 @@ export const sections = makeSeeder(
         }
       }
 
-      return { name: 'course_sections', existing: existingCount, created };
-    }),
+      return { name: "course_sections", existing: existingCount, created };
+    })
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -340,7 +337,7 @@ export const sections = makeSeeder(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const lessons = makeSeeder(
-  { name: 'course_lessons', defaultCount: 100, dependsOn: ['course_sections'] },
+  { name: "course_lessons", defaultCount: 100, dependsOn: ["course_sections"] },
   (count) =>
     Effect.gen(function* () {
       const sql = yield* SqlClient.SqlClient;
@@ -351,12 +348,12 @@ export const lessons = makeSeeder(
       const existingCount = Number(existing[0].count);
 
       if (existingCount >= count) {
-        return { name: 'course_lessons', existing: existingCount, created: 0 };
+        return { name: "course_lessons", existing: existingCount, created: 0 };
       }
 
       // Get seeded sections with their course IDs
       const sectionRows = yield* sql<{ id: string; course_id: string }>`
-        SELECT s.id, s.course_id 
+        SELECT s.id, s.course_id
         FROM course_sections s
         JOIN courses c ON c.id = s.course_id
         WHERE s.title LIKE '%(Seed)%'
@@ -364,10 +361,10 @@ export const lessons = makeSeeder(
 
       if (sectionRows.length === 0) {
         return {
-          name: 'course_lessons',
+          name: "course_lessons",
           existing: existingCount,
           created: 0,
-          skipped: 'No sections',
+          skipped: "No sections",
         };
       }
 
@@ -377,22 +374,27 @@ export const lessons = makeSeeder(
 
       for (const section of sectionRows) {
         for (let i = 0; i < lessonsPerSection && created < toCreate; i++) {
-          const lessonType = faker.helpers.arrayElement(['video', 'text', 'quiz', 'download']);
+          const lessonType = faker.helpers.arrayElement([
+            "video",
+            "text",
+            "quiz",
+            "download",
+          ]);
           const title = `Lesson ${i + 1}: ${faker.lorem.words(4)} (Seed)`;
 
           const videoContent =
-            lessonType === 'video'
+            lessonType === "video"
               ? JSON.stringify({
-                  provider: faker.helpers.arrayElement(['youtube', 'vimeo']),
+                  provider: faker.helpers.arrayElement(["youtube", "vimeo"]),
                   videoId: faker.string.alphanumeric(11),
                   durationSeconds: faker.number.int({ min: 180, max: 1800 }),
                 })
               : null;
 
           const mdxContent =
-            lessonType === 'text'
+            lessonType === "text"
               ? `# ${title}\n\n${faker.lorem.paragraphs(
-                  5,
+                  5
                 )}\n\n## Key Points\n\n${faker.lorem.paragraphs(2)}`
               : null;
 
@@ -425,8 +427,8 @@ export const lessons = makeSeeder(
         }
       }
 
-      return { name: 'course_lessons', existing: existingCount, created };
-    }),
+      return { name: "course_lessons", existing: existingCount, created };
+    })
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -450,7 +452,9 @@ interface CourseSeedOptions {
  * course({ courses: 20, lessons: 200 })  // custom counts
  * ```
  */
-export const course = (options: CourseSeedOptions = {}): ReadonlyArray<SeederEntry> => [
+export const course = (
+  options: CourseSeedOptions = {}
+): ReadonlyArray<SeederEntry> => [
   categories(options.categories),
   instructors(options.instructors),
   courses(options.courses),
@@ -463,52 +467,61 @@ export const course = (options: CourseSeedOptions = {}): ReadonlyArray<SeederEnt
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const cleanupLessons = makeCleanup({
-  name: 'course_lessons',
+  name: "course_lessons",
   countSql: (sql) =>
     sql<{ count: number }>`
       SELECT COUNT(*)::int as count FROM course_lessons WHERE title LIKE '%(Seed)%'
     `.pipe(Effect.map((r) => r[0].count)),
   deleteSql: (sql) =>
-    sql`DELETE FROM course_lessons WHERE title LIKE '%(Seed)%'`.pipe(Effect.asVoid),
+    sql`DELETE FROM course_lessons WHERE title LIKE '%(Seed)%'`.pipe(
+      Effect.asVoid
+    ),
 });
 
 export const cleanupSections = makeCleanup({
-  name: 'course_sections',
+  name: "course_sections",
   countSql: (sql) =>
     sql<{ count: number }>`
       SELECT COUNT(*)::int as count FROM course_sections WHERE title LIKE '%(Seed)%'
     `.pipe(Effect.map((r) => r[0].count)),
   deleteSql: (sql) =>
-    sql`DELETE FROM course_sections WHERE title LIKE '%(Seed)%'`.pipe(Effect.asVoid),
+    sql`DELETE FROM course_sections WHERE title LIKE '%(Seed)%'`.pipe(
+      Effect.asVoid
+    ),
 });
 
 export const cleanupCourses = makeCleanup({
-  name: 'courses',
+  name: "courses",
   countSql: (sql) =>
     sql<{ count: number }>`
       SELECT COUNT(*)::int as count FROM courses WHERE title LIKE '%(Seed)%'
     `.pipe(Effect.map((r) => r[0].count)),
-  deleteSql: (sql) => sql`DELETE FROM courses WHERE title LIKE '%(Seed)%'`.pipe(Effect.asVoid),
+  deleteSql: (sql) =>
+    sql`DELETE FROM courses WHERE title LIKE '%(Seed)%'`.pipe(Effect.asVoid),
 });
 
 export const cleanupInstructors = makeCleanup({
-  name: 'instructor_profiles',
+  name: "instructor_profiles",
   countSql: (sql) =>
     sql<{ count: number }>`
       SELECT COUNT(*)::int as count FROM instructor_profiles WHERE display_name LIKE '%(Seed)%'
     `.pipe(Effect.map((r) => r[0].count)),
   deleteSql: (sql) =>
-    sql`DELETE FROM instructor_profiles WHERE display_name LIKE '%(Seed)%'`.pipe(Effect.asVoid),
+    sql`DELETE FROM instructor_profiles WHERE display_name LIKE '%(Seed)%'`.pipe(
+      Effect.asVoid
+    ),
 });
 
 export const cleanupCategories = makeCleanup({
-  name: 'course_categories',
+  name: "course_categories",
   countSql: (sql) =>
     sql<{ count: number }>`
       SELECT COUNT(*)::int as count FROM course_categories WHERE name LIKE '%(Seed)%'
     `.pipe(Effect.map((r) => r[0].count)),
   deleteSql: (sql) =>
-    sql`DELETE FROM course_categories WHERE name LIKE '%(Seed)%'`.pipe(Effect.asVoid),
+    sql`DELETE FROM course_categories WHERE name LIKE '%(Seed)%'`.pipe(
+      Effect.asVoid
+    ),
 });
 
 /**

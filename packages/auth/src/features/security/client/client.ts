@@ -21,7 +21,7 @@ export class SecurityApi extends Effect.Service<SecurityApi>()('@features/auth/S
             throw new Error(result.error.message || 'Failed to get 2FA status');
           }
           return {
-            enabled: !!result.data,
+            enabled: Boolean(result.data),
             backupCodesCount: 0,
           };
         },

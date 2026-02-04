@@ -168,7 +168,7 @@ export const RpcAuthenticationMiddlewareLive = Layer.effect(
         // Get session from Better Auth using the actual request headers
         const session = yield* Effect.tryPromise({
           try: () => auth.api.getSession({ headers: options.headers }),
-          catch: () => null,
+          catch: () => new HttpApiError.Unauthorized(),
         });
 
         // Allow unauthenticated access - provide anonymous context

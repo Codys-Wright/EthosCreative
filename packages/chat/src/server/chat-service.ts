@@ -5,24 +5,24 @@
  * In production, this would be backed by a database.
  */
 
-import * as Effect from 'effect/Effect';
-import * as Context from 'effect/Context';
-import * as Layer from 'effect/Layer';
-import * as Ref from 'effect/Ref';
-import * as HashMap from 'effect/HashMap';
-import * as Option from 'effect/Option';
-import * as Array from 'effect/Array';
+import * as Effect from "effect/Effect";
+import * as Context from "effect/Context";
+import * as Layer from "effect/Layer";
+import * as Ref from "effect/Ref";
+import * as HashMap from "effect/HashMap";
+import * as Option from "effect/Option";
+import * as Array from "effect/Array";
 import {
   type UserId,
   type RoomId,
   type MessageId,
-  type ChatUser,
   type ChatMessage,
   type ChatRoom,
   type SendMessageInput,
   type CreateRoomInput,
+  ChatUser,
   MessageSentEvent,
-} from '../domain/schema.js';
+} from "../domain/schema.js";
 
 // =============================================================================
 // Chat State
@@ -46,17 +46,24 @@ const initialState: ChatState = {
 // Chat Service Interface & Tag
 // =============================================================================
 
-export class ChatService extends Context.Tag('ChatService')<
+export class ChatService extends Context.Tag("ChatService")<
   ChatService,
   {
     // User operations
-    readonly getUser: (userId: UserId) => Effect.Effect<Option.Option<ChatUser>>;
+    readonly getUser: (
+      userId: UserId
+    ) => Effect.Effect<Option.Option<ChatUser>>;
     readonly upsertUser: (user: ChatUser) => Effect.Effect<ChatUser>;
     readonly getUsers: (userIds: UserId[]) => Effect.Effect<ChatUser[]>;
 
     // Room operations
-    readonly getRoom: (roomId: RoomId) => Effect.Effect<Option.Option<ChatRoom>>;
-    readonly createRoom: (input: CreateRoomInput, creatorId: UserId) => Effect.Effect<ChatRoom>;
+    readonly getRoom: (
+      roomId: RoomId
+    ) => Effect.Effect<Option.Option<ChatRoom>>;
+    readonly createRoom: (
+      input: CreateRoomInput,
+      creatorId: UserId
+    ) => Effect.Effect<ChatRoom>;
     readonly getUserRooms: (userId: UserId) => Effect.Effect<ChatRoom[]>;
     readonly joinRoom: (roomId: RoomId, userId: UserId) => Effect.Effect<void>;
     readonly leaveRoom: (roomId: RoomId, userId: UserId) => Effect.Effect<void>;
@@ -64,14 +71,16 @@ export class ChatService extends Context.Tag('ChatService')<
     // Message operations
     readonly sendMessage: (
       input: SendMessageInput,
-      senderId: UserId,
+      senderId: UserId
     ) => Effect.Effect<MessageSentEvent>;
     readonly getMessages: (
       roomId: RoomId,
       limit?: number,
-      before?: number,
+      before?: number
     ) => Effect.Effect<ChatMessage[]>;
-    readonly getMessage: (messageId: MessageId) => Effect.Effect<Option.Option<ChatMessage>>;
+    readonly getMessage: (
+      messageId: MessageId
+    ) => Effect.Effect<Option.Option<ChatMessage>>;
   }
 >() {}
 
@@ -86,7 +95,9 @@ export const ChatServiceLive = Layer.effect(
 
     return {
       getUser: (userId: UserId) =>
-        Ref.get(stateRef).pipe(Effect.map((state) => HashMap.get(state.users, userId))),
+        Ref.get(stateRef).pipe(
+          Effect.map((state) => HashMap.get(state.users, userId))
+        ),
 
       upsertUser: (user: ChatUser) =>
         Ref.update(stateRef, (state) => ({
@@ -100,12 +111,14 @@ export const ChatServiceLive = Layer.effect(
             userIds
               .map((id) => HashMap.get(state.users, id))
               .filter(Option.isSome)
-              .map((opt) => opt.value),
-          ),
+              .map((opt) => opt.value)
+          )
         ),
 
       getRoom: (roomId: RoomId) =>
-        Ref.get(stateRef).pipe(Effect.map((state) => HashMap.get(state.rooms, roomId))),
+        Ref.get(stateRef).pipe(
+          Effect.map((state) => HashMap.get(state.rooms, roomId))
+        ),
 
       createRoom: (input: CreateRoomInput, creatorId: UserId) =>
         Effect.gen(function* () {
@@ -118,10 +131,12 @@ export const ChatServiceLive = Layer.effect(
             type: input.type,
             description: input.description,
             avatarUrl: Option.none(),
+            iconEmoji: Option.none(),
             createdAt: now,
             updatedAt: now,
             memberIds: [creatorId, ...input.memberIds],
             lastMessageAt: Option.none(),
+            isArchived: false,
           };
 
           yield* Ref.update(stateRef, (state) => ({
@@ -131,7 +146,7 @@ export const ChatServiceLive = Layer.effect(
             roomMembers: HashMap.set(
               state.roomMembers,
               roomId,
-              new Set([creatorId, ...input.memberIds]),
+              new Set([creatorId, ...input.memberIds])
             ),
           }));
 
@@ -142,9 +157,9 @@ export const ChatServiceLive = Layer.effect(
         Ref.get(stateRef).pipe(
           Effect.map((state) =>
             Array.fromIterable(HashMap.values(state.rooms)).filter((room) =>
-              room.memberIds.includes(userId),
-            ),
-          ),
+              room.memberIds.includes(userId)
+            )
+          )
         ),
 
       joinRoom: (roomId: RoomId, userId: UserId) =>
@@ -158,7 +173,7 @@ export const ChatServiceLive = Layer.effect(
           };
 
           const members = HashMap.get(state.roomMembers, roomId).pipe(
-            Option.getOrElse(() => new Set<UserId>()),
+            Option.getOrElse(() => new Set<UserId>())
           );
           members.add(userId);
 
@@ -180,7 +195,7 @@ export const ChatServiceLive = Layer.effect(
           };
 
           const members = HashMap.get(state.roomMembers, roomId).pipe(
-            Option.getOrElse(() => new Set<UserId>()),
+            Option.getOrElse(() => new Set<UserId>())
           );
           members.delete(userId);
 
@@ -204,12 +219,16 @@ export const ChatServiceLive = Layer.effect(
             timestamp: now,
             editedAt: Option.none(),
             replyToId: input.replyToId,
+            attachments: [],
+            isPinned: false,
+            isDeleted: false,
           };
 
           yield* Ref.update(stateRef, (state) => {
-            const existingMessages = HashMap.get(state.messages, input.roomId).pipe(
-              Option.getOrElse(() => [] as ChatMessage[]),
-            );
+            const existingMessages = HashMap.get(
+              state.messages,
+              input.roomId
+            ).pipe(Option.getOrElse(() => [] as ChatMessage[]));
 
             const room = HashMap.get(state.rooms, input.roomId);
             const updatedRooms = Option.isSome(room)
@@ -222,19 +241,32 @@ export const ChatServiceLive = Layer.effect(
 
             return {
               ...state,
-              messages: HashMap.set(state.messages, input.roomId, [...existingMessages, message]),
+              messages: HashMap.set(state.messages, input.roomId, [
+                ...existingMessages,
+                message,
+              ]),
               rooms: updatedRooms,
             };
           });
 
-          return new MessageSentEvent({ _tag: 'MessageSent', message });
+          // Create a placeholder sender for the event
+          const sender: ChatUser = {
+            id: senderId,
+            name: "User",
+            username: "user",
+            avatarUrl: Option.none(),
+            status: "online",
+            roleColor: Option.none(),
+          };
+
+          return new MessageSentEvent({ _tag: "MessageSent", message, sender });
         }),
 
       getMessages: (roomId: RoomId, limit = 50, before?: number) =>
         Ref.get(stateRef).pipe(
           Effect.map((state) => {
             const messages = HashMap.get(state.messages, roomId).pipe(
-              Option.getOrElse(() => [] as ChatMessage[]),
+              Option.getOrElse(() => [] as ChatMessage[])
             );
 
             let filtered = messages;
@@ -244,7 +276,7 @@ export const ChatServiceLive = Layer.effect(
 
             // Return most recent messages first
             return filtered.slice(-limit).reverse();
-          }),
+          })
         ),
 
       getMessage: (messageId: MessageId) =>
@@ -255,8 +287,8 @@ export const ChatServiceLive = Layer.effect(
               if (found) return Option.some(found);
             }
             return Option.none();
-          }),
+          })
         ),
     };
-  }),
+  })
 );

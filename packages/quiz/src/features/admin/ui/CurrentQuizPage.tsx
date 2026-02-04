@@ -174,7 +174,7 @@ export const CurrentQuizPage: React.FC = () => {
               availableQuizzes.map((quiz) => {
                 const engine = getEngineForQuiz(quiz.id);
                 const isLive = quiz.isPublished;
-                const canPublish = !!engine && !isLive;
+                const canPublish = Boolean(engine) && !isLive;
 
                 return (
                   <button
@@ -245,7 +245,7 @@ export const CurrentQuizPage: React.FC = () => {
 
       {/* Confirmation Dialog */}
       <AlertDialog
-        open={!!pendingQuizId}
+        open={Boolean(pendingQuizId)}
         onOpenChange={() => setPendingQuizId(null)}
       >
         <AlertDialog.Content>

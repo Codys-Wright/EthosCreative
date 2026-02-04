@@ -5,14 +5,21 @@
  * Uses the hooks from @chat/client directly - no runtime provider needed.
  */
 
-import * as React from 'react';
-import { Result } from '@effect-atom/atom-react';
-import { cn } from '@shadcn';
-import { Skeleton } from '@shadcn';
-import { HashIcon, UsersIcon, BellIcon, PinIcon, SearchIcon, InboxIcon } from 'lucide-react';
-import * as Option from 'effect/Option';
+import * as React from "react";
+import { Result } from "@effect-atom/atom-react";
+import { cn } from "@shadcn";
+import { Skeleton } from "@shadcn";
+import {
+  Hash as HashIcon,
+  Users as UsersIcon,
+  Bell as BellIcon,
+  Pin as PinIcon,
+  Search as SearchIcon,
+  Inbox as InboxIcon,
+} from "lucide-react";
+import * as Option from "effect/Option";
 
-import { Chat, type Reaction, type StatusType } from './chat.js';
+import { Chat, type Reaction, type StatusType } from "./chat.js";
 import {
   useRooms,
   useSelectedRoomId,
@@ -30,8 +37,8 @@ import {
   useMessageList,
   useSetReply,
   usePresence,
-} from '../client/hooks.js';
-import type { MessageWithSender, RoomId, UserId } from '../domain/schema.js';
+} from "../client/hooks.js";
+import type { MessageWithSender, RoomId, UserId } from "../domain/schema.js";
 
 // =============================================================================
 // Types
@@ -51,14 +58,14 @@ function RoomList({ className }: { className?: string }) {
   const selectedRoomId = useSelectedRoomId();
   const selectRoom = useSelectRoom();
 
-  const isLoading = roomsResult._tag === 'Initial' && roomsResult.waiting;
-  const isError = roomsResult._tag === 'Failure';
-  const rooms = roomsResult._tag === 'Success' ? roomsResult.value : [];
+  const isLoading = roomsResult._tag === "Initial" && roomsResult.waiting;
+  const isError = roomsResult._tag === "Failure";
+  const rooms = roomsResult._tag === "Success" ? roomsResult.value : [];
 
   // Group rooms by type
-  const channels = rooms.filter((r) => r.room.type === 'channel');
-  const directMessages = rooms.filter((r) => r.room.type === 'direct');
-  const groups = rooms.filter((r) => r.room.type === 'group');
+  const channels = rooms.filter((r) => r.room.type === "channel");
+  const directMessages = rooms.filter((r) => r.room.type === "direct");
+  const groups = rooms.filter((r) => r.room.type === "group");
 
   return (
     <Chat.ChannelList className={className}>
@@ -76,13 +83,19 @@ function RoomList({ className }: { className?: string }) {
           </div>
         )}
 
-        {isError && <div className="p-4 text-sm text-destructive">Failed to load rooms</div>}
+        {isError && (
+          <div className="p-4 text-sm text-destructive">
+            Failed to load rooms
+          </div>
+        )}
 
         {!isLoading && !isError && (
           <>
             {channels.length > 0 && (
               <Chat.ChannelList.Section>
-                <Chat.ChannelList.SectionTitle>Channels</Chat.ChannelList.SectionTitle>
+                <Chat.ChannelList.SectionTitle>
+                  Channels
+                </Chat.ChannelList.SectionTitle>
                 {channels.map((room) => (
                   <Chat.ChannelList.Item
                     key={room.room.id}
@@ -99,7 +112,9 @@ function RoomList({ className }: { className?: string }) {
 
             {groups.length > 0 && (
               <Chat.ChannelList.Section>
-                <Chat.ChannelList.SectionTitle>Groups</Chat.ChannelList.SectionTitle>
+                <Chat.ChannelList.SectionTitle>
+                  Groups
+                </Chat.ChannelList.SectionTitle>
                 {groups.map((room) => (
                   <Chat.ChannelList.Item
                     key={room.room.id}
@@ -116,7 +131,9 @@ function RoomList({ className }: { className?: string }) {
 
             {directMessages.length > 0 && (
               <Chat.ChannelList.Section>
-                <Chat.ChannelList.SectionTitle>Direct Messages</Chat.ChannelList.SectionTitle>
+                <Chat.ChannelList.SectionTitle>
+                  Direct Messages
+                </Chat.ChannelList.SectionTitle>
                 {directMessages.map((room) => (
                   <Chat.ChannelList.Item
                     key={room.room.id}
@@ -163,7 +180,7 @@ function MessageList({ roomId, currentUserId, className }: MessageListProps) {
           loadMore();
         }
       },
-      { threshold: 0.1 },
+      { threshold: 0.1 }
     );
 
     observer.observe(loadMoreRef.current);
@@ -179,8 +196,11 @@ function MessageList({ roomId, currentUserId, className }: MessageListProps) {
     // Messages are in reverse order (newest first)
     for (let i = messages.length - 1; i >= 0; i--) {
       const msg = messages[i];
-      const timeDiff = lastTimestamp ? msg.message.timestamp - lastTimestamp : Infinity;
-      const isFirst = msg.sender.id !== lastSenderId || timeDiff > 5 * 60 * 1000; // 5 min gap
+      const timeDiff = lastTimestamp
+        ? msg.message.timestamp - lastTimestamp
+        : Infinity;
+      const isFirst =
+        msg.sender.id !== lastSenderId || timeDiff > 5 * 60 * 1000; // 5 min gap
 
       groups.unshift({ isFirst, message: msg });
       lastSenderId = msg.sender.id;
@@ -196,7 +216,7 @@ function MessageList({ roomId, currentUserId, className }: MessageListProps) {
       author: msg.sender.name,
       content:
         msg.message.content.length > 100
-          ? msg.message.content.slice(0, 100) + '...'
+          ? msg.message.content.slice(0, 100) + "..."
           : msg.message.content,
     });
   };
@@ -268,7 +288,9 @@ function MessageList({ roomId, currentUserId, className }: MessageListProps) {
               </div>
             </div>
           ) : (
-            <span className="text-sm text-muted-foreground">Scroll to load more</span>
+            <span className="text-sm text-muted-foreground">
+              Scroll to load more
+            </span>
           )}
         </div>
       )}
@@ -321,9 +343,9 @@ function ChatHeaderSection({ className }: { className?: string }) {
           <InboxIcon className="size-4" />
         </Chat.Header.Button>
         <Chat.Header.Button
-          tooltip={ui.isMemberListVisible ? 'Hide Members' : 'Show Members'}
+          tooltip={ui.isMemberListVisible ? "Hide Members" : "Show Members"}
           onClick={toggleMemberList}
-          className={ui.isMemberListVisible ? 'bg-accent' : ''}
+          className={ui.isMemberListVisible ? "bg-accent" : ""}
         >
           <UsersIcon className="size-4" />
         </Chat.Header.Button>
@@ -336,9 +358,16 @@ function ChatHeaderSection({ className }: { className?: string }) {
 // Chat Input Section
 // =============================================================================
 
-function ChatInputSection({ roomId, className }: { roomId: RoomId; className?: string }) {
+function ChatInputSection({
+  roomId,
+  className,
+}: {
+  roomId: RoomId;
+  className?: string;
+}) {
   const selectedRoom = useSelectedRoom();
-  const { content, replyTo, onChange, onSend, onClearReply } = useChatInput(roomId);
+  const { content, replyTo, onChange, onSend, onClearReply } =
+    useChatInput(roomId);
   const typingState = useSelectedRoomTyping();
 
   if (!selectedRoom) {
@@ -390,11 +419,11 @@ function MemberListSidebar({ className }: { className?: string }) {
   const members = selectedRoom.room.memberIds.map((id) => ({
     id,
     name: `User ${id.slice(0, 4)}`,
-    status: presence.get(id)?.status ?? 'offline',
+    status: presence.get(id)?.status ?? "offline",
   }));
 
-  const onlineMembers = members.filter((m) => m.status === 'online');
-  const offlineMembers = members.filter((m) => m.status !== 'online');
+  const onlineMembers = members.filter((m) => m.status === "online");
+  const offlineMembers = members.filter((m) => m.status !== "online");
 
   return (
     <Chat.MemberList className={className}>
@@ -440,7 +469,7 @@ export function ChatPage({ currentUserId, className }: ChatPageProps) {
   const ui = useChatUi();
 
   return (
-    <div className={cn('flex h-full', className)}>
+    <div className={cn("flex h-full", className)}>
       {/* Room List Sidebar */}
       <RoomList className="w-60 shrink-0 hidden md:flex" />
 
@@ -450,7 +479,11 @@ export function ChatPage({ currentUserId, className }: ChatPageProps) {
 
         {selectedRoomId ? (
           <>
-            <MessageList roomId={selectedRoomId} currentUserId={currentUserId} className="flex-1" />
+            <MessageList
+              roomId={selectedRoomId}
+              currentUserId={currentUserId}
+              className="flex-1"
+            />
             <ChatInputSection roomId={selectedRoomId} />
           </>
         ) : (
@@ -458,7 +491,9 @@ export function ChatPage({ currentUserId, className }: ChatPageProps) {
             <div className="text-center text-muted-foreground">
               <HashIcon className="size-12 mx-auto mb-4 opacity-50" />
               <h3 className="text-lg font-medium mb-2">No channel selected</h3>
-              <p className="text-sm">Select a channel from the sidebar to start chatting</p>
+              <p className="text-sm">
+                Select a channel from the sidebar to start chatting
+              </p>
             </div>
           </div>
         )}

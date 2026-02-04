@@ -207,7 +207,7 @@ function NameEditForm({
             onChange={(e) => field.handleChange(e.target.value)}
             placeholder="Your name"
             className="h-8 w-48"
-            autoFocus
+            
             disabled={isLoading}
           />
         )}
@@ -279,7 +279,7 @@ function AvatarEditForm({
             onChange={(e) => field.handleChange(e.target.value)}
             placeholder="https://example.com/photo.jpg"
             className="h-8 flex-1 text-xs"
-            autoFocus
+            
             disabled={isLoading}
           />
         )}
@@ -420,7 +420,7 @@ function EmailEditForm({
               value={field.state.value}
               onChange={(e) => field.handleChange(e.target.value)}
               placeholder="newemail@example.com"
-              autoFocus
+              
               disabled={isLoading}
             />
             {field.state.meta.errors.length > 0 && (

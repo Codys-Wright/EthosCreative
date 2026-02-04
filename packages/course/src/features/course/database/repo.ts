@@ -1,12 +1,12 @@
-import { PgLive } from '@core/database';
-import * as SqlClient from '@effect/sql/SqlClient';
-import * as SqlSchema from '@effect/sql/SqlSchema';
-import * as Effect from 'effect/Effect';
-import { flow } from 'effect/Function';
-import * as S from 'effect/Schema';
+import { PgLive } from "@core/database";
+import * as SqlClient from "@effect/sql/SqlClient";
+import * as SqlSchema from "@effect/sql/SqlSchema";
+import * as Effect from "effect/Effect";
+import { flow } from "effect/Function";
+import * as S from "effect/Schema";
 
-import { CategoryId } from '../../category/domain/schema.js';
-import { InstructorId } from '../../instructor/domain/schema.js';
+import { CategoryId } from "../../category/domain/schema.js";
+import { InstructorId } from "../../instructor/domain/schema.js";
 import {
   Course,
   CourseId,
@@ -14,7 +14,7 @@ import {
   CourseStatus,
   CreateCourseInput,
   UpdateCourseInput,
-} from '../domain/index.js';
+} from "../domain/index.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Internal Input Schemas
@@ -32,7 +32,6 @@ const InsertCourse = S.Struct({
   tags: S.NullOr(S.String),
   level: S.String,
   language: S.String,
-  pricing: S.String,
   requirements: S.NullOr(S.String),
   learning_outcomes: S.NullOr(S.String),
   status: CourseStatus,
@@ -50,7 +49,6 @@ const UpdateCourseDb = S.Struct({
   tags: S.optional(S.NullOr(S.String)),
   level: S.optional(S.String),
   language: S.optional(S.String),
-  pricing: S.optional(S.String),
   requirements: S.optional(S.NullOr(S.String)),
   learning_outcomes: S.optional(S.NullOr(S.String)),
   status: S.optional(CourseStatus),
@@ -62,7 +60,7 @@ type UpdateCourseDb = typeof UpdateCourseDb.Type;
 // ─────────────────────────────────────────────────────────────────────────────
 
 export class CourseRepository extends Effect.Service<CourseRepository>()(
-  '@course/CourseRepository',
+  "@course/CourseRepository",
   {
     dependencies: [PgLive],
     effect: Effect.gen(function* () {
@@ -89,7 +87,6 @@ export class CourseRepository extends Effect.Service<CourseRepository>()(
             tags,
             level,
             language,
-            pricing,
             requirements,
             learning_outcomes AS "learningOutcomes",
             total_duration_minutes AS "totalDurationMinutes",
@@ -129,7 +126,6 @@ export class CourseRepository extends Effect.Service<CourseRepository>()(
             tags,
             level,
             language,
-            pricing,
             requirements,
             learning_outcomes AS "learningOutcomes",
             total_duration_minutes AS "totalDurationMinutes",
@@ -168,7 +164,6 @@ export class CourseRepository extends Effect.Service<CourseRepository>()(
             tags,
             level,
             language,
-            pricing,
             requirements,
             learning_outcomes AS "learningOutcomes",
             total_duration_minutes AS "totalDurationMinutes",
@@ -207,7 +202,6 @@ export class CourseRepository extends Effect.Service<CourseRepository>()(
             tags,
             level,
             language,
-            pricing,
             requirements,
             learning_outcomes AS "learningOutcomes",
             total_duration_minutes AS "totalDurationMinutes",
@@ -248,7 +242,6 @@ export class CourseRepository extends Effect.Service<CourseRepository>()(
             tags,
             level,
             language,
-            pricing,
             requirements,
             learning_outcomes AS "learningOutcomes",
             total_duration_minutes AS "totalDurationMinutes",
@@ -290,7 +283,6 @@ export class CourseRepository extends Effect.Service<CourseRepository>()(
             tags,
             level,
             language,
-            pricing,
             requirements,
             learning_outcomes AS "learningOutcomes",
             total_duration_minutes AS "totalDurationMinutes",
@@ -336,7 +328,6 @@ export class CourseRepository extends Effect.Service<CourseRepository>()(
             tags,
             level,
             language,
-            pricing,
             requirements,
             learning_outcomes AS "learningOutcomes",
             total_duration_minutes AS "totalDurationMinutes",
@@ -359,7 +350,7 @@ export class CourseRepository extends Effect.Service<CourseRepository>()(
         execute: (input) => sql`
           UPDATE courses
           SET
-            ${sql.update(input, ['id'])},
+            ${sql.update(input, ["id"])},
             updated_at = NOW()
           WHERE
             id = ${input.id}
@@ -377,7 +368,6 @@ export class CourseRepository extends Effect.Service<CourseRepository>()(
             tags,
             level,
             language,
-            pricing,
             requirements,
             learning_outcomes AS "learningOutcomes",
             total_duration_minutes AS "totalDurationMinutes",
@@ -419,7 +409,6 @@ export class CourseRepository extends Effect.Service<CourseRepository>()(
             tags,
             level,
             language,
-            pricing,
             requirements,
             learning_outcomes AS "learningOutcomes",
             total_duration_minutes AS "totalDurationMinutes",
@@ -460,7 +449,6 @@ export class CourseRepository extends Effect.Service<CourseRepository>()(
             tags,
             level,
             language,
-            pricing,
             requirements,
             learning_outcomes AS "learningOutcomes",
             total_duration_minutes AS "totalDurationMinutes",
@@ -499,8 +487,8 @@ export class CourseRepository extends Effect.Service<CourseRepository>()(
       const generateSlug = (title: string): string => {
         return title
           .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/^-|-$/g, '');
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
       };
 
       // ─────────────────────────────────────────────────────────────────────────
@@ -524,7 +512,7 @@ export class CourseRepository extends Effect.Service<CourseRepository>()(
               NoSuchElementException: () => new CourseNotFoundError({ id }),
               ParseError: Effect.die,
               SqlError: Effect.die,
-            }),
+            })
           ),
 
         findBySlug: (slug: string) =>
@@ -534,7 +522,7 @@ export class CourseRepository extends Effect.Service<CourseRepository>()(
                 Effect.fail(new CourseNotFoundError({ id: slug as CourseId })),
               ParseError: Effect.die,
               SqlError: Effect.die,
-            }),
+            })
           ),
 
         create: (input: CreateCourseInput) =>
@@ -548,14 +536,15 @@ export class CourseRepository extends Effect.Service<CourseRepository>()(
             preview_video_url: input.previewVideoUrl ?? null,
             category_id: input.categoryId ?? null,
             tags: input.tags ? JSON.stringify(input.tags) : null,
-            level: input.level ?? 'all-levels',
-            language: input.language ?? 'en',
-            pricing: JSON.stringify(input.pricing ?? { model: 'free' }),
-            requirements: input.requirements ? JSON.stringify(input.requirements) : null,
+            level: input.level ?? "all-levels",
+            language: input.language ?? "en",
+            requirements: input.requirements
+              ? JSON.stringify(input.requirements)
+              : null,
             learning_outcomes: input.learningOutcomes
               ? JSON.stringify(input.learningOutcomes)
               : null,
-            status: 'draft',
+            status: "draft",
           }).pipe(Effect.orDie),
 
         update: (id: CourseId, input: UpdateCourseInput) =>
@@ -581,9 +570,6 @@ export class CourseRepository extends Effect.Service<CourseRepository>()(
             }),
             ...(input.level !== undefined && { level: input.level }),
             ...(input.language !== undefined && { language: input.language }),
-            ...(input.pricing !== undefined && {
-              pricing: JSON.stringify(input.pricing),
-            }),
             ...(input.requirements !== undefined && {
               requirements: JSON.stringify(input.requirements),
             }),
@@ -596,7 +582,7 @@ export class CourseRepository extends Effect.Service<CourseRepository>()(
               NoSuchElementException: () => new CourseNotFoundError({ id }),
               ParseError: Effect.die,
               SqlError: Effect.die,
-            }),
+            })
           ),
 
         publish: (id: CourseId) =>
@@ -605,7 +591,7 @@ export class CourseRepository extends Effect.Service<CourseRepository>()(
               NoSuchElementException: () => new CourseNotFoundError({ id }),
               ParseError: Effect.die,
               SqlError: Effect.die,
-            }),
+            })
           ),
 
         archive: (id: CourseId) =>
@@ -614,7 +600,7 @@ export class CourseRepository extends Effect.Service<CourseRepository>()(
               NoSuchElementException: () => new CourseNotFoundError({ id }),
               ParseError: Effect.die,
               SqlError: Effect.die,
-            }),
+            })
           ),
 
         delete: (id: CourseId) =>
@@ -624,9 +610,9 @@ export class CourseRepository extends Effect.Service<CourseRepository>()(
               NoSuchElementException: () => new CourseNotFoundError({ id }),
               ParseError: Effect.die,
               SqlError: Effect.die,
-            }),
+            })
           ),
       } as const;
     }),
-  },
+  }
 ) {}

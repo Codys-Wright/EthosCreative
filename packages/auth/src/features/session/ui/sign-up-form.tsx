@@ -30,7 +30,10 @@ export function SignUpForm({ className, redirectTo = "/" }: SignUpFormProps) {
   // Redirect anonymous users to claim-account page
   useEffect(() => {
     if (isAnonymous) {
-      navigate({ to: "/account/claim-account" });
+      navigate({
+        to: "/account/$accountView",
+        params: { accountView: "claim-account" },
+      });
     }
   }, [isAnonymous, navigate]);
 

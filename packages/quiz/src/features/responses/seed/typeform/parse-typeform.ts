@@ -271,7 +271,7 @@ const output = {
     totalProcessed: processedResponses.length,
     totalOriginal: records.length,
     questionsMatched: questions.length,
-    artistTypesFound: [...new Set(processedResponses.map((r) => r.artistType))].length,
+    artistTypesFound: new Set(processedResponses.map((r) => r.artistType)).size,
   },
 };
 

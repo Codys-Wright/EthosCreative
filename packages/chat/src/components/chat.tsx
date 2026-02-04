@@ -5,54 +5,54 @@
  * Features: message grouping, reactions, typing indicators, member presence
  */
 
-import * as React from 'react';
-import { cn } from '@shadcn';
-import { Avatar } from '@shadcn';
-import { Button } from '@shadcn';
-import { Textarea } from '@shadcn';
-import { Separator } from '@shadcn';
-import { ScrollArea } from '@shadcn';
-import { Tooltip } from '@shadcn';
-import { DropdownMenu } from '@shadcn';
-import { Popover } from '@shadcn';
+import * as React from "react";
+import { cn } from "@shadcn";
+import { Avatar } from "@shadcn";
+import { Button } from "@shadcn";
+import { Textarea } from "@shadcn";
+import { Separator } from "@shadcn";
+import { ScrollArea } from "@shadcn";
+import { Tooltip } from "@shadcn";
+import { DropdownMenu } from "@shadcn";
+import { Popover } from "@shadcn";
 import {
-  SendIcon,
-  PlusIcon,
-  SmileIcon,
-  HashIcon,
-  AtSignIcon,
-  ImageIcon,
-  GifIcon,
-  StickerIcon,
-  MoreHorizontalIcon,
-  PencilIcon,
-  TrashIcon,
-  ReplyIcon,
-  PinIcon,
-  CopyIcon,
-  ChevronDownIcon,
-  BellIcon,
-  BellOffIcon,
-  UsersIcon,
-  SettingsIcon,
-  PhoneIcon,
-  VideoIcon,
-  SearchIcon,
-  InboxIcon,
-  CircleIcon,
-} from 'lucide-react';
+  Send as SendIcon,
+  Plus as PlusIcon,
+  Smile as SmileIcon,
+  Hash as HashIcon,
+  AtSign as AtSignIcon,
+  Image as ImageIcon,
+  Film as FilmIcon,
+  Sticker as StickerIcon,
+  Ellipsis as MoreHorizontalIcon,
+  Pencil as PencilIcon,
+  Trash as TrashIcon,
+  Reply as ReplyIcon,
+  Pin as PinIcon,
+  Copy as CopyIcon,
+  ChevronDown as ChevronDownIcon,
+  Bell as BellIcon,
+  BellOff as BellOffIcon,
+  Users as UsersIcon,
+  Settings as SettingsIcon,
+  Phone as PhoneIcon,
+  Video as VideoIcon,
+  Search as SearchIcon,
+  Inbox as InboxIcon,
+  Circle as CircleIcon,
+} from "lucide-react";
 
 // =============================================================================
 // Status Badge
 // =============================================================================
 
-type StatusType = 'online' | 'offline' | 'away' | 'dnd';
+type StatusType = "online" | "offline" | "away" | "dnd";
 
 const statusColors: Record<StatusType, string> = {
-  online: 'bg-emerald-500',
-  offline: 'bg-zinc-500',
-  away: 'bg-amber-500',
-  dnd: 'bg-rose-500',
+  online: "bg-emerald-500",
+  offline: "bg-zinc-500",
+  away: "bg-amber-500",
+  dnd: "bg-rose-500",
 };
 
 interface StatusBadgeProps {
@@ -64,9 +64,9 @@ function StatusBadge({ status, className }: StatusBadgeProps) {
   return (
     <span
       className={cn(
-        'absolute bottom-0 right-0 size-3 rounded-full border-2 border-background',
+        "absolute bottom-0 right-0 size-3 rounded-full border-2 border-background",
         statusColors[status],
-        className,
+        className
       )}
     />
   );
@@ -76,12 +76,16 @@ function StatusBadge({ status, className }: StatusBadgeProps) {
 // Chat Container
 // =============================================================================
 
-function ChatRoot({ children, className, ...props }: React.ComponentProps<'div'>) {
+function ChatRoot({
+  children,
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
   return (
     <div
       className={cn(
-        'h-full overflow-hidden flex flex-col bg-background @container/chat',
-        className,
+        "h-full overflow-hidden flex flex-col bg-background @container/chat",
+        className
       )}
       {...props}
     >
@@ -94,13 +98,17 @@ function ChatRoot({ children, className, ...props }: React.ComponentProps<'div'>
 // Chat Header - Discord Style
 // =============================================================================
 
-function ChatHeader({ children, className, ...props }: React.ComponentProps<'div'>) {
+function ChatHeader({
+  children,
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
   return (
     <div
       className={cn(
-        'h-12 min-h-12 px-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60',
-        'border-b flex items-center gap-2 shadow-sm',
-        className,
+        "h-12 min-h-12 px-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
+        "border-b flex items-center gap-2 shadow-sm",
+        className
       )}
       {...props}
     >
@@ -109,26 +117,44 @@ function ChatHeader({ children, className, ...props }: React.ComponentProps<'div
   );
 }
 
-function ChatHeaderIcon({ children, className, ...props }: React.ComponentProps<'div'>) {
+function ChatHeaderIcon({
+  children,
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
   return (
-    <div className={cn('text-muted-foreground', className)} {...props}>
+    <div className={cn("text-muted-foreground", className)} {...props}>
       {children}
     </div>
   );
 }
 
-function ChatHeaderTitle({ children, className, ...props }: React.ComponentProps<'h2'>) {
+function ChatHeaderTitle({
+  children,
+  className,
+  ...props
+}: React.ComponentProps<"h2">) {
   return (
-    <h2 className={cn('font-semibold text-base truncate', className)} {...props}>
+    <h2
+      className={cn("font-semibold text-base truncate", className)}
+      {...props}
+    >
       {children}
     </h2>
   );
 }
 
-function ChatHeaderDescription({ children, className, ...props }: React.ComponentProps<'p'>) {
+function ChatHeaderDescription({
+  children,
+  className,
+  ...props
+}: React.ComponentProps<"p">) {
   return (
     <p
-      className={cn('text-sm text-muted-foreground truncate hidden @xl/chat:block', className)}
+      className={cn(
+        "text-sm text-muted-foreground truncate hidden @xl/chat:block",
+        className
+      )}
       {...props}
     >
       {children}
@@ -137,12 +163,57 @@ function ChatHeaderDescription({ children, className, ...props }: React.Componen
 }
 
 function ChatHeaderDivider({ className }: { className?: string }) {
-  return <Separator orientation="vertical" className={cn('h-6 mx-2', className)} />;
+  return (
+    <Separator orientation="vertical" className={cn("h-6 mx-2", className)} />
+  );
 }
 
-function ChatHeaderActions({ children, className, ...props }: React.ComponentProps<'div'>) {
+function ChatHeaderStart({
+  children,
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
   return (
-    <div className={cn('ml-auto flex items-center gap-1', className)} {...props}>
+    <div className={cn("flex items-center gap-2", className)} {...props}>
+      {children}
+    </div>
+  );
+}
+
+function ChatHeaderMain({
+  children,
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
+  return (
+    <div className={cn("flex-1 min-w-0", className)} {...props}>
+      {children}
+    </div>
+  );
+}
+
+function ChatHeaderEnd({
+  children,
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
+  return (
+    <div className={cn("flex items-center gap-2", className)} {...props}>
+      {children}
+    </div>
+  );
+}
+
+function ChatHeaderActions({
+  children,
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
+  return (
+    <div
+      className={cn("ml-auto flex items-center gap-1", className)}
+      {...props}
+    >
       {children}
     </div>
   );
@@ -152,12 +223,20 @@ interface ChatHeaderButtonProps extends React.ComponentProps<typeof Button> {
   tooltip?: string;
 }
 
-function ChatHeaderButton({ tooltip, children, className, ...props }: ChatHeaderButtonProps) {
+function ChatHeaderButton({
+  tooltip,
+  children,
+  className,
+  ...props
+}: ChatHeaderButtonProps) {
   const button = (
     <Button
       variant="ghost"
       size="icon"
-      className={cn('size-8 text-muted-foreground hover:text-foreground', className)}
+      className={cn(
+        "size-8 text-muted-foreground hover:text-foreground",
+        className
+      )}
       {...props}
     >
       {children}
@@ -180,10 +259,18 @@ function ChatHeaderButton({ tooltip, children, className, ...props }: ChatHeader
 // Chat Messages Container
 // =============================================================================
 
-function ChatMessages({ children, className, ...props }: React.ComponentProps<'div'>) {
+function ChatMessages({
+  children,
+  className,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <ScrollArea className={cn('flex-1', className)} {...props}>
-      <div className="flex flex-col-reverse py-4 px-4 min-h-full">{children}</div>
+    <ScrollArea className={cn("flex-1", className)}>
+      <div className="flex flex-col-reverse py-4 px-4 min-h-full">
+        {children}
+      </div>
     </ScrollArea>
   );
 }
@@ -201,8 +288,8 @@ function MessageGroup({ children, className }: MessageGroupProps) {
   return (
     <div
       className={cn(
-        'group/message relative py-0.5 pr-12 hover:bg-accent/50 rounded-sm -mx-2 px-2',
-        className,
+        "group/message relative py-0.5 pr-12 hover:bg-accent/50 rounded-sm -mx-2 px-2",
+        className
       )}
     >
       {children}
@@ -218,7 +305,11 @@ interface MessageProps {
 
 function Message({ children, isFirst = false, className }: MessageProps) {
   return (
-    <div className={cn('flex gap-4', isFirst ? 'mt-4 pt-1' : 'pl-14', className)}>{children}</div>
+    <div
+      className={cn("flex gap-4", isFirst ? "mt-4 pt-1" : "pl-14", className)}
+    >
+      {children}
+    </div>
   );
 }
 
@@ -230,10 +321,16 @@ interface MessageAvatarProps {
   className?: string;
 }
 
-function MessageAvatar({ src, alt, fallback, status, className }: MessageAvatarProps) {
+function MessageAvatar({
+  src,
+  alt,
+  fallback,
+  status,
+  className,
+}: MessageAvatarProps) {
   return (
     <div className="relative flex-shrink-0">
-      <Avatar className={cn('size-10 rounded-full', className)}>
+      <Avatar className={cn("size-10 rounded-full", className)}>
         <Avatar.Image src={src} alt={alt} />
         <Avatar.Fallback className="text-sm font-medium">
           {fallback || alt?.slice(0, 2).toUpperCase()}
@@ -252,15 +349,21 @@ interface MessageHeaderProps {
   className?: string;
 }
 
-function MessageHeader({ author, timestamp, isEdited, roleColor, className }: MessageHeaderProps) {
+function MessageHeader({
+  author,
+  timestamp,
+  isEdited,
+  roleColor,
+  className,
+}: MessageHeaderProps) {
   const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
-  const timeStr = new Intl.DateTimeFormat('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
+  const timeStr = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
   }).format(date);
 
   return (
-    <div className={cn('flex items-baseline gap-2', className)}>
+    <div className={cn("flex items-baseline gap-2", className)}>
       <span
         className="font-medium text-sm hover:underline cursor-pointer"
         style={roleColor ? { color: roleColor } : undefined}
@@ -272,13 +375,15 @@ function MessageHeader({ author, timestamp, isEdited, roleColor, className }: Me
           <span className="text-xs text-muted-foreground/70">{timeStr}</span>
         </Tooltip.Trigger>
         <Tooltip.Content>
-          {new Intl.DateTimeFormat('en-US', {
-            dateStyle: 'full',
-            timeStyle: 'short',
+          {new Intl.DateTimeFormat("en-US", {
+            dateStyle: "full",
+            timeStyle: "short",
           }).format(date)}
         </Tooltip.Content>
       </Tooltip>
-      {isEdited && <span className="text-xs text-muted-foreground/50">(edited)</span>}
+      {isEdited && (
+        <span className="text-xs text-muted-foreground/50">(edited)</span>
+      )}
     </div>
   );
 }
@@ -289,7 +394,11 @@ interface MessageContentProps {
 }
 
 function MessageContent({ children, className }: MessageContentProps) {
-  return <div className={cn('text-sm leading-relaxed break-words', className)}>{children}</div>;
+  return (
+    <div className={cn("text-sm leading-relaxed break-words", className)}>
+      {children}
+    </div>
+  );
 }
 
 // Compact timestamp for consecutive messages
@@ -306,21 +415,21 @@ function MessageTimestamp({ timestamp, className }: MessageTimestampProps) {
       <Tooltip.Trigger asChild>
         <span
           className={cn(
-            'absolute left-0 top-1 w-14 text-[10px] text-muted-foreground/50 text-right pr-2',
-            'opacity-0 group-hover/message:opacity-100 transition-opacity',
-            className,
+            "absolute left-0 top-1 w-14 text-[10px] text-muted-foreground/50 text-right pr-2",
+            "opacity-0 group-hover/message:opacity-100 transition-opacity",
+            className
           )}
         >
-          {new Intl.DateTimeFormat('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
+          {new Intl.DateTimeFormat("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
           }).format(date)}
         </span>
       </Tooltip.Trigger>
       <Tooltip.Content>
-        {new Intl.DateTimeFormat('en-US', {
-          dateStyle: 'full',
-          timeStyle: 'short',
+        {new Intl.DateTimeFormat("en-US", {
+          dateStyle: "full",
+          timeStyle: "short",
         }).format(date)}
       </Tooltip.Content>
     </Tooltip>
@@ -357,15 +466,20 @@ function MessageActions({
   return (
     <div
       className={cn(
-        'absolute -top-4 right-2 opacity-0 group-hover/message:opacity-100',
-        'transition-opacity bg-background border rounded-md shadow-lg',
-        'flex items-center p-0.5 gap-0.5',
-        className,
+        "absolute -top-4 right-2 opacity-0 group-hover/message:opacity-100",
+        "transition-opacity bg-background border rounded-md shadow-lg",
+        "flex items-center p-0.5 gap-0.5",
+        className
       )}
     >
       <Tooltip>
         <Tooltip.Trigger asChild>
-          <Button variant="ghost" size="icon" className="size-7" onClick={onReact}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-7"
+            onClick={onReact}
+          >
             <SmileIcon className="size-4" />
           </Button>
         </Tooltip.Trigger>
@@ -374,7 +488,12 @@ function MessageActions({
 
       <Tooltip>
         <Tooltip.Trigger asChild>
-          <Button variant="ghost" size="icon" className="size-7" onClick={onReply}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-7"
+            onClick={onReply}
+          >
             <ReplyIcon className="size-4" />
           </Button>
         </Tooltip.Trigger>
@@ -436,21 +555,25 @@ interface MessageReactionsProps {
   className?: string;
 }
 
-function MessageReactions({ reactions, onReact, className }: MessageReactionsProps) {
+function MessageReactions({
+  reactions,
+  onReact,
+  className,
+}: MessageReactionsProps) {
   if (reactions.length === 0) return null;
 
   return (
-    <div className={cn('flex flex-wrap gap-1 mt-1', className)}>
+    <div className={cn("flex flex-wrap gap-1 mt-1", className)}>
       {reactions.map((reaction) => (
         <button
           key={reaction.emoji}
           onClick={() => onReact?.(reaction.emoji)}
           className={cn(
-            'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs',
-            'border transition-colors',
+            "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs",
+            "border transition-colors",
             reaction.reacted
-              ? 'bg-primary/10 border-primary/30 text-primary'
-              : 'bg-muted/50 border-transparent hover:bg-muted',
+              ? "bg-primary/10 border-primary/30 text-primary"
+              : "bg-muted/50 border-transparent hover:bg-muted"
           )}
         >
           <span>{reaction.emoji}</span>
@@ -459,10 +582,10 @@ function MessageReactions({ reactions, onReact, className }: MessageReactionsPro
       ))}
       <button
         className={cn(
-          'inline-flex items-center justify-center size-6 rounded-full',
-          'border border-dashed border-muted-foreground/30',
-          'text-muted-foreground/50 hover:text-muted-foreground hover:border-muted-foreground/50',
-          'transition-colors',
+          "inline-flex items-center justify-center size-6 rounded-full",
+          "border border-dashed border-muted-foreground/30",
+          "text-muted-foreground/50 hover:text-muted-foreground hover:border-muted-foreground/50",
+          "transition-colors"
         )}
       >
         <SmileIcon className="size-3" />
@@ -482,14 +605,19 @@ interface ReplyPreviewProps {
   className?: string;
 }
 
-function ReplyPreview({ author, content, onClick, className }: ReplyPreviewProps) {
+function ReplyPreview({
+  author,
+  content,
+  onClick,
+  className,
+}: ReplyPreviewProps) {
   return (
     <button
       onClick={onClick}
       className={cn(
-        'flex items-center gap-2 text-xs text-muted-foreground mb-1 pl-14',
-        'hover:text-foreground transition-colors',
-        className,
+        "flex items-center gap-2 text-xs text-muted-foreground mb-1 pl-14",
+        "hover:text-foreground transition-colors",
+        className
       )}
     >
       <div className="flex items-center gap-1">
@@ -515,13 +643,13 @@ function DateSeparator({ date, className }: DateSeparatorProps) {
   const dateObj = date instanceof Date ? date : new Date(date);
 
   return (
-    <div className={cn('flex items-center gap-4 my-4', className)}>
+    <div className={cn("flex items-center gap-4 my-4", className)}>
       <Separator className="flex-1" />
       <span className="text-xs font-semibold text-muted-foreground px-2">
-        {new Intl.DateTimeFormat('en-US', {
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric',
+        {new Intl.DateTimeFormat("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
         }).format(dateObj)}
       </span>
       <Separator className="flex-1" />
@@ -539,15 +667,19 @@ interface NewMessagesIndicatorProps {
   className?: string;
 }
 
-function NewMessagesIndicator({ count, onClick, className }: NewMessagesIndicatorProps) {
+function NewMessagesIndicator({
+  count,
+  onClick,
+  className,
+}: NewMessagesIndicatorProps) {
   return (
-    <div className={cn('flex items-center gap-4 my-2', className)}>
+    <div className={cn("flex items-center gap-4 my-2", className)}>
       <Separator className="flex-1 bg-destructive/50" />
       <button
         onClick={onClick}
         className="text-xs font-semibold text-destructive px-2 hover:underline"
       >
-        {count} new message{count !== 1 ? 's' : ''}
+        {count} new message{count !== 1 ? "s" : ""}
       </button>
       <Separator className="flex-1 bg-destructive/50" />
     </div>
@@ -574,12 +706,15 @@ function TypingIndicator({ users, className }: TypingIndicatorProps) {
   } else if (users.length === 3) {
     text = `${users[0]}, ${users[1]}, and ${users[2]} are typing...`;
   } else {
-    text = 'Several people are typing...';
+    text = "Several people are typing...";
   }
 
   return (
     <div
-      className={cn('flex items-center gap-2 px-4 py-1 text-xs text-muted-foreground', className)}
+      className={cn(
+        "flex items-center gap-2 px-4 py-1 text-xs text-muted-foreground",
+        className
+      )}
     >
       <div className="flex gap-1">
         <span className="size-1.5 rounded-full bg-muted-foreground animate-bounce [animation-delay:-0.3s]" />
@@ -595,14 +730,18 @@ function TypingIndicator({ users, className }: TypingIndicatorProps) {
 // Chat Input / Toolbar
 // =============================================================================
 
-function ChatToolbar({ children, className, ...props }: React.ComponentProps<'div'>) {
+function ChatToolbar({
+  children,
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
   return (
-    <div className={cn('px-4 pb-4 pt-0', className)} {...props}>
+    <div className={cn("px-4 pb-4 pt-0", className)} {...props}>
       <div
         className={cn(
-          'bg-muted/50 rounded-lg border',
-          'focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background',
-          'transition-shadow',
+          "bg-muted/50 rounded-lg border",
+          "focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background",
+          "transition-shadow"
         )}
       >
         {children}
@@ -611,20 +750,32 @@ function ChatToolbar({ children, className, ...props }: React.ComponentProps<'di
   );
 }
 
-function ChatToolbarRow({ children, className, ...props }: React.ComponentProps<'div'>) {
+function ChatToolbarRow({
+  children,
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
   return (
-    <div className={cn('flex items-center gap-1 px-2', className)} {...props}>
+    <div className={cn("flex items-center gap-1 px-2", className)} {...props}>
       {children}
     </div>
   );
 }
 
-function ChatToolbarButton({ tooltip, children, className, ...props }: ChatHeaderButtonProps) {
+function ChatToolbarButton({
+  tooltip,
+  children,
+  className,
+  ...props
+}: ChatHeaderButtonProps) {
   const button = (
     <Button
       variant="ghost"
       size="icon"
-      className={cn('size-8 text-muted-foreground hover:text-foreground', className)}
+      className={cn(
+        "size-8 text-muted-foreground hover:text-foreground",
+        className
+      )}
       {...props}
     >
       {children}
@@ -643,16 +794,19 @@ function ChatToolbarButton({ tooltip, children, className, ...props }: ChatHeade
   return button;
 }
 
-function ChatToolbarTextarea({ className, ...props }: React.ComponentProps<typeof Textarea>) {
+function ChatToolbarTextarea({
+  className,
+  ...props
+}: React.ComponentProps<typeof Textarea>) {
   return (
     <Textarea
       placeholder="Message #channel"
       className={cn(
-        'min-h-11 max-h-40 px-3 py-2.5 text-sm resize-none',
-        'border-0 bg-transparent shadow-none',
-        'focus-visible:ring-0 focus-visible:ring-offset-0',
-        'placeholder:text-muted-foreground/60',
-        className,
+        "min-h-11 max-h-40 px-3 py-2.5 text-sm resize-none",
+        "border-0 bg-transparent shadow-none",
+        "focus-visible:ring-0 focus-visible:ring-offset-0",
+        "placeholder:text-muted-foreground/60",
+        className
       )}
       rows={1}
       {...props}
@@ -661,7 +815,9 @@ function ChatToolbarTextarea({ className, ...props }: React.ComponentProps<typeo
 }
 
 function ChatToolbarDivider({ className }: { className?: string }) {
-  return <Separator orientation="vertical" className={cn('h-6 mx-1', className)} />;
+  return (
+    <Separator orientation="vertical" className={cn("h-6 mx-1", className)} />
+  );
 }
 
 // =============================================================================
@@ -686,7 +842,7 @@ function ChatInput({
   channelName,
 }: ChatInputProps) {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (value.trim()) {
         onSend();
@@ -705,7 +861,9 @@ function ChatInput({
         value={value}
         onChange={(e) => onChange((e.target as HTMLTextAreaElement).value)}
         onKeyDown={handleKeyDown}
-        placeholder={placeholder || `Message ${channelName ? `#${channelName}` : ''}`}
+        placeholder={
+          placeholder || `Message ${channelName ? `#${channelName}` : ""}`
+        }
         disabled={disabled}
       />
       <ChatToolbarRow className="pb-1">
@@ -713,7 +871,7 @@ function ChatInput({
           <SmileIcon className="size-5" />
         </ChatToolbarButton>
         <ChatToolbarButton tooltip="Send GIF">
-          <GifIcon className="size-5" />
+          <FilmIcon className="size-5" />
         </ChatToolbarButton>
         <ChatToolbarButton tooltip="Upload image">
           <ImageIcon className="size-5" />
@@ -730,6 +888,92 @@ function ChatInput({
         </Button>
       </ChatToolbarRow>
     </ChatToolbar>
+  );
+}
+
+// =============================================================================
+// Primary Message Component (First message in a group - with avatar)
+// =============================================================================
+
+interface PrimaryMessageProps {
+  senderName: string;
+  content: React.ReactNode;
+  timestamp: number | Date;
+  avatarSrc?: string;
+  avatarAlt?: string;
+  avatarFallback?: string;
+  status?: StatusType;
+  roleColor?: string;
+  isEdited?: boolean;
+  className?: string;
+}
+
+function PrimaryMessage({
+  senderName,
+  content,
+  timestamp,
+  avatarSrc,
+  avatarAlt,
+  avatarFallback,
+  status,
+  roleColor,
+  isEdited,
+  className,
+}: PrimaryMessageProps) {
+  return (
+    <MessageGroup className={className}>
+      <Message isFirst>
+        <MessageAvatar
+          src={avatarSrc}
+          alt={avatarAlt ?? senderName}
+          fallback={avatarFallback}
+          status={status}
+        />
+        <div className="flex-1 min-w-0">
+          <MessageHeader
+            author={senderName}
+            timestamp={timestamp}
+            isEdited={isEdited}
+            roleColor={roleColor}
+          />
+          <MessageContent>{content}</MessageContent>
+        </div>
+      </Message>
+    </MessageGroup>
+  );
+}
+
+// =============================================================================
+// Additional Message Component (Follow-up message - no avatar)
+// =============================================================================
+
+interface AdditionalMessageProps {
+  content: React.ReactNode;
+  timestamp: number | Date;
+  isEdited?: boolean;
+  className?: string;
+}
+
+function AdditionalMessage({
+  content,
+  timestamp,
+  isEdited,
+  className,
+}: AdditionalMessageProps) {
+  return (
+    <MessageGroup className={className}>
+      <Message isFirst={false}>
+        <div className="flex-1 min-w-0">
+          <MessageContent>{content}</MessageContent>
+          {isEdited && (
+            <span className="text-xs text-muted-foreground/50 ml-1">
+              (edited)
+            </span>
+          )}
+        </div>
+      </Message>
+      <MessageTimestamp timestamp={timestamp} />
+    </MessageGroup>
   );
 }
 
@@ -781,10 +1025,16 @@ function FullMessage({
 }: FullMessageProps) {
   return (
     <MessageGroup className={className}>
-      {replyTo && <ReplyPreview author={replyTo.author} content={replyTo.content} />}
+      {replyTo && (
+        <ReplyPreview author={replyTo.author} content={replyTo.content} />
+      )}
       <Message isFirst={isFirst}>
         {isFirst && (
-          <MessageAvatar src={author.avatarUrl} alt={author.name} status={author.status} />
+          <MessageAvatar
+            src={author.avatarUrl}
+            alt={author.name}
+            status={author.status}
+          />
         )}
         <div className="flex-1 min-w-0">
           {isFirst && (
@@ -815,21 +1065,32 @@ function FullMessage({
 // Channel/Room List Sidebar Components
 // =============================================================================
 
-function ChannelList({ children, className, ...props }: React.ComponentProps<'div'>) {
+function ChannelList({
+  children,
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
   return (
-    <div className={cn('flex flex-col h-full bg-muted/30', className)} {...props}>
+    <div
+      className={cn("flex flex-col h-full bg-muted/30", className)}
+      {...props}
+    >
       {children}
     </div>
   );
 }
 
-function ChannelListHeader({ children, className, ...props }: React.ComponentProps<'div'>) {
+function ChannelListHeader({
+  children,
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
   return (
     <div
       className={cn(
-        'h-12 min-h-12 px-4 flex items-center justify-between',
-        'border-b shadow-sm font-semibold',
-        className,
+        "h-12 min-h-12 px-4 flex items-center justify-between",
+        "border-b shadow-sm font-semibold",
+        className
       )}
       {...props}
     >
@@ -838,15 +1099,19 @@ function ChannelListHeader({ children, className, ...props }: React.ComponentPro
   );
 }
 
-function ChannelListSection({ children, className, ...props }: React.ComponentProps<'div'>) {
+function ChannelListSection({
+  children,
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
   return (
-    <div className={cn('py-2', className)} {...props}>
+    <div className={cn("py-2", className)} {...props}>
       {children}
     </div>
   );
 }
 
-interface ChannelListSectionTitleProps extends React.ComponentProps<'button'> {
+interface ChannelListSectionTitleProps extends React.ComponentProps<"button"> {
   collapsed?: boolean;
 }
 
@@ -859,19 +1124,21 @@ function ChannelListSectionTitle({
   return (
     <button
       className={cn(
-        'w-full flex items-center gap-1 px-2 py-1 text-xs font-semibold text-muted-foreground',
-        'uppercase tracking-wide hover:text-foreground transition-colors',
-        className,
+        "w-full flex items-center gap-1 px-2 py-1 text-xs font-semibold text-muted-foreground",
+        "uppercase tracking-wide hover:text-foreground transition-colors",
+        className
       )}
       {...props}
     >
-      <ChevronDownIcon className={cn('size-3 transition-transform', collapsed && '-rotate-90')} />
+      <ChevronDownIcon
+        className={cn("size-3 transition-transform", collapsed && "-rotate-90")}
+      />
       {children}
     </button>
   );
 }
 
-interface ChannelListItemProps extends React.ComponentProps<'button'> {
+interface ChannelListItemProps extends React.ComponentProps<"button"> {
   icon?: React.ReactNode;
   active?: boolean;
   unread?: boolean;
@@ -890,20 +1157,26 @@ function ChannelListItem({
   return (
     <button
       className={cn(
-        'w-full flex items-center gap-2 px-2 py-1.5 mx-2 rounded-md',
-        'text-sm transition-colors',
+        "w-full flex items-center gap-2 px-2 py-1.5 mx-2 rounded-md",
+        "text-sm transition-colors",
         active
-          ? 'bg-accent text-accent-foreground'
+          ? "bg-accent text-accent-foreground"
           : unread
-            ? 'text-foreground hover:bg-accent/50'
-            : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground',
-        muted && 'opacity-50',
-        className,
+          ? "text-foreground hover:bg-accent/50"
+          : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+        muted && "opacity-50",
+        className
       )}
       {...props}
     >
-      <span className="text-muted-foreground">{icon || <HashIcon className="size-4" />}</span>
-      <span className={cn('flex-1 truncate text-left', unread && 'font-semibold')}>{children}</span>
+      <span className="text-muted-foreground">
+        {icon || <HashIcon className="size-4" />}
+      </span>
+      <span
+        className={cn("flex-1 truncate text-left", unread && "font-semibold")}
+      >
+        {children}
+      </span>
     </button>
   );
 }
@@ -912,17 +1185,27 @@ function ChannelListItem({
 // Member List Sidebar Components
 // =============================================================================
 
-function MemberList({ children, className, ...props }: React.ComponentProps<'div'>) {
+function MemberList({
+  children,
+  className,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <ScrollArea className={cn('w-60 border-l bg-muted/20', className)} {...props}>
+    <ScrollArea className={cn("w-60 border-l bg-muted/20", className)}>
       <div className="py-4">{children}</div>
     </ScrollArea>
   );
 }
 
-function MemberListSection({ children, className, ...props }: React.ComponentProps<'div'>) {
+function MemberListSection({
+  children,
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
   return (
-    <div className={cn('mb-4', className)} {...props}>
+    <div className={cn("mb-4", className)} {...props}>
       {children}
     </div>
   );
@@ -933,12 +1216,12 @@ function MemberListSectionTitle({
   count,
   className,
   ...props
-}: React.ComponentProps<'div'> & { count?: number }) {
+}: React.ComponentProps<"div"> & { count?: number }) {
   return (
     <div
       className={cn(
-        'px-4 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide',
-        className,
+        "px-4 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide",
+        className
       )}
       {...props}
     >
@@ -948,7 +1231,7 @@ function MemberListSectionTitle({
   );
 }
 
-interface MemberListItemProps extends React.ComponentProps<'button'> {
+interface MemberListItemProps extends React.ComponentProps<"button"> {
   avatarUrl?: string;
   name: string;
   status?: StatusType;
@@ -959,7 +1242,7 @@ interface MemberListItemProps extends React.ComponentProps<'button'> {
 function MemberListItem({
   avatarUrl,
   name,
-  status = 'offline',
+  status = "offline",
   role,
   roleColor,
   className,
@@ -968,17 +1251,19 @@ function MemberListItem({
   return (
     <button
       className={cn(
-        'w-full flex items-center gap-3 px-4 py-1.5 rounded-md mx-2',
-        'hover:bg-accent/50 transition-colors',
-        status === 'offline' && 'opacity-50',
-        className,
+        "w-full flex items-center gap-3 px-4 py-1.5 rounded-md mx-2",
+        "hover:bg-accent/50 transition-colors",
+        status === "offline" && "opacity-50",
+        className
       )}
       {...props}
     >
       <div className="relative">
         <Avatar className="size-8">
           <Avatar.Image src={avatarUrl} alt={name} />
-          <Avatar.Fallback className="text-xs">{name.slice(0, 2).toUpperCase()}</Avatar.Fallback>
+          <Avatar.Fallback className="text-xs">
+            {name.slice(0, 2).toUpperCase()}
+          </Avatar.Fallback>
         </Avatar>
         <StatusBadge status={status} className="size-2.5" />
       </div>
@@ -989,7 +1274,9 @@ function MemberListItem({
         >
           {name}
         </div>
-        {role && <div className="text-xs text-muted-foreground truncate">{role}</div>}
+        {role && (
+          <div className="text-xs text-muted-foreground truncate">{role}</div>
+        )}
       </div>
     </button>
   );
@@ -1008,6 +1295,9 @@ export const Chat = Object.assign(ChatRoot, {
     Divider: ChatHeaderDivider,
     Actions: ChatHeaderActions,
     Button: ChatHeaderButton,
+    Start: ChatHeaderStart,
+    Main: ChatHeaderMain,
+    End: ChatHeaderEnd,
   }),
 
   // Messages area
@@ -1024,6 +1314,8 @@ export const Chat = Object.assign(ChatRoot, {
     Reactions: MessageReactions,
   }),
   FullMessage,
+  PrimaryMessage,
+  AdditionalMessage,
   ReplyPreview,
   DateSeparator,
   NewMessagesIndicator,

@@ -588,7 +588,7 @@ function useResponseAnalysis(responseId: string) {
       analysesResult: Result.isSuccess(analysesResult)
         ? `${analysesResult.value.length} analyses`
         : "loading/error",
-      hasAnalysis: !!analysis,
+      hasAnalysis: Boolean(analysis),
       retryCount,
     });
   }, [responseId, responsesResult, analysesResult, analysis, retryCount]);
@@ -694,7 +694,7 @@ function useResponseAnalysis(responseId: string) {
     isDataLoading,
     isAnalyzing,
     analysisError,
-    hasAnalysis: !!analysis,
+    hasAnalysis: Boolean(analysis),
     artistData,
     winnerId,
   };

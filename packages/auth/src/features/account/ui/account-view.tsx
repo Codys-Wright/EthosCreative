@@ -1,11 +1,16 @@
-import { cn, Button } from '@shadcn';
-import { Link } from '@tanstack/react-router';
-import { AccountSettingsCards } from './account-settings-cards.js';
-import { SecuritySettingsCards } from './security-settings-cards.js';
-import { OrganizationsCard } from '@auth/features/organization/ui/organizations-card.js';
-import { UserInvitationsCard } from '@auth/features/invitation/ui/user-invitations-card.js';
+import { cn, Button } from "@shadcn";
+import { Link } from "@tanstack/react-router";
+import { AccountSettingsCards } from "./account-settings-cards.js";
+import { SecuritySettingsCards } from "./security-settings-cards.js";
+import { OrganizationsCard } from "@auth/features/organization/ui/organizations-card.js";
+import { UserInvitationsCard } from "@auth/features/invitation/ui/user-invitations-card.js";
 
-export type AccountViewPath = 'SETTINGS' | 'SECURITY' | 'TEAMS' | 'API_KEYS' | 'ORGANIZATIONS';
+export type AccountViewPath =
+  | "SETTINGS"
+  | "SECURITY"
+  | "TEAMS"
+  | "API_KEYS"
+  | "ORGANIZATIONS";
 
 export interface AccountViewProps {
   className?: string;
@@ -38,11 +43,11 @@ export interface AccountViewProps {
 }
 
 const viewPaths: Record<AccountViewPath, string> = {
-  SETTINGS: 'settings',
-  SECURITY: 'security',
-  TEAMS: 'teams',
-  API_KEYS: 'api-keys',
-  ORGANIZATIONS: 'organizations',
+  SETTINGS: "settings",
+  SECURITY: "security",
+  TEAMS: "teams",
+  API_KEYS: "api-keys",
+  ORGANIZATIONS: "organizations",
 };
 
 /**
@@ -73,27 +78,29 @@ export function AccountView({
   showTeams = false,
   showOrganizations = true,
   showSecurity = true,
-  basePath = '/account',
+  basePath = "/account",
 }: AccountViewProps) {
   // Determine current view from pathname or prop
-  const path = pathname?.split('/').pop();
-  const view = viewProp || getViewByPath(path) || 'SETTINGS';
+  const path = pathname?.split("/").pop();
+  const view = viewProp || getViewByPath(path) || "SETTINGS";
 
   // Build nav items based on feature flags
   const navItems: { view: AccountViewPath; label: string }[] = [
-    { view: 'SETTINGS', label: 'Account' },
-    ...(showSecurity ? [{ view: 'SECURITY' as const, label: 'Security' }] : []),
+    { view: "SETTINGS", label: "Account" },
+    ...(showSecurity ? [{ view: "SECURITY" as const, label: "Security" }] : []),
     // TODO: Conditionally show based on feature flags
     // { view: 'TEAMS', label: 'Teams' },
-    ...(showOrganizations ? [{ view: 'ORGANIZATIONS' as const, label: 'Organizations' }] : []),
+    ...(showOrganizations
+      ? [{ view: "ORGANIZATIONS" as const, label: "Organizations" }]
+      : []),
   ];
 
   return (
     <div
       className={cn(
-        'flex w-full grow flex-col gap-4 md:flex-row md:gap-12',
+        "flex w-full grow flex-col gap-4 md:flex-row md:gap-12",
         className,
-        classNames?.base,
+        classNames?.base
       )}
     >
       {/* Mobile Navigation */}
@@ -109,16 +116,25 @@ export function AccountView({
       {/* Desktop Sidebar Navigation */}
       {!hideNav && (
         <div className="hidden md:block">
-          <div className={cn('flex w-48 flex-col gap-1 lg:w-60', classNames?.sidebar?.base)}>
+          <div
+            className={cn(
+              "flex w-48 flex-col gap-1 lg:w-60",
+              classNames?.sidebar?.base
+            )}
+          >
             {navItems.map((item) => (
-              <Link key={item.view} to={`${basePath}/${viewPaths[item.view]}`}>
+              <Link
+                key={item.view}
+                to="/account/$accountView"
+                params={{ accountView: viewPaths[item.view] }}
+              >
                 <Button
                   size="lg"
                   className={cn(
-                    'w-full justify-start px-4 transition-none',
+                    "w-full justify-start px-4 transition-none",
                     classNames?.sidebar?.button,
-                    view === item.view ? 'font-semibold' : 'text-foreground/70',
-                    view === item.view && classNames?.sidebar?.buttonActive,
+                    view === item.view ? "font-semibold" : "text-foreground/70",
+                    view === item.view && classNames?.sidebar?.buttonActive
                   )}
                   variant="ghost"
                 >
@@ -131,11 +147,11 @@ export function AccountView({
       )}
 
       {/* Content Area */}
-      <div className={cn('flex-1', classNames?.cards)}>
-        {view === 'SETTINGS' && <AccountSettingsCards />}
-        {view === 'SECURITY' && showSecurity && <SecuritySettingsCards />}
-        {view === 'TEAMS' && showTeams && <TeamsPlaceholder />}
-        {view === 'ORGANIZATIONS' && showOrganizations && (
+      <div className={cn("flex-1", classNames?.cards)}>
+        {view === "SETTINGS" && <AccountSettingsCards />}
+        {view === "SECURITY" && showSecurity && <SecuritySettingsCards />}
+        {view === "TEAMS" && showTeams && <TeamsPlaceholder />}
+        {view === "ORGANIZATIONS" && showOrganizations && (
           <div className="space-y-4 md:space-y-6">
             <OrganizationsCard />
             <UserInvitationsCard />
