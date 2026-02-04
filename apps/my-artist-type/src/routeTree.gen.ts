@@ -219,10 +219,10 @@ export interface FileRoutesByFullPath {
   '/example/$featureId': typeof ExampleFeatureIdRoute
   '/my-response/$responseId': typeof MyResponseResponseIdRoute
   '/organization/$organizationView': typeof OrganizationOrganizationViewRoute
-  '/account': typeof AccountIndexRoute
-  '/artist-types': typeof ArtistTypesIndexRoute
-  '/example': typeof ExampleIndexRoute
-  '/organization': typeof OrganizationIndexRoute
+  '/account/': typeof AccountIndexRoute
+  '/artist-types/': typeof ArtistTypesIndexRoute
+  '/example/': typeof ExampleIndexRoute
+  '/organization/': typeof OrganizationIndexRoute
   '/admin/responses/$responseId': typeof AdminResponsesResponseIdRouteWithChildren
   '/admin/responses/$responseId_new': typeof AdminResponsesResponseId_newRoute
   '/admin/responses/$responseId/analysis': typeof AdminResponsesResponseIdAnalysisRoute
@@ -318,10 +318,10 @@ export interface FileRouteTypes {
     | '/example/$featureId'
     | '/my-response/$responseId'
     | '/organization/$organizationView'
-    | '/account'
-    | '/artist-types'
-    | '/example'
-    | '/organization'
+    | '/account/'
+    | '/artist-types/'
+    | '/example/'
+    | '/organization/'
     | '/admin/responses/$responseId'
     | '/admin/responses/$responseId_new'
     | '/admin/responses/$responseId/analysis'
@@ -508,28 +508,28 @@ declare module '@tanstack/react-router' {
     '/organization/': {
       id: '/organization/'
       path: '/organization'
-      fullPath: '/organization'
+      fullPath: '/organization/'
       preLoaderRoute: typeof OrganizationIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/example/': {
       id: '/example/'
       path: '/example'
-      fullPath: '/example'
+      fullPath: '/example/'
       preLoaderRoute: typeof ExampleIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/artist-types/': {
       id: '/artist-types/'
       path: '/artist-types'
-      fullPath: '/artist-types'
+      fullPath: '/artist-types/'
       preLoaderRoute: typeof ArtistTypesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/account/': {
       id: '/account/'
       path: '/account'
-      fullPath: '/account'
+      fullPath: '/account/'
       preLoaderRoute: typeof AccountIndexRouteImport
       parentRoute: typeof rootRouteImport
     }

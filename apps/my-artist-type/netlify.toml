@@ -1,7 +1,7 @@
 [build]
-  command = "bun install --no-save && cd apps/my-artist-type && bun run build"
+  command = "cd apps/my-artist-type && bun run build"
   publish = ".output/public"
 
 [build.environment]
   NODE_VERSION = "20"
-  NPM_FLAGS = "--prefix=/dev/null"
+  BUN_INSTALL_DISABLE_CACHE = "true"
