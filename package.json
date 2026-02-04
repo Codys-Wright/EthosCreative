@@ -4,7 +4,7 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "prepare": "node -e \"if (process.env.CI !== 'true') require('husky')()\" || true",
+    "prepare": "husky || true",
     "clean": "node scripts/clean.mjs",
     "clean:node": "node scripts/clean-node-modules.mjs",
     "build": "bun --filter @my-artist-type/domain build && bun --filter @my-artist-type/database build && bun --filter @my-artist-type/web build && bun --filter @my-artist-type/server build",
