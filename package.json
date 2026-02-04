@@ -4,7 +4,7 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "prepare": "husky",
+    "prepare": "node -e \"if (process.env.CI !== 'true') require('husky')()\" || true",
     "clean": "node scripts/clean.mjs",
     "clean:node": "node scripts/clean-node-modules.mjs",
     "build": "bun --filter @my-artist-type/domain build && bun --filter @my-artist-type/database build && bun --filter @my-artist-type/web build && bun --filter @my-artist-type/server build",
@@ -190,9 +190,8 @@
     }
   ],
   "patchedDependencies": {
-    "srvx@0.9.7@0.9.7": "patches/srvx@0.9.7.patch",
-    "nitro@3.0.1-alpha.1@3.0.1-alpha.1": "patches/nitro@3.0.1-alpha.1.patch",
-    "@netlify/config@24.1.1": "patches/@netlify__config@24.1.1.patch"
+    "srvx@0.9.7": "patches/srvx@0.9.7.patch",
+    "nitro@3.0.1-alpha.1": "patches/nitro@3.0.1-alpha.1.patch"
   },
   "workspaces": [
     "apps/*",
