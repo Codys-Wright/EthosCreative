@@ -1,6 +1,15 @@
 import { createFileRoute, useSearch } from '@tanstack/react-router';
-import { MyResponsePage, MyResponsePageLoading, decodeResultsFromShare } from '@quiz';
+import { MyResponsePage, MyResponsePageLoading, decodeResultsFromShare, type ArtistData } from '@quiz';
 import React from 'react';
+
+/**
+ * Decoded results from a shared URL
+ */
+type DecodedResults = {
+  artistData: ArtistData[];
+  winnerId: string;
+  sharedAt?: Date;
+};
 
 /**
  * Shared Results route - displays quiz results decoded from URL parameter.
@@ -20,11 +29,7 @@ export const Route = createFileRoute('/results')({
 
 function ResultsPageWrapper() {
   const { d } = useSearch({ from: '/results' });
-  const [decodedResults, setDecodedResults] = React.useState<{
-    artistData: any[];
-    winnerId: string;
-    sharedAt?: Date;
-  } | null>(null);
+  const [decodedResults, setDecodedResults] = React.useState<DecodedResults | null>(null);
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
@@ -33,13 +38,16 @@ function ResultsPageWrapper() {
       return;
     }
 
-    const decoded = decodeResultsFromShare(d);
-    if (!decoded) {
-      setError('Failed to decode results from URL');
-      return;
+    try {
+      const decoded = decodeResultsFromShare(d);
+      if (!decoded) {
+        setError('Failed to decode results from URL');
+        return;
+      }
+      setDecodedResults(decoded);
+    } catch {
+      setError('Invalid or corrupted results data');
     }
-
-    setDecodedResults(decoded);
   }, [d]);
 
   if (error) {

@@ -2,10 +2,6 @@ import { AccountView } from '@auth';
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/account/$accountView')({
-  beforeLoad: async ({ context }) => {
-    // Get session from context if available, otherwise check atom state
-    // For SSR, we need to handle the case where session isn't hydrated yet
-  },
   component: AccountPage,
 });
 

@@ -78,9 +78,6 @@ function SessionCard() {
 function ArtistTypesCard() {
   const artistTypesResult = useAtomValue(artistTypesAtom);
 
-  // Log the result for debugging
-  console.log('[ArtistTypesCard] Result:', artistTypesResult);
-
   return (
     <Card>
       <Card.Header>
