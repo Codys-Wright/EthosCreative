@@ -10,22 +10,33 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TestRouteImport } from './routes/test'
-import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as MessagesRouteImport } from './routes/messages'
+import { Route as CourseSlugRouteImport } from './routes/$courseSlug'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as LessonLessonIdRouteImport } from './routes/lesson.$lessonId'
+import { Route as CourseSlugIndexRouteImport } from './routes/$courseSlug/index'
 import { Route as AuthAuthViewRouteImport } from './routes/auth/$authView'
+import { Route as ApiMessagesRouteImport } from './routes/api/messages'
+import { Route as ApiDemoEventsRouteImport } from './routes/api/demo-events'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
 import { Route as AccountAccountViewRouteImport } from './routes/account/$accountView'
+import { Route as CourseSlugDashboardRouteImport } from './routes/$courseSlug/dashboard'
+import { Route as CourseSlugAdminRouteImport } from './routes/$courseSlug/admin'
 import { Route as LessonLessonIdEditRouteImport } from './routes/lesson_.$lessonId.edit'
+import { Route as CourseSlugLessonLessonIdRouteImport } from './routes/$courseSlug/lesson.$lessonId'
 
 const TestRoute = TestRouteImport.update({
   id: '/test',
   path: '/test',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const MessagesRoute = MessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CourseSlugRoute = CourseSlugRouteImport.update({
+  id: '/$courseSlug',
+  path: '/$courseSlug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -33,14 +44,24 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LessonLessonIdRoute = LessonLessonIdRouteImport.update({
-  id: '/lesson/$lessonId',
-  path: '/lesson/$lessonId',
-  getParentRoute: () => rootRouteImport,
+const CourseSlugIndexRoute = CourseSlugIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CourseSlugRoute,
 } as any)
 const AuthAuthViewRoute = AuthAuthViewRouteImport.update({
   id: '/auth/$authView',
   path: '/auth/$authView',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMessagesRoute = ApiMessagesRouteImport.update({
+  id: '/api/messages',
+  path: '/api/messages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDemoEventsRoute = ApiDemoEventsRouteImport.update({
+  id: '/api/demo-events',
+  path: '/api/demo-events',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSplatRoute = ApiSplatRouteImport.update({
@@ -53,84 +74,136 @@ const AccountAccountViewRoute = AccountAccountViewRouteImport.update({
   path: '/account/$accountView',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CourseSlugDashboardRoute = CourseSlugDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => CourseSlugRoute,
+} as any)
+const CourseSlugAdminRoute = CourseSlugAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => CourseSlugRoute,
+} as any)
 const LessonLessonIdEditRoute = LessonLessonIdEditRouteImport.update({
   id: '/lesson_/$lessonId/edit',
   path: '/lesson/$lessonId/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CourseSlugLessonLessonIdRoute =
+  CourseSlugLessonLessonIdRouteImport.update({
+    id: '/lesson/$lessonId',
+    path: '/lesson/$lessonId',
+    getParentRoute: () => CourseSlugRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
+  '/$courseSlug': typeof CourseSlugRouteWithChildren
+  '/messages': typeof MessagesRoute
   '/test': typeof TestRoute
+  '/$courseSlug/admin': typeof CourseSlugAdminRoute
+  '/$courseSlug/dashboard': typeof CourseSlugDashboardRoute
   '/account/$accountView': typeof AccountAccountViewRoute
   '/api/$': typeof ApiSplatRoute
+  '/api/demo-events': typeof ApiDemoEventsRoute
+  '/api/messages': typeof ApiMessagesRoute
   '/auth/$authView': typeof AuthAuthViewRoute
-  '/lesson/$lessonId': typeof LessonLessonIdRoute
+  '/$courseSlug/': typeof CourseSlugIndexRoute
+  '/$courseSlug/lesson/$lessonId': typeof CourseSlugLessonLessonIdRoute
   '/lesson/$lessonId/edit': typeof LessonLessonIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
+  '/messages': typeof MessagesRoute
   '/test': typeof TestRoute
+  '/$courseSlug/admin': typeof CourseSlugAdminRoute
+  '/$courseSlug/dashboard': typeof CourseSlugDashboardRoute
   '/account/$accountView': typeof AccountAccountViewRoute
   '/api/$': typeof ApiSplatRoute
+  '/api/demo-events': typeof ApiDemoEventsRoute
+  '/api/messages': typeof ApiMessagesRoute
   '/auth/$authView': typeof AuthAuthViewRoute
-  '/lesson/$lessonId': typeof LessonLessonIdRoute
+  '/$courseSlug': typeof CourseSlugIndexRoute
+  '/$courseSlug/lesson/$lessonId': typeof CourseSlugLessonLessonIdRoute
   '/lesson/$lessonId/edit': typeof LessonLessonIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
+  '/$courseSlug': typeof CourseSlugRouteWithChildren
+  '/messages': typeof MessagesRoute
   '/test': typeof TestRoute
+  '/$courseSlug/admin': typeof CourseSlugAdminRoute
+  '/$courseSlug/dashboard': typeof CourseSlugDashboardRoute
   '/account/$accountView': typeof AccountAccountViewRoute
   '/api/$': typeof ApiSplatRoute
+  '/api/demo-events': typeof ApiDemoEventsRoute
+  '/api/messages': typeof ApiMessagesRoute
   '/auth/$authView': typeof AuthAuthViewRoute
-  '/lesson/$lessonId': typeof LessonLessonIdRoute
+  '/$courseSlug/': typeof CourseSlugIndexRoute
+  '/$courseSlug/lesson/$lessonId': typeof CourseSlugLessonLessonIdRoute
   '/lesson_/$lessonId/edit': typeof LessonLessonIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/dashboard'
+    | '/$courseSlug'
+    | '/messages'
     | '/test'
+    | '/$courseSlug/admin'
+    | '/$courseSlug/dashboard'
     | '/account/$accountView'
     | '/api/$'
+    | '/api/demo-events'
+    | '/api/messages'
     | '/auth/$authView'
-    | '/lesson/$lessonId'
+    | '/$courseSlug/'
+    | '/$courseSlug/lesson/$lessonId'
     | '/lesson/$lessonId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/dashboard'
+    | '/messages'
     | '/test'
+    | '/$courseSlug/admin'
+    | '/$courseSlug/dashboard'
     | '/account/$accountView'
     | '/api/$'
+    | '/api/demo-events'
+    | '/api/messages'
     | '/auth/$authView'
-    | '/lesson/$lessonId'
+    | '/$courseSlug'
+    | '/$courseSlug/lesson/$lessonId'
     | '/lesson/$lessonId/edit'
   id:
     | '__root__'
     | '/'
-    | '/dashboard'
+    | '/$courseSlug'
+    | '/messages'
     | '/test'
+    | '/$courseSlug/admin'
+    | '/$courseSlug/dashboard'
     | '/account/$accountView'
     | '/api/$'
+    | '/api/demo-events'
+    | '/api/messages'
     | '/auth/$authView'
-    | '/lesson/$lessonId'
+    | '/$courseSlug/'
+    | '/$courseSlug/lesson/$lessonId'
     | '/lesson_/$lessonId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DashboardRoute: typeof DashboardRoute
+  CourseSlugRoute: typeof CourseSlugRouteWithChildren
+  MessagesRoute: typeof MessagesRoute
   TestRoute: typeof TestRoute
   AccountAccountViewRoute: typeof AccountAccountViewRoute
   ApiSplatRoute: typeof ApiSplatRoute
+  ApiDemoEventsRoute: typeof ApiDemoEventsRoute
+  ApiMessagesRoute: typeof ApiMessagesRoute
   AuthAuthViewRoute: typeof AuthAuthViewRoute
-  LessonLessonIdRoute: typeof LessonLessonIdRoute
   LessonLessonIdEditRoute: typeof LessonLessonIdEditRoute
 }
 
@@ -143,11 +216,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TestRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
+    '/messages': {
+      id: '/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof MessagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$courseSlug': {
+      id: '/$courseSlug'
+      path: '/$courseSlug'
+      fullPath: '/$courseSlug'
+      preLoaderRoute: typeof CourseSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -157,18 +237,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lesson/$lessonId': {
-      id: '/lesson/$lessonId'
-      path: '/lesson/$lessonId'
-      fullPath: '/lesson/$lessonId'
-      preLoaderRoute: typeof LessonLessonIdRouteImport
-      parentRoute: typeof rootRouteImport
+    '/$courseSlug/': {
+      id: '/$courseSlug/'
+      path: '/'
+      fullPath: '/$courseSlug/'
+      preLoaderRoute: typeof CourseSlugIndexRouteImport
+      parentRoute: typeof CourseSlugRoute
     }
     '/auth/$authView': {
       id: '/auth/$authView'
       path: '/auth/$authView'
       fullPath: '/auth/$authView'
       preLoaderRoute: typeof AuthAuthViewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/messages': {
+      id: '/api/messages'
+      path: '/api/messages'
+      fullPath: '/api/messages'
+      preLoaderRoute: typeof ApiMessagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/demo-events': {
+      id: '/api/demo-events'
+      path: '/api/demo-events'
+      fullPath: '/api/demo-events'
+      preLoaderRoute: typeof ApiDemoEventsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/$': {
@@ -185,6 +279,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountAccountViewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$courseSlug/dashboard': {
+      id: '/$courseSlug/dashboard'
+      path: '/dashboard'
+      fullPath: '/$courseSlug/dashboard'
+      preLoaderRoute: typeof CourseSlugDashboardRouteImport
+      parentRoute: typeof CourseSlugRoute
+    }
+    '/$courseSlug/admin': {
+      id: '/$courseSlug/admin'
+      path: '/admin'
+      fullPath: '/$courseSlug/admin'
+      preLoaderRoute: typeof CourseSlugAdminRouteImport
+      parentRoute: typeof CourseSlugRoute
+    }
     '/lesson_/$lessonId/edit': {
       id: '/lesson_/$lessonId/edit'
       path: '/lesson/$lessonId/edit'
@@ -192,17 +300,44 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LessonLessonIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$courseSlug/lesson/$lessonId': {
+      id: '/$courseSlug/lesson/$lessonId'
+      path: '/lesson/$lessonId'
+      fullPath: '/$courseSlug/lesson/$lessonId'
+      preLoaderRoute: typeof CourseSlugLessonLessonIdRouteImport
+      parentRoute: typeof CourseSlugRoute
+    }
   }
 }
 
+interface CourseSlugRouteChildren {
+  CourseSlugAdminRoute: typeof CourseSlugAdminRoute
+  CourseSlugDashboardRoute: typeof CourseSlugDashboardRoute
+  CourseSlugIndexRoute: typeof CourseSlugIndexRoute
+  CourseSlugLessonLessonIdRoute: typeof CourseSlugLessonLessonIdRoute
+}
+
+const CourseSlugRouteChildren: CourseSlugRouteChildren = {
+  CourseSlugAdminRoute: CourseSlugAdminRoute,
+  CourseSlugDashboardRoute: CourseSlugDashboardRoute,
+  CourseSlugIndexRoute: CourseSlugIndexRoute,
+  CourseSlugLessonLessonIdRoute: CourseSlugLessonLessonIdRoute,
+}
+
+const CourseSlugRouteWithChildren = CourseSlugRoute._addFileChildren(
+  CourseSlugRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DashboardRoute: DashboardRoute,
+  CourseSlugRoute: CourseSlugRouteWithChildren,
+  MessagesRoute: MessagesRoute,
   TestRoute: TestRoute,
   AccountAccountViewRoute: AccountAccountViewRoute,
   ApiSplatRoute: ApiSplatRoute,
+  ApiDemoEventsRoute: ApiDemoEventsRoute,
+  ApiMessagesRoute: ApiMessagesRoute,
   AuthAuthViewRoute: AuthAuthViewRoute,
-  LessonLessonIdRoute: LessonLessonIdRoute,
   LessonLessonIdEditRoute: LessonLessonIdEditRoute,
 }
 export const routeTree = rootRouteImport

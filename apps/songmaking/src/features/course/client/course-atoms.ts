@@ -3,119 +3,264 @@
  *
  * Effect Atom-based state management for course data,
  * lesson progress, and UI state.
+ *
+ * Uses a course slug atom to support multiple courses.
+ * All derived atoms read from the registry based on current slug.
  */
 
-import { Atom, useAtomValue, useAtomSet } from '@effect-atom/atom-react';
-import * as Data from 'effect/Data';
-import * as Option from 'effect/Option';
-import {
-  type Section,
-  type Lesson,
-  type LessonId,
-  type SectionId,
-  type LessonPart,
-  SONGMAKING_COURSE,
-  SONGMAKING_SECTIONS,
-  SONGMAKING_LESSONS,
-  SONGMAKING_LESSON_PARTS,
-  getSectionLessons,
-  getLessonById,
-  getSectionById,
-  getLessonParts,
-  getNextLesson,
-  getPreviousLesson,
-  MOCK_PROGRESS,
-} from '../../../data/course.js';
-import { LessonId as LessonIdBrand, SectionId as SectionIdBrand } from '@course';
+import { Atom } from "@effect-atom/atom-react";
+import * as Data from "effect/Data";
+import * as Option from "effect/Option";
+import type {
+  Course,
+  Section,
+  Lesson,
+  LessonPart,
+  LessonId,
+  SectionId,
+  Path,
+  PathId,
+} from "@course";
 
-// =============================================================================
-// Local Progress Type (simplified for UI state)
-// =============================================================================
-
-interface LocalLessonProgress {
-  lessonId: LessonId;
-  status: 'not_started' | 'in_progress' | 'completed';
+/**
+ * Client-side lesson progress type (simplified from server schema)
+ */
+export interface ClientLessonProgress {
+  lessonId: string;
+  status: "not_started" | "in_progress" | "completed";
   progressPercent: number;
   completedAt?: string;
 }
-
-// Re-export lesson parts atom and helper
-export { SONGMAKING_LESSON_PARTS, getLessonParts };
-export type { LessonPart };
+import {
+  getCourseBySlug,
+  type CourseData,
+} from "../../../data/course-registry.js";
 
 // =============================================================================
-// Course Data Atoms (Derived from static data for now)
+// Course Slug Atom - The root of all course-specific state
 // =============================================================================
 
 /**
- * Course atom - returns the main course data
+ * Current course slug atom - set by the route layout
+ * This drives all other course-related atoms
  */
-export const courseAtom = Atom.make(SONGMAKING_COURSE).pipe(Atom.keepAlive);
+export const courseSlugAtom = Atom.make<string>("songmaking").pipe(
+  Atom.keepAlive
+);
+
+// =============================================================================
+// Course Data Atoms (Derived from slug + registry)
+// =============================================================================
 
 /**
- * Sections atom - returns all sections
+ * Current course data atom - derived from slug
+ * Returns the full CourseData object from the registry
  */
-export const sectionsAtom = Atom.make(SONGMAKING_SECTIONS).pipe(Atom.keepAlive);
+export const courseDataAtom = Atom.make((get): CourseData | undefined => {
+  const slug = get(courseSlugAtom);
+  return getCourseBySlug(slug);
+}).pipe(Atom.keepAlive);
 
 /**
- * Lessons atom - returns all lessons
+ * Course atom - returns the Course object
  */
-export const lessonsAtom = Atom.make(SONGMAKING_LESSONS).pipe(Atom.keepAlive);
+export const courseAtom = Atom.make((get): Course => {
+  const data = get(courseDataAtom);
+  if (!data) throw new Error("Course not found");
+  return data.course;
+});
+
+/**
+ * Sections atom - returns all sections for current course
+ */
+export const sectionsAtom = Atom.make((get): ReadonlyArray<Section> => {
+  const data = get(courseDataAtom);
+  return data?.sections ?? [];
+});
+
+/**
+ * Lessons atom - returns all lessons for current course
+ */
+export const lessonsAtom = Atom.make((get): ReadonlyArray<Lesson> => {
+  const data = get(courseDataAtom);
+  return data?.lessons ?? [];
+});
+
+/**
+ * Lesson parts atom - returns all lesson parts for current course
+ */
+export const lessonPartsAtom = Atom.make((get): ReadonlyArray<LessonPart> => {
+  const data = get(courseDataAtom);
+  return data?.lessonParts ?? [];
+});
+
+/**
+ * Paths atom - returns all paths for current course (may be empty)
+ */
+export const pathsAtom = Atom.make((get): ReadonlyArray<Path> => {
+  const data = get(courseDataAtom);
+  return data?.paths ?? [];
+});
+
+/**
+ * Is example course atom
+ */
+export const isExampleAtom = Atom.make((get): boolean => {
+  const data = get(courseDataAtom);
+  return data?.isExample ?? false;
+});
+
+/**
+ * Requires admin atom
+ */
+export const requiresAdminAtom = Atom.make((get): boolean => {
+  const data = get(courseDataAtom);
+  return data?.requiresAdmin ?? false;
+});
+
+// =============================================================================
+// Course Helper Functions (accessed via atoms)
+// =============================================================================
+
+/**
+ * Get section lessons atom factory
+ */
+export const sectionLessonsAtom = (sectionId: string) =>
+  Atom.make((get): ReadonlyArray<Lesson> => {
+    const data = get(courseDataAtom);
+    if (!data) return [];
+    return data.getSectionLessons(sectionId as SectionId);
+  });
+
+/**
+ * Get lesson by ID atom factory
+ */
+export const lessonByIdAtom = (lessonId: string) =>
+  Atom.make((get): Lesson | undefined => {
+    const data = get(courseDataAtom);
+    if (!data) return undefined;
+    return data.getLessonById(lessonId as LessonId);
+  });
+
+/**
+ * Get section by ID atom factory
+ */
+export const sectionByIdAtom = (sectionId: string) =>
+  Atom.make((get): Section | undefined => {
+    const data = get(courseDataAtom);
+    if (!data) return undefined;
+    return data.getSectionById(sectionId as SectionId);
+  });
+
+/**
+ * Get lesson parts atom factory
+ */
+export const lessonPartsForLessonAtom = (lessonId: string) =>
+  Atom.make((get): ReadonlyArray<LessonPart> => {
+    const data = get(courseDataAtom);
+    if (!data) return [];
+    return data.getLessonParts(lessonId as LessonId);
+  });
+
+/**
+ * Get next lesson atom factory
+ */
+export const nextLessonForAtom = (lessonId: string) =>
+  Atom.make((get): Lesson | undefined => {
+    const data = get(courseDataAtom);
+    if (!data) return undefined;
+    return data.getNextLesson(lessonId as LessonId);
+  });
+
+/**
+ * Get previous lesson atom factory
+ */
+export const previousLessonForAtom = (lessonId: string) =>
+  Atom.make((get): Lesson | undefined => {
+    const data = get(courseDataAtom);
+    if (!data) return undefined;
+    return data.getPreviousLesson(lessonId as LessonId);
+  });
+
+/**
+ * Get path by ID atom factory
+ */
+export const pathByIdAtom = (pathId: string) =>
+  Atom.make((get): Path | undefined => {
+    const data = get(courseDataAtom);
+    if (!data || !data.getPathById) return undefined;
+    return data.getPathById(pathId as PathId);
+  });
+
+/**
+ * Get path lessons atom factory
+ */
+export const pathLessonsAtom = (pathId: string) =>
+  Atom.make((get): ReadonlyArray<Lesson> => {
+    const data = get(courseDataAtom);
+    if (!data || !data.getPathLessons) return [];
+    return data.getPathLessons(pathId as PathId);
+  });
 
 // =============================================================================
 // Progress Atoms
 // =============================================================================
 
-type ProgressMap = Map<string, LessonProgress>;
-
 /**
  * Progress update action type
  */
-type ProgressUpdate = Data.TaggedEnum<{
+export type ProgressUpdate = Data.TaggedEnum<{
   MarkComplete: { lessonId: string };
   MarkInProgress: { lessonId: string; progressPercent: number };
   Reset: { lessonId: string };
 }>;
 
+export const ProgressUpdate = Data.taggedEnum<ProgressUpdate>();
+
+type ProgressMap = Map<string, ClientLessonProgress>;
+
 /**
- * Internal store for progress
+ * Internal store for progress - keyed by lessonId
+ * In the future, this will be fetched from the server per user
  */
-const progressStoreAtom = Atom.make<ProgressMap>(new Map(MOCK_PROGRESS)).pipe(Atom.keepAlive);
+const progressStoreAtom = Atom.make<ProgressMap>(new Map()).pipe(
+  Atom.keepAlive
+);
 
 /**
  * Progress atom - writable atom for lesson progress
- * This will later be connected to the server
  */
-export const progressAtom: Atom.Writable<ProgressMap, ProgressUpdate> = Atom.writable(
-  (get) => get(progressStoreAtom),
-  (ctx, update: ProgressUpdate) => {
-    const current = ctx.get(progressStoreAtom);
-    const newMap = new Map(current);
+export const progressAtom: Atom.Writable<ProgressMap, ProgressUpdate> =
+  Atom.writable(
+    (get) => get(progressStoreAtom),
+    (ctx, update: ProgressUpdate) => {
+      const current = ctx.get(progressStoreAtom);
+      const newMap = new Map(current);
 
-    switch (update._tag) {
-      case 'MarkComplete':
-        newMap.set(update.lessonId, {
-          lessonId: update.lessonId,
-          status: 'completed',
-          progressPercent: 100,
-          completedAt: new Date().toISOString(),
-        });
-        break;
-      case 'MarkInProgress':
-        newMap.set(update.lessonId, {
-          lessonId: update.lessonId,
-          status: 'in_progress',
-          progressPercent: update.progressPercent,
-        });
-        break;
-      case 'Reset':
-        newMap.delete(update.lessonId);
-        break;
+      switch (update._tag) {
+        case "MarkComplete":
+          newMap.set(update.lessonId, {
+            lessonId: update.lessonId,
+            status: "completed",
+            progressPercent: 100,
+            completedAt: new Date().toISOString(),
+          });
+          break;
+        case "MarkInProgress":
+          newMap.set(update.lessonId, {
+            lessonId: update.lessonId,
+            status: "in_progress",
+            progressPercent: update.progressPercent,
+          });
+          break;
+        case "Reset":
+          newMap.delete(update.lessonId);
+          break;
+      }
+
+      ctx.set(progressStoreAtom, newMap);
     }
-
-    ctx.set(progressStoreAtom, newMap);
-  },
-);
+  );
 
 /**
  * Get progress for a specific lesson
@@ -134,7 +279,7 @@ export const courseProgressAtom = Atom.make((get) => {
   const lessons = get(lessonsAtom);
 
   const completedCount = Array.from(progress.values()).filter(
-    (p) => p.status === 'completed',
+    (p) => p.status === "completed"
   ).length;
 
   return {
@@ -154,9 +299,11 @@ export const courseProgressAtom = Atom.make((get) => {
 export const sectionProgressAtom = (sectionId: string) =>
   Atom.make((get) => {
     const progress = get(progressAtom);
-    const lessons = getSectionLessons(sectionId);
+    const lessons = get(sectionLessonsAtom(sectionId));
 
-    const completedCount = lessons.filter((l) => progress.get(l.id)?.status === 'completed').length;
+    const completedCount = lessons.filter(
+      (l) => progress.get(l.id)?.status === "completed"
+    ).length;
 
     return {
       completed: completedCount,
@@ -166,18 +313,179 @@ export const sectionProgressAtom = (sectionId: string) =>
   });
 
 // =============================================================================
+// Week / Course Order Atoms
+// =============================================================================
+
+import type {
+  Week,
+  WeekId,
+  CourseOrder,
+} from "../../../data/course-registry.js";
+
+/**
+ * Weeks atom - returns all weeks for current course (if course order exists)
+ */
+export const weeksAtom = Atom.make((get): ReadonlyArray<Week> => {
+  const data = get(courseDataAtom);
+  return data?.weeks ?? [];
+});
+
+/**
+ * Course order atom - returns the CourseOrder if available
+ */
+export const courseOrderAtom = Atom.make((get): CourseOrder | undefined => {
+  const data = get(courseDataAtom);
+  return data?.courseOrder;
+});
+
+/**
+ * Has course order atom - check if course uses week-based ordering
+ */
+export const hasCourseOrderAtom = Atom.make((get): boolean => {
+  const courseOrder = get(courseOrderAtom);
+  return courseOrder !== undefined;
+});
+
+/**
+ * Week by ID atom factory
+ */
+export const weekByIdAtom = (weekId: string) =>
+  Atom.make((get): Week | undefined => {
+    const data = get(courseDataAtom);
+    if (!data?.getWeekById) return undefined;
+    return data.getWeekById(weekId as WeekId);
+  });
+
+/**
+ * Week lessons atom factory - get lessons for a specific week
+ */
+export const weekLessonsAtom = (weekId: string) =>
+  Atom.make((get): ReadonlyArray<Lesson> => {
+    const data = get(courseDataAtom);
+    if (!data?.getWeekLessons) return [];
+    return data.getWeekLessons(weekId as WeekId);
+  });
+
+/**
+ * Ordered lessons atom - all lessons in course order
+ */
+export const orderedLessonsAtom = Atom.make((get): ReadonlyArray<Lesson> => {
+  const data = get(courseDataAtom);
+  if (!data?.getOrderedLessons) {
+    // Fallback to section-based order
+    return get(lessonsAtom);
+  }
+  return data.getOrderedLessons();
+});
+
+/**
+ * Get week for a specific lesson
+ */
+export const weekForLessonAtom = (lessonId: string) =>
+  Atom.make((get): Week | undefined => {
+    const data = get(courseDataAtom);
+    if (!data?.getWeekForLesson) return undefined;
+    return data.getWeekForLesson(lessonId as LessonId);
+  });
+
+/**
+ * Week progress atom factory
+ */
+export const weekProgressAtom = (weekId: string) =>
+  Atom.make((get) => {
+    const data = get(courseDataAtom);
+    const progress = get(progressAtom);
+
+    if (!data?.getWeekLessons) {
+      return { completed: 0, total: 0, percent: 0 };
+    }
+
+    const lessons = data.getWeekLessons(weekId as WeekId);
+    const completedCount = lessons.filter(
+      (l) => progress.get(l.id)?.status === "completed"
+    ).length;
+
+    return {
+      completed: completedCount,
+      total: lessons.length,
+      percent: lessons.length > 0 ? (completedCount / lessons.length) * 100 : 0,
+    };
+  });
+
+/**
+ * Expanded weeks update action type
+ */
+export type ExpandedWeeksUpdate = Data.TaggedEnum<{
+  Toggle: { weekId: string };
+  Expand: { weekId: string };
+  Collapse: { weekId: string };
+  ExpandAll: {};
+  CollapseAll: {};
+}>;
+
+export const ExpandedWeeksUpdate = Data.taggedEnum<ExpandedWeeksUpdate>();
+
+/**
+ * Internal store for expanded weeks
+ */
+const expandedWeeksStoreAtom = Atom.make<Set<string>>(new Set<string>()).pipe(
+  Atom.keepAlive
+);
+
+/**
+ * Expanded weeks atom (for sidebar week navigation)
+ */
+export const expandedWeeksAtom: Atom.Writable<
+  Set<string>,
+  ExpandedWeeksUpdate
+> = Atom.writable(
+  (get) => get(expandedWeeksStoreAtom),
+  (ctx, update: ExpandedWeeksUpdate) => {
+    const current = ctx.get(expandedWeeksStoreAtom);
+    const weeks = ctx.get(weeksAtom);
+    const newSet = new Set(current);
+
+    switch (update._tag) {
+      case "Toggle":
+        if (newSet.has(update.weekId)) {
+          newSet.delete(update.weekId);
+        } else {
+          newSet.add(update.weekId);
+        }
+        break;
+      case "Expand":
+        newSet.add(update.weekId);
+        break;
+      case "Collapse":
+        newSet.delete(update.weekId);
+        break;
+      case "ExpandAll":
+        weeks.forEach((w) => newSet.add(w.id));
+        break;
+      case "CollapseAll":
+        newSet.clear();
+        break;
+    }
+
+    ctx.set(expandedWeeksStoreAtom, newSet);
+  }
+);
+
+// =============================================================================
 // UI State Atoms
 // =============================================================================
 
 /**
  * Current lesson ID atom
  */
-export const currentLessonIdAtom = Atom.make<string | null>(null).pipe(Atom.keepAlive);
+export const currentLessonIdAtom = Atom.make<string | null>(null).pipe(
+  Atom.keepAlive
+);
 
 /**
  * Expanded sections update action type
  */
-type ExpandedSectionsUpdate = Data.TaggedEnum<{
+export type ExpandedSectionsUpdate = Data.TaggedEnum<{
   Toggle: { sectionId: string };
   Expand: { sectionId: string };
   Collapse: { sectionId: string };
@@ -185,11 +493,13 @@ type ExpandedSectionsUpdate = Data.TaggedEnum<{
   CollapseAll: {};
 }>;
 
+export const ExpandedSectionsUpdate = Data.taggedEnum<ExpandedSectionsUpdate>();
+
 /**
  * Internal store for expanded sections
  */
 const expandedSectionsStoreAtom = Atom.make<Set<string>>(
-  new Set([SONGMAKING_SECTIONS[0]?.id ?? '']),
+  new Set<string>()
 ).pipe(Atom.keepAlive);
 
 /**
@@ -202,32 +512,33 @@ export const expandedSectionsAtom: Atom.Writable<
   (get) => get(expandedSectionsStoreAtom),
   (ctx, update: ExpandedSectionsUpdate) => {
     const current = ctx.get(expandedSectionsStoreAtom);
+    const sections = ctx.get(sectionsAtom);
     const newSet = new Set(current);
 
     switch (update._tag) {
-      case 'Toggle':
+      case "Toggle":
         if (newSet.has(update.sectionId)) {
           newSet.delete(update.sectionId);
         } else {
           newSet.add(update.sectionId);
         }
         break;
-      case 'Expand':
+      case "Expand":
         newSet.add(update.sectionId);
         break;
-      case 'Collapse':
+      case "Collapse":
         newSet.delete(update.sectionId);
         break;
-      case 'ExpandAll':
-        SONGMAKING_SECTIONS.forEach((s) => newSet.add(s.id));
+      case "ExpandAll":
+        sections.forEach((s) => newSet.add(s.id));
         break;
-      case 'CollapseAll':
+      case "CollapseAll":
         newSet.clear();
         break;
     }
 
     ctx.set(expandedSectionsStoreAtom, newSet);
-  },
+  }
 );
 
 /**
@@ -245,7 +556,8 @@ export const sidebarOpenAtom = Atom.make(false).pipe(Atom.keepAlive);
 export const currentLessonAtom = Atom.make((get) => {
   const lessonId = get(currentLessonIdAtom);
   if (!lessonId) return Option.none<Lesson>();
-  return Option.fromNullable(getLessonById(lessonId));
+  const lesson = get(lessonByIdAtom(lessonId));
+  return Option.fromNullable(lesson);
 });
 
 /**
@@ -254,7 +566,8 @@ export const currentLessonAtom = Atom.make((get) => {
 export const currentSectionAtom = Atom.make((get) => {
   const lesson = get(currentLessonAtom);
   if (Option.isNone(lesson)) return Option.none<Section>();
-  return Option.fromNullable(getSectionById(lesson.value.sectionId));
+  const section = get(sectionByIdAtom(lesson.value.sectionId));
+  return Option.fromNullable(section);
 });
 
 /**
@@ -263,7 +576,8 @@ export const currentSectionAtom = Atom.make((get) => {
 export const nextLessonAtom = Atom.make((get) => {
   const lessonId = get(currentLessonIdAtom);
   if (!lessonId) return Option.none<Lesson>();
-  return Option.fromNullable(getNextLesson(lessonId));
+  const lesson = get(nextLessonForAtom(lessonId));
+  return Option.fromNullable(lesson);
 });
 
 /**
@@ -272,7 +586,8 @@ export const nextLessonAtom = Atom.make((get) => {
 export const previousLessonAtom = Atom.make((get) => {
   const lessonId = get(currentLessonIdAtom);
   if (!lessonId) return Option.none<Lesson>();
-  return Option.fromNullable(getPreviousLesson(lessonId));
+  const lesson = get(previousLessonForAtom(lessonId));
+  return Option.fromNullable(lesson);
 });
 
 /**
@@ -284,69 +599,40 @@ export const firstIncompleteLessonAtom = Atom.make((get) => {
 
   const firstIncomplete = lessons.find((l) => {
     const p = progress.get(l.id);
-    return !p || p.status !== 'completed';
+    return !p || p.status !== "completed";
   });
 
   return Option.fromNullable(firstIncomplete);
 });
 
 // =============================================================================
-// Hooks
+// Route Helpers Atom
 // =============================================================================
 
-/**
- * Hook to get course progress
- */
-export const useCourseProgress = () => useAtomValue(courseProgressAtom);
+export interface CourseRoutes {
+  home: string;
+  dashboard: string;
+  lesson: (lessonId: string) => string;
+  admin: string;
+  messages: string;
+}
 
 /**
- * Hook to get current lesson
+ * Course routes atom - generates route paths based on current slug
  */
-export const useCurrentLesson = () => useAtomValue(currentLessonAtom);
+export const courseRoutesAtom = Atom.make((get): CourseRoutes => {
+  const slug = get(courseSlugAtom);
+  return {
+    home: `/${slug}`,
+    dashboard: `/${slug}/dashboard`,
+    lesson: (lessonId: string) => `/${slug}/lesson/${lessonId}`,
+    admin: `/${slug}/admin`,
+    messages: `/${slug}/messages`,
+  };
+});
 
-/**
- * Hook to get sections
- */
-export const useSections = () => useAtomValue(sectionsAtom);
+// =============================================================================
+// Re-exports for convenience
+// =============================================================================
 
-/**
- * Hook to check if a section is expanded
- */
-export const useExpandedSections = () => useAtomValue(expandedSectionsAtom);
-
-/**
- * Hook to toggle section expansion
- */
-export const useToggleSection = () => {
-  const set = useAtomSet(expandedSectionsAtom);
-  return (sectionId: string) => set({ _tag: 'Toggle', sectionId });
-};
-
-/**
- * Hook to mark lesson as complete
- */
-export const useMarkLessonComplete = () => {
-  const set = useAtomSet(progressAtom);
-  return (lessonId: string) => set({ _tag: 'MarkComplete', lessonId });
-};
-
-/**
- * Hook to get sidebar open state
- */
-export const useSidebarOpen = () => useAtomValue(sidebarOpenAtom);
-
-/**
- * Hook to toggle sidebar
- */
-export const useToggleSidebar = () => {
-  const set = useAtomSet(sidebarOpenAtom);
-  return () => set((prev) => !prev);
-};
-
-/**
- * Hook to set sidebar open state
- */
-export const useSetSidebarOpen = () => {
-  const set = useAtomSet(sidebarOpenAtom);
-  return (open: boolean) => set(open);
-};
+export type { LessonPart };
