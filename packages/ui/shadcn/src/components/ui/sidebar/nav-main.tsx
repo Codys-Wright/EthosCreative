@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { IconCirclePlusFilled, type Icon } from '@tabler/icons-react';
+import { IconDashboard, type Icon } from "@tabler/icons-react";
 
-import { Badge } from '../badge.js';
-import { Sidebar } from './sidebar.js';
+import { Badge } from "../badge.js";
+import { Sidebar } from "./sidebar.js";
 
 export function NavMain({
   items,
@@ -23,12 +23,12 @@ export function NavMain({
           <Sidebar.MenuItem>
             <Sidebar.MenuButton
               asChild
-              tooltip="Quiz Editor"
+              tooltip="Dashboard"
               className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
             >
-              <a href="/admin/quiz-editor">
-                <IconCirclePlusFilled />
-                <span>Quiz Editor</span>
+              <a href="/admin">
+                <IconDashboard />
+                <span>Dashboard</span>
               </a>
             </Sidebar.MenuButton>
           </Sidebar.MenuItem>
@@ -46,14 +46,17 @@ export function NavMain({
                 >
                   {item.icon !== undefined && <item.icon />}
                   <span>{item.title}</span>
-                  {item.tooltip === 'Coming Soon!' && (
+                  {item.tooltip === "Coming Soon!" && (
                     <Badge variant="secondary" className="ml-auto text-xs">
                       Coming Soon!
                     </Badge>
                   )}
                 </Sidebar.MenuButton>
               ) : (
-                <Sidebar.MenuButton asChild tooltip={item.tooltip ?? item.title}>
+                <Sidebar.MenuButton
+                  asChild
+                  tooltip={item.tooltip ?? item.title}
+                >
                   <a href={item.url}>
                     {item.icon !== undefined && <item.icon />}
                     <span>{item.title}</span>
