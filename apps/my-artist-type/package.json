@@ -33,6 +33,7 @@
     "@example": "*",
     "@faker-js/faker": "*",
     "@hookform/resolvers": "*",
+    "@netlify/neon": "^0.1.2",
     "@radix-ui/react-accordion": "*",
     "@radix-ui/react-alert-dialog": "*",
     "@radix-ui/react-aspect-ratio": "*",

@@ -207,6 +207,7 @@
         "@example": "*",
         "@faker-js/faker": "*",
         "@hookform/resolvers": "*",
+        "@netlify/neon": "^0.1.2",
         "@radix-ui/react-accordion": "*",
         "@radix-ui/react-alert-dialog": "*",
         "@radix-ui/react-aspect-ratio": "*",
@@ -1643,6 +1644,8 @@
 
     "@napi-rs/wasm-runtime": ["@napi-rs/wasm-runtime@0.2.4", "", { "dependencies": { "@emnapi/core": "^1.1.0", "@emnapi/runtime": "^1.1.0", "@tybys/wasm-util": "^0.9.0" } }, "sha512-9zESzOO5aDByvhIAsOy9TbpZ0Ur2AJbUI7UT73kcUTS2mxAMHOBaa1st/jAymNoCtvrit99kkzT1FZuXVcgfIQ=="],
 
+    "@neondatabase/serverless": ["@neondatabase/serverless@1.0.2", "", { "dependencies": { "@types/node": "^22.15.30", "@types/pg": "^8.8.0" } }, "sha512-I5sbpSIAHiB+b6UttofhrN/UJXII+4tZPAq1qugzwCwLIL8EZLV7F/JyHUrEIiGgQpEXzpnjlJ+zwcEhheGvCw=="],
+
     "@netlify/ai": ["@netlify/ai@0.3.4", "", { "dependencies": { "@netlify/api": "^14.0.11" } }, "sha512-mV0RtkO5dOwbuqRn/Sn0aHIV4j6sw8B4F16WCx0GYBRcJ9IbBkzvuEzW0IDUbNE6hxu9FFs5WRDASDJpgDY1ZQ=="],
 
     "@netlify/api": ["@netlify/api@14.0.13", "", { "dependencies": { "@netlify/open-api": "^2.46.0", "node-fetch": "^3.0.0", "p-wait-for": "^5.0.0", "picoquery": "^2.5.0" } }, "sha512-WQczmnM/u2wcxk0G0rE36yTHzYzuPdByaKmJBVEZvZE0LC7VeHz8tBoX2EYpAuvjzczm8ez1ekZGjqTHK1+Osw=="],
@@ -1712,6 +1715,8 @@
     "@netlify/local-functions-proxy-win32-ia32": ["@netlify/local-functions-proxy-win32-ia32@1.1.1", "", { "os": "win32", "cpu": "ia32", "bin": { "local-functions-proxy.exe": "bin/local-functions-proxy.exe" } }, "sha512-4IOMDBxp2f8VbIkhZ85zGNDrZR4ey8d68fCMSOIwitjsnKav35YrCf8UmAh3UR6CNIRJdJL4MW1GYePJ7iJ8uA=="],
 
     "@netlify/local-functions-proxy-win32-x64": ["@netlify/local-functions-proxy-win32-x64@1.1.1", "", { "os": "win32", "cpu": "x64", "bin": { "local-functions-proxy.exe": "bin/local-functions-proxy.exe" } }, "sha512-VCBXBJWBujVxyo5f+3r8ovLc9I7wJqpmgDn3ixs1fvdrER5Ac+SzYwYH4mUug9HI08mzTSAKZErzKeuadSez3w=="],
+
+    "@netlify/neon": ["@netlify/neon@0.1.2", "", { "dependencies": { "@neondatabase/serverless": "1.x" } }, "sha512-F8+Dnu+nvGZruskblFwTopv/CUbHi2VOP4bJpDhRo85UFawZ/wMPmxnWQ0CLYwdAERU1OYoQyXOQM19HxAHjQQ=="],
 
     "@netlify/open-api": ["@netlify/open-api@2.47.0", "", {}, "sha512-jU2zBJVoVaFxyTVgSvDI6lbqv26ODz78yfCLSEdbtCTe5so+nsYep6Y0bNvazryhVrPjuLOutr+vyt78WQWm2A=="],
 
