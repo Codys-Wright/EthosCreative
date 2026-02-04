@@ -1,18 +1,18 @@
-import * as BunContext from '@effect/platform-bun/BunContext';
-import * as BunFileSystem from '@effect/platform-bun/BunFileSystem';
-import * as FileSystem from '@effect/platform/FileSystem';
-import * as PgClient from '@effect/sql-pg/PgClient';
-import * as PgMigrator from '@effect/sql-pg/PgMigrator';
-import * as SqlClient from '@effect/sql/SqlClient';
-import { PostgreSqlContainer } from '@testcontainers/postgresql';
-import * as Config from 'effect/Config';
-import * as Effect from 'effect/Effect';
-import { identity } from 'effect/Function';
-import * as Layer from 'effect/Layer';
-import * as Redacted from 'effect/Redacted';
-import * as Schema from 'effect/Schema';
-import * as Str from 'effect/String';
-import { types } from 'pg';
+import * as BunContext from "@effect/platform-bun/BunContext";
+import * as BunFileSystem from "@effect/platform-bun/BunFileSystem";
+import * as FileSystem from "@effect/platform/FileSystem";
+import * as PgClient from "@effect/sql-pg/PgClient";
+import * as PgMigrator from "@effect/sql-pg/PgMigrator";
+import * as SqlClient from "@effect/sql/SqlClient";
+import { PostgreSqlContainer } from "@testcontainers/postgresql";
+import * as Config from "effect/Config";
+import * as Effect from "effect/Effect";
+import { identity } from "effect/Function";
+import * as Layer from "effect/Layer";
+import * as Redacted from "effect/Redacted";
+import * as Schema from "effect/Schema";
+import * as Str from "effect/String";
+import { types } from "pg";
 
 types.setTypeParser(types.builtins.DATE, identity);
 types.setTypeParser(types.builtins.TIMESTAMP, identity);
@@ -30,28 +30,28 @@ export const pgConfig: PgClient.PgClientConfig = {
 
 export const PgLive = Layer.unwrapEffect(
   Effect.gen(function* () {
-    const databaseUrl = yield* Config.redacted('DATABASE_URL');
+    const databaseUrl = yield* Config.redacted("DATABASE_URL");
 
     return PgClient.layer({
       url: databaseUrl,
-      idleTimeout: '10 seconds',
-      connectTimeout: '10 seconds',
+      idleTimeout: "10 seconds",
+      connectTimeout: "10 seconds",
       // Connection pool settings for better performance
       minConnections: 2,
       maxConnections: 10,
       ...pgConfig,
     });
-  }),
+  })
 ).pipe(Layer.orDie);
 
 // ===============================
 // Testcontainers
 // ===============================
 
-class PgContainer extends Effect.Service<PgContainer>()('PgContainer', {
+class PgContainer extends Effect.Service<PgContainer>()("PgContainer", {
   scoped: Effect.acquireRelease(
-    Effect.promise(() => new PostgreSqlContainer('postgres:alpine').start()),
-    (container) => Effect.promise(() => container.stop()),
+    Effect.promise(() => new PostgreSqlContainer("postgres:alpine").start()),
+    (container) => Effect.promise(() => container.stop())
   ),
 }) {}
 
@@ -66,7 +66,7 @@ export const makeApplySchemaDump = (schemaPath: string) =>
       const fs = yield* FileSystem.FileSystem;
       const schema = yield* fs.readFileString(schemaPath);
       yield* sql.unsafe(schema);
-    }),
+    })
   ).pipe(Layer.provide(BunFileSystem.layer), Layer.orDie);
 
 const PgClientTest = Layer.unwrapEffect(
@@ -76,7 +76,7 @@ const PgClientTest = Layer.unwrapEffect(
       url: Redacted.make(container.getConnectionUri()),
       ...pgConfig,
     });
-  }),
+  })
 ).pipe(Layer.provide(PgContainer.Default), Layer.orDie);
 
 /**
@@ -100,23 +100,25 @@ export const makePgTestMigrations = (loader: PgMigrator.Loader) =>
         ...pgConfig,
       });
       const fsLayer = Layer.merge(BunFileSystem.layer, BunContext.layer);
-      yield* PgMigrator.run({ loader }).pipe(Effect.provide(clientLayer), Effect.provide(fsLayer));
+      const combinedLayer = Layer.merge(clientLayer, fsLayer);
+      yield* PgMigrator.run({ loader }).pipe(Effect.provide(combinedLayer));
       return clientLayer;
-    }),
+    })
   ).pipe(Layer.provide(PgContainer.Default), Layer.orDie);
 
 // ===============================
 // Test Utils
 // ===============================
 
-class TransactionRollback extends Schema.TaggedError<TransactionRollback>('TestRollback')(
-  'TestRollback',
-  {
-    value: Schema.Any,
-  },
-) {}
+class TransactionRollback extends Schema.TaggedError<TransactionRollback>(
+  "TestRollback"
+)("TestRollback", {
+  value: Schema.Any,
+}) {}
 
-export const withTransactionRollback = <A, E, R>(self: Effect.Effect<A, E, R>) =>
+export const withTransactionRollback = <A, E, R>(
+  self: Effect.Effect<A, E, R>
+) =>
   Effect.gen(function* () {
     const sql = yield* SqlClient.SqlClient;
     return yield* sql
@@ -124,9 +126,11 @@ export const withTransactionRollback = <A, E, R>(self: Effect.Effect<A, E, R>) =
         Effect.gen(function* () {
           const value = yield* self;
           return yield* new TransactionRollback({ value });
-        }),
+        })
       )
       .pipe(
-        Effect.catchIf(Schema.is(TransactionRollback), (error) => Effect.succeed(error.value as A)),
+        Effect.catchIf(Schema.is(TransactionRollback), (error) =>
+          Effect.succeed(error.value as A)
+        )
       );
   });
