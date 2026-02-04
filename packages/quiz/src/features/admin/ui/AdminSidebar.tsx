@@ -1,30 +1,28 @@
-'use client';
+"use client";
 
-import { Atom, Result, useAtomValue } from '@effect-atom/atom-react';
-import * as BrowserKeyValueStore from '@effect/platform-browser/BrowserKeyValueStore';
+import { Atom, Result, useAtomValue } from "@effect-atom/atom-react";
+import * as BrowserKeyValueStore from "@effect/platform-browser/BrowserKeyValueStore";
 import {
-  IconBuilding,
-  IconChartBar,
-  IconDashboard,
   IconEdit,
-  IconFileText,
   IconPlayerPlay,
   IconSettings,
   IconUsers,
-} from '@tabler/icons-react';
-import * as Schema from 'effect/Schema';
-import * as React from 'react';
+} from "@tabler/icons-react";
+import * as Schema from "effect/Schema";
+import * as React from "react";
 
-import { sessionAtom } from '@auth';
-import { NavMain, NavSecondary, NavUser, Sidebar, Skeleton } from '@shadcn';
+import { sessionAtom } from "@auth";
+import { NavMain, NavSecondary, NavUser, Sidebar, Skeleton } from "@shadcn";
 
 // Create a runtime for localStorage atoms
-const localStorageRuntime = Atom.runtime(BrowserKeyValueStore.layerLocalStorage);
+const localStorageRuntime = Atom.runtime(
+  BrowserKeyValueStore.layerLocalStorage
+);
 
 // Admin sidebar visibility atom using localStorage
 export const adminSidebarVisibleAtom = Atom.kvs({
   runtime: localStorageRuntime,
-  key: 'admin-sidebar-visible',
+  key: "admin-sidebar-visible",
   schema: Schema.Boolean,
   defaultValue: () => true,
 });
@@ -32,56 +30,28 @@ export const adminSidebarVisibleAtom = Atom.kvs({
 const adminNavData = {
   navMain: [
     {
-      title: 'Dashboard',
-      url: '/admin',
-      icon: IconDashboard,
-    },
-    {
-      title: 'Current Quiz',
-      url: '/admin/current-quiz',
+      title: "Current Quiz",
+      url: "/admin/current-quiz",
       icon: IconPlayerPlay,
     },
     {
-      title: 'Quiz Editor',
-      url: '/admin/quiz-editor',
+      title: "Quiz Editor",
+      url: "/admin/quiz-editor",
       icon: IconEdit,
     },
     {
-      title: 'Quiz Responses',
-      url: '/admin/responses',
-      icon: IconFileText,
-      disabled: true,
-      tooltip: 'Coming Soon!',
-    },
-    {
-      title: 'Analytics',
-      url: '/admin/analytics',
-      icon: IconChartBar,
-      disabled: true,
-      tooltip: 'Coming Soon!',
-    },
-    {
-      title: 'Users',
-      url: '/admin/users',
+      title: "Users",
+      url: "/admin/users",
       icon: IconUsers,
-      disabled: true,
-      tooltip: 'Authentication is disabled right now',
-    },
-    {
-      title: 'Organization',
-      url: '/admin/organizations',
-      icon: IconBuilding,
-      disabled: true,
-      tooltip: 'Authentication is disabled right now',
     },
   ],
   navSecondary: [
     {
-      title: 'Settings',
-      url: '/admin/settings',
+      title: "Settings",
+      url: "/admin/settings",
       icon: IconSettings,
       disabled: true,
-      tooltip: 'Authentication is disabled right now',
+      tooltip: "Coming Soon",
     },
   ],
 };
@@ -123,21 +93,26 @@ function NavUserWithSession() {
 
   const authUser = sessionResult.value.user;
   const user = {
-    name: authUser.name || 'Unknown User',
-    email: authUser.email || '',
-    avatar: authUser.image || '/placeholder-avatar.png',
+    name: authUser.name || "Unknown User",
+    email: authUser.email || "",
+    avatar: authUser.image || "/placeholder-avatar.png",
   };
 
   return <NavUser user={user} />;
 }
 
-export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AdminSidebar({
+  ...props
+}: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <Sidebar.Header>
         <Sidebar.Menu>
           <Sidebar.MenuItem>
-            <Sidebar.MenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
+            <Sidebar.MenuButton
+              asChild
+              className="data-[slot=sidebar-menu-button]:!p-1.5"
+            >
               <a href="/">
                 <img
                   src="/svgs/MyArtistTypeLogo.svg"

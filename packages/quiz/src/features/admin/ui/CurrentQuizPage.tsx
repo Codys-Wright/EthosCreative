@@ -1,263 +1,276 @@
-'use client';
+"use client";
 
-import { Result, useAtomSet, useAtomValue } from '@effect-atom/atom-react';
-import { IconCheck, IconPlayerPlay } from '@tabler/icons-react';
-import * as React from 'react';
+import { Result, useAtomSet, useAtomValue } from "@effect-atom/atom-react";
+import * as React from "react";
 
-import { AlertDialog, Badge, Button, Card, Select, Skeleton } from '@shadcn';
-import { enginesAtom } from '@quiz/features/analysis-engine/client/atoms.js';
-import { quizzesAtom, toggleQuizPublishAtom } from '@quiz/features/quiz/client/atoms.js';
+import { AlertDialog, Badge, Button, Card, Separator, Skeleton } from "@shadcn";
+import { enginesAtom } from "@quiz/features/analysis-engine/client/atoms.js";
+import {
+  quizzesAtom,
+  toggleQuizPublishAtom,
+} from "@quiz/features/quiz/client/atoms.js";
+import {
+  CheckIcon,
+  ChevronRightIcon,
+  RadioIcon,
+  RocketIcon,
+  ServerIcon,
+} from "lucide-react";
 
-/**
- * CurrentQuizPage - Manage which quiz and engine are live on the website
- */
+// ============================================================================
+// Loading State
+// ============================================================================
+
+function LoadingState() {
+  return (
+    <div className="p-6 space-y-4">
+      <Skeleton className="h-8 w-48" />
+      <Skeleton className="h-32" />
+      <Skeleton className="h-64" />
+    </div>
+  );
+}
+
+// ============================================================================
+// Main Component
+// ============================================================================
+
 export const CurrentQuizPage: React.FC = () => {
   const quizzesResult = useAtomValue(quizzesAtom);
   const enginesResult = useAtomValue(enginesAtom);
   const toggleQuizPublish = useAtomSet(toggleQuizPublishAtom, {
-    mode: 'promise',
+    mode: "promise",
   });
 
-  const [selectedQuizId, setSelectedQuizId] = React.useState<string>('');
   const [isPublishing, setIsPublishing] = React.useState(false);
-  const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
+  const [pendingQuizId, setPendingQuizId] = React.useState<string | null>(null);
 
   // Get non-temp quizzes only (permanent versions)
   const availableQuizzes = React.useMemo(() => {
     if (!Result.isSuccess(quizzesResult)) return [];
     return quizzesResult.value
-      .filter((q) => !q.isTemp && q.title === 'My Artist Type Quiz')
+      .filter((q) => !q.isTemp && q.title === "My Artist Type Quiz")
       .sort((a, b) => b.version.semver.localeCompare(a.version.semver));
   }, [quizzesResult]);
 
-  // Get the currently published quiz
-  const currentlyPublishedQuiz = React.useMemo(() => {
-    if (!Result.isSuccess(quizzesResult)) return undefined;
-    return quizzesResult.value.find((q) => q.isPublished && !q.isTemp);
-  }, [quizzesResult]);
-
-  // Get the engine associated with the selected quiz
-  const selectedQuizEngine = React.useMemo(() => {
-    if (!Result.isSuccess(enginesResult) || !selectedQuizId) return undefined;
-    return enginesResult.value.find((e) => e.quizId === selectedQuizId && !e.isTemp);
-  }, [enginesResult, selectedQuizId]);
-
-  // Get the currently published engine
-  const currentlyPublishedEngine = React.useMemo(() => {
-    if (!Result.isSuccess(enginesResult)) return undefined;
-    return enginesResult.value.find((e) => e.isPublished && !e.isTemp);
+  // Get all engines
+  const engines = React.useMemo(() => {
+    if (!Result.isSuccess(enginesResult)) return [];
+    return enginesResult.value.filter((e) => !e.isTemp);
   }, [enginesResult]);
 
-  // Set initial selection to currently published quiz
-  React.useEffect(() => {
-    if (currentlyPublishedQuiz && !selectedQuizId) {
-      setSelectedQuizId(currentlyPublishedQuiz.id);
-    }
-  }, [currentlyPublishedQuiz, selectedQuizId]);
+  // Get the currently published quiz
+  const currentlyPublishedQuiz = React.useMemo(() => {
+    return availableQuizzes.find((q) => q.isPublished);
+  }, [availableQuizzes]);
 
-  const selectedQuiz = availableQuizzes.find((q) => q.id === selectedQuizId);
-  const isCurrentlyPublished = selectedQuiz?.isPublished === true;
+  // Get engine for a quiz
+  const getEngineForQuiz = React.useCallback(
+    (quizId: string) => engines.find((e) => e.quizId === quizId),
+    [engines]
+  );
+
+  const currentEngine = currentlyPublishedQuiz
+    ? getEngineForQuiz(currentlyPublishedQuiz.id)
+    : undefined;
+
+  const pendingQuiz = pendingQuizId
+    ? availableQuizzes.find((q) => q.id === pendingQuizId)
+    : null;
 
   const handlePublish = async () => {
-    if (!selectedQuiz) return;
+    if (!pendingQuiz) return;
 
     setIsPublishing(true);
     try {
-      // First, unpublish the currently published quiz if different
-      if (currentlyPublishedQuiz && currentlyPublishedQuiz.id !== selectedQuiz.id) {
+      // Unpublish current if different
+      if (
+        currentlyPublishedQuiz &&
+        currentlyPublishedQuiz.id !== pendingQuiz.id
+      ) {
         await toggleQuizPublish({
           quiz: currentlyPublishedQuiz,
           isPublished: false,
         });
       }
 
-      // Publish the selected quiz
+      // Publish selected
       await toggleQuizPublish({
-        quiz: selectedQuiz,
+        quiz: pendingQuiz,
         isPublished: true,
       });
 
-      setShowConfirmDialog(false);
+      setPendingQuizId(null);
     } catch (error) {
-      console.error('Failed to publish quiz:', error);
+      console.error("Failed to publish quiz:", error);
     } finally {
       setIsPublishing(false);
     }
   };
 
-  const isLoading = !Result.isSuccess(quizzesResult) || !Result.isSuccess(enginesResult);
+  const isLoading =
+    !Result.isSuccess(quizzesResult) || !Result.isSuccess(enginesResult);
 
   if (isLoading) {
-    return (
-      <div className="p-6 space-y-6">
-        <div>
-          <Skeleton className="h-8 w-48 mb-2" />
-          <Skeleton className="h-4 w-96" />
-        </div>
-        <div className="grid gap-6 md:grid-cols-2">
-          <Skeleton className="h-64" />
-          <Skeleton className="h-64" />
-        </div>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold">Current Quiz</h1>
-        <p className="text-muted-foreground">
-          Select which quiz version is live on the website. The associated engine will be used for
-          analysis.
-        </p>
-      </div>
+    <div className="p-6 space-y-6 max-w-3xl">
+      <h1 className="text-2xl font-bold">Current Quiz</h1>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Currently Live Card */}
-        <Card>
-          <Card.Header>
-            <Card.Title className="flex items-center gap-2">
-              <IconPlayerPlay className="h-5 w-5 text-green-500" />
-              Currently Live
-            </Card.Title>
-            <Card.Description>The quiz version currently serving users</Card.Description>
-          </Card.Header>
-          <Card.Content className="space-y-4">
-            {currentlyPublishedQuiz ? (
-              <>
-                <div className="p-4 bg-muted/50 rounded-lg space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">{currentlyPublishedQuiz.title}</span>
-                    <Badge variant="default" className="bg-green-500">
-                      Live
-                    </Badge>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    Version: v{currentlyPublishedQuiz.version.semver}
-                  </div>
-                  {currentlyPublishedQuiz.version.comment && (
-                    <div className="text-sm text-muted-foreground">
-                      {currentlyPublishedQuiz.version.comment}
-                    </div>
-                  )}
-                </div>
-                {currentlyPublishedEngine && (
-                  <div className="p-4 bg-muted/50 rounded-lg space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">Analysis Engine</span>
-                      <Badge variant="outline">v{currentlyPublishedEngine.version.semver}</Badge>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {currentlyPublishedEngine.name}
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="p-4 bg-muted/50 rounded-lg text-center text-muted-foreground">
-                No quiz is currently published
-              </div>
-            )}
-          </Card.Content>
-        </Card>
-
-        {/* Select New Version Card */}
-        <Card>
-          <Card.Header>
-            <Card.Title>Select Version</Card.Title>
-            <Card.Description>Choose a quiz version to make live</Card.Description>
-          </Card.Header>
-          <Card.Content className="space-y-4">
+      {/* Currently Live */}
+      <Card className="border-green-500/50">
+        <Card.Header className="pb-3">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+            </span>
+            <Card.Title className="text-base">Live Now</Card.Title>
+          </div>
+        </Card.Header>
+        <Card.Content>
+          {currentlyPublishedQuiz ? (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Quiz Version</label>
-              <Select value={selectedQuizId} onValueChange={setSelectedQuizId}>
-                <Select.Trigger>
-                  <Select.Value placeholder="Select a quiz version" />
-                </Select.Trigger>
-                <Select.Content>
-                  {availableQuizzes.map((quiz) => (
-                    <Select.Item key={quiz.id} value={quiz.id}>
+              <div className="flex items-center justify-between">
+                <span className="text-xl font-semibold">
+                  v{currentlyPublishedQuiz.version.semver}
+                </span>
+                <Badge className="bg-green-500 text-white">Active</Badge>
+              </div>
+              {currentlyPublishedQuiz.version.comment && (
+                <p className="text-sm text-muted-foreground">
+                  {currentlyPublishedQuiz.version.comment}
+                </p>
+              )}
+              {currentEngine && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground pt-1">
+                  <ServerIcon className="h-3.5 w-3.5" />
+                  <span>
+                    {currentEngine.name} v{currentEngine.version.semver}
+                  </span>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-muted-foreground">No quiz is currently live</p>
+          )}
+        </Card.Content>
+      </Card>
+
+      {/* Version List */}
+      <div className="space-y-2">
+        <h2 className="text-sm font-medium text-muted-foreground">
+          Switch Version
+        </h2>
+        <Card>
+          <div className="divide-y">
+            {availableQuizzes.length === 0 ? (
+              <div className="p-6 text-center text-muted-foreground">
+                No quiz versions available
+              </div>
+            ) : (
+              availableQuizzes.map((quiz) => {
+                const engine = getEngineForQuiz(quiz.id);
+                const isLive = quiz.isPublished;
+                const canPublish = !!engine && !isLive;
+
+                return (
+                  <button
+                    key={quiz.id}
+                    onClick={() => canPublish && setPendingQuizId(quiz.id)}
+                    disabled={!canPublish}
+                    className={`w-full flex items-center gap-3 p-4 text-left transition-colors ${
+                      canPublish
+                        ? "hover:bg-muted/50 cursor-pointer"
+                        : "cursor-default"
+                    } ${isLive ? "bg-green-500/5" : ""}`}
+                  >
+                    {/* Radio indicator */}
+                    <div
+                      className={`h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                        isLive
+                          ? "border-green-500 bg-green-500"
+                          : "border-muted-foreground/30"
+                      }`}
+                    >
+                      {isLive && (
+                        <CheckIcon className="h-2.5 w-2.5 text-white" />
+                      )}
+                    </div>
+
+                    {/* Version info */}
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span>v{quiz.version.semver}</span>
-                        {quiz.isPublished && (
-                          <Badge variant="default" className="bg-green-500 text-xs">
+                        <span className="font-mono font-medium">
+                          v{quiz.version.semver}
+                        </span>
+                        {isLive && (
+                          <Badge
+                            variant="outline"
+                            className="text-green-600 border-green-600/30 text-xs"
+                          >
                             Live
                           </Badge>
                         )}
-                        {quiz.version.comment && (
-                          <span className="text-muted-foreground text-xs truncate max-w-[200px]">
-                            - {quiz.version.comment}
-                          </span>
-                        )}
                       </div>
-                    </Select.Item>
-                  ))}
-                </Select.Content>
-              </Select>
-            </div>
+                      {quiz.version.comment ? (
+                        <p className="text-sm text-muted-foreground mt-0.5">
+                          {quiz.version.comment}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground/50 italic mt-0.5">
+                          No version notes
+                        </p>
+                      )}
+                      {!engine && (
+                        <p className="text-xs text-yellow-600 mt-1">
+                          No engine linked
+                        </p>
+                      )}
+                    </div>
 
-            {selectedQuiz && selectedQuizEngine && (
-              <div className="p-4 bg-muted/50 rounded-lg space-y-2">
-                <div className="text-sm font-medium">Associated Engine</div>
-                <div className="text-sm text-muted-foreground">
-                  {selectedQuizEngine.name} (v
-                  {selectedQuizEngine.version.semver})
-                </div>
-              </div>
+                    {/* Action hint */}
+                    {canPublish && (
+                      <ChevronRightIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+                    )}
+                  </button>
+                );
+              })
             )}
-
-            {selectedQuiz && !selectedQuizEngine && (
-              <div className="p-4 bg-destructive/10 rounded-lg text-sm text-destructive">
-                Warning: No engine is associated with this quiz version
-              </div>
-            )}
-
-            <Button
-              className="w-full"
-              disabled={!selectedQuiz || isCurrentlyPublished || isPublishing}
-              onClick={() => setShowConfirmDialog(true)}
-            >
-              {isCurrentlyPublished ? (
-                <>
-                  <IconCheck className="h-4 w-4 mr-2" />
-                  Already Live
-                </>
-              ) : (
-                <>
-                  <IconPlayerPlay className="h-4 w-4 mr-2" />
-                  Make Live
-                </>
-              )}
-            </Button>
-          </Card.Content>
+          </div>
         </Card>
       </div>
 
       {/* Confirmation Dialog */}
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+      <AlertDialog
+        open={!!pendingQuizId}
+        onOpenChange={() => setPendingQuizId(null)}
+      >
         <AlertDialog.Content>
           <AlertDialog.Header>
-            <AlertDialog.Title>Confirm Publish</AlertDialog.Title>
+            <AlertDialog.Title>
+              Switch to v{pendingQuiz?.version.semver}?
+            </AlertDialog.Title>
             <AlertDialog.Description>
-              Are you sure you want to make <strong>v{selectedQuiz?.version.semver}</strong> the
-              live version?
-              {currentlyPublishedQuiz && currentlyPublishedQuiz.id !== selectedQuiz?.id && (
-                <span className="block mt-2">
-                  This will replace the current live version (v
-                  {currentlyPublishedQuiz.version.semver}).
-                </span>
+              {currentlyPublishedQuiz ? (
+                <>
+                  This will replace{" "}
+                  <strong>v{currentlyPublishedQuiz.version.semver}</strong> as
+                  the live quiz.
+                </>
+              ) : (
+                <>This version will become the live quiz.</>
               )}
             </AlertDialog.Description>
           </AlertDialog.Header>
           <AlertDialog.Footer>
-            <AlertDialog.Cancel disabled={isPublishing}>Cancel</AlertDialog.Cancel>
-            <AlertDialog.Action
-              onClick={handlePublish}
-              disabled={isPublishing}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              {isPublishing ? 'Publishing...' : 'Make Live'}
+            <AlertDialog.Cancel disabled={isPublishing}>
+              Cancel
+            </AlertDialog.Cancel>
+            <AlertDialog.Action onClick={handlePublish} disabled={isPublishing}>
+              {isPublishing ? "Switching..." : "Make Live"}
             </AlertDialog.Action>
           </AlertDialog.Footer>
         </AlertDialog.Content>

@@ -1,5 +1,5 @@
-import { Result, useAtomSet, useAtomValue } from '@effect-atom/atom-react';
-import { HydrationBoundary } from '@effect-atom/atom-react/ReactHydration';
+import { Result, useAtomSet, useAtomValue } from "@effect-atom/atom-react";
+import { HydrationBoundary } from "@effect-atom/atom-react/ReactHydration";
 import {
   AdminSidebar,
   adminSidebarVisibleAtom,
@@ -14,12 +14,19 @@ import {
   type AdminLoaderData,
   type AnalysisResult,
   type QuizResponse,
-} from '@quiz';
-import { createFileRoute, Link, Outlet, redirect, useLocation } from '@tanstack/react-router';
-import { Button, SidebarInset, SidebarProvider } from '@shadcn';
-import { ChevronLeftIcon, ChevronRightIcon, EditIcon } from 'lucide-react';
-import React from 'react';
-import { checkAdmin } from '../features/auth/check-admin.js';
+} from "@quiz";
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  redirect,
+  useLocation,
+} from "@tanstack/react-router";
+import { Button, SidebarInset, SidebarProvider } from "@shadcn";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import React from "react";
+import { checkAdmin } from "../features/auth/check-admin.js";
+import { useHydrated } from "@core/client";
 
 // ============================================================================
 // Admin Layout Content (inside HydrationBoundary)
@@ -29,17 +36,14 @@ const AdminLayoutContent: React.FC = () => {
   const location = useLocation();
 
   // Check if we're on a child route (not the main /admin dashboard)
-  const isChildRoute = location.pathname !== '/admin';
+  const isChildRoute = location.pathname !== "/admin";
 
   // Control sidebar state with atom - prevent hydration mismatch
-  const [isHydrated, setIsHydrated] = React.useState(false);
+  const isHydrated = useHydrated();
   const sidebarOpen = useAtomValue(adminSidebarVisibleAtom) as boolean;
-  const setSidebarOpen = useAtomSet(adminSidebarVisibleAtom) as (value: boolean) => void;
-
-  // Prevent hydration mismatch by waiting for client hydration
-  React.useEffect(() => {
-    setIsHydrated(true);
-  }, []);
+  const setSidebarOpen = useAtomSet(adminSidebarVisibleAtom) as (
+    value: boolean
+  ) => void;
 
   // Get actual responses data from the atom
   const responsesResult = useAtomValue(responsesAtom) as Result.Result<
@@ -54,20 +58,26 @@ const AdminLayoutContent: React.FC = () => {
   // Combine response and analysis data
   const combinedData = React.useMemo(() => {
     if (Result.isSuccess(responsesResult) && Result.isSuccess(analysisResult)) {
-      return combineResponseWithAnalysis(responsesResult.value, analysisResult.value);
+      return combineResponseWithAnalysis(
+        responsesResult.value,
+        analysisResult.value
+      );
     }
     return [] as const;
   }, [responsesResult, analysisResult]);
 
   return (
-    <SidebarProvider open={isHydrated ? sidebarOpen : true} onOpenChange={setSidebarOpen}>
+    <SidebarProvider
+      open={isHydrated ? sidebarOpen : true}
+      onOpenChange={setSidebarOpen}
+    >
       <AdminSidebar variant="inset" />
       <SidebarInset>
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div
               className={`flex flex-col gap-4 ${
-                !isChildRoute ? 'py-4 md:py-6' : ''
+                !isChildRoute ? "py-4 md:py-6" : ""
               } md:gap-6 relative`}
             >
               {!isChildRoute && (
@@ -80,7 +90,7 @@ const AdminLayoutContent: React.FC = () => {
                       setSidebarOpen(!sidebarOpen);
                     }}
                     className="absolute top-4 left-4 z-10 h-8 w-8 p-0"
-                    title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
+                    title={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
                   >
                     {sidebarOpen ? (
                       <ChevronLeftIcon className="h-4 w-4" />
@@ -89,21 +99,11 @@ const AdminLayoutContent: React.FC = () => {
                     )}
                   </Button>
 
-                  {/* Go To Editor Button */}
-                  <Link to="/admin/quiz-editor">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="absolute top-4 right-4 z-10 h-8 px-3"
-                      title="Go to Quiz Editor"
-                    >
-                      <EditIcon className="h-4 w-4 mr-2" />
-                      Go To Editor
-                    </Button>
-                  </Link>
                   {/* Response Statistics */}
                   <div className="px-4 lg:px-6 pt-12">
-                    <h2 className="text-xl font-semibold mb-4">Response Statistics</h2>
+                    <h2 className="text-xl font-semibold mb-4">
+                      Response Statistics
+                    </h2>
                     <ResponseStatsCards responsesResult={responsesResult} />
                   </div>
 
@@ -124,8 +124,11 @@ const AdminLayoutContent: React.FC = () => {
 
                   {/* Responses Table */}
                   <div className="px-4 lg:px-6">
-                    <h2 className="text-xl font-semibold mb-4">Recent Responses</h2>
-                    {Result.isSuccess(responsesResult) && Result.isSuccess(analysisResult) ? (
+                    <h2 className="text-xl font-semibold mb-4">
+                      Recent Responses
+                    </h2>
+                    {Result.isSuccess(responsesResult) &&
+                    Result.isSuccess(analysisResult) ? (
                       <ResponsesTable data={combinedData} />
                     ) : (
                       <div className="text-center py-8 text-muted-foreground">
@@ -166,21 +169,21 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ loaderData }) => {
 // Route Definition
 // ============================================================================
 
-export const Route = createFileRoute('/admin')({
+export const Route = createFileRoute("/admin")({
   beforeLoad: async () => {
     const adminCheck = await checkAdmin();
 
     if (!adminCheck.isAuthenticated) {
       throw redirect({
-        to: '/auth/$authView',
-        params: { authView: 'sign-in' },
-        search: { redirect: '/admin' },
+        to: "/auth/$authView",
+        params: { authView: "sign-in" },
+        search: { redirect: "/admin" },
       });
     }
 
     if (!adminCheck.isAdmin) {
       throw redirect({
-        to: '/',
+        to: "/",
       });
     }
   },
