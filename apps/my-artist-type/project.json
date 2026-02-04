@@ -1,5 +1,5 @@
 {
-  "name": "@my-artist-type",
+  "name": "my-artist-type",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/my-artist-type/src",
   "projectType": "application",

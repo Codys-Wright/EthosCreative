@@ -1,5 +1,5 @@
 {
-  "name": "@my-artist-type",
+  "name": "my-artist-type",
   "version": "0.0.1",
   "private": true,
   "type": "module",
