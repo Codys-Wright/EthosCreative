@@ -1,28 +1,34 @@
-import { passkey } from '@better-auth/passkey';
-import { betterAuth } from 'better-auth';
-import type { BetterAuthOptions } from 'better-auth';
-import { getMigrations } from 'better-auth/db';
-import { admin, anonymous, openAPI } from 'better-auth/plugins';
-import { organization } from 'better-auth/plugins/organization';
-import { twoFactor } from 'better-auth/plugins/two-factor';
+import { passkey } from "@better-auth/passkey";
+import { betterAuth } from "better-auth";
+import type { BetterAuthOptions } from "better-auth";
+import { getMigrations } from "better-auth/db";
+import { admin, anonymous, openAPI } from "better-auth/plugins";
+import { organization } from "better-auth/plugins/organization";
+import { twoFactor } from "better-auth/plugins/two-factor";
 import {
   adminAccessControl,
   adminRoles,
   orgAccessControl,
   orgRoles,
-} from '@auth/features/permissions/index';
-import { getRequestHeaders } from '@tanstack/react-start/server';
-import { EmailService } from '@email';
-import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
-import * as Option from 'effect/Option';
-import * as Redacted from 'effect/Redacted';
-import * as Runtime from 'effect/Runtime';
-import { Unauthenticated, type SessionData } from '@auth/features/session/index';
-import type { UserId } from '@auth/features/user/domain/index';
-import { AuthConfig } from '@auth/core/config';
-import { AuthDatabase } from '@auth/core/database';
-import { OnLinkAccountHandler, OnLinkAccountHandlerNoop } from './on-link-account.js';
+} from "@auth/features/permissions/index";
+import { getRequestHeaders } from "@tanstack/react-start/server";
+import { EmailService } from "@email";
+import * as Effect from "effect/Effect";
+import * as Layer from "effect/Layer";
+import * as Option from "effect/Option";
+import * as Redacted from "effect/Redacted";
+import * as Runtime from "effect/Runtime";
+import {
+  Unauthenticated,
+  type SessionData,
+} from "@auth/features/session/index";
+import type { UserId } from "@auth/features/user/domain/index";
+import { AuthConfig } from "@auth/core/config";
+import { AuthDatabase } from "@auth/core/database";
+import {
+  OnLinkAccountHandler,
+  OnLinkAccountHandlerNoop,
+} from "./on-link-account.js";
 
 // Re-export for backwards compatibility with existing server code
 export { Unauthenticated };
@@ -104,16 +110,16 @@ export const makeBetterAuthOptions = (params: {
     sendResetPassword: async ({ user, url }) => {
       await params.sendEmail(
         user.email,
-        'Reset your password',
-        `<p>Click the link below to reset your password:</p><p><a href="${url}">${url}</a></p>`,
+        "Reset your password",
+        `<p>Click the link below to reset your password:</p><p><a href="${url}">${url}</a></p>`
       );
     },
   },
 
   database: {
     db: params.db,
-    type: 'postgres' as const,
-    casing: 'camel' as const,
+    type: "postgres" as const,
+    casing: "camel" as const,
   },
 
   // Enable account linking so users can connect multiple auth methods
@@ -121,7 +127,7 @@ export const makeBetterAuthOptions = (params: {
     accountLinking: {
       enabled: true,
       // Trust Google as a verified provider for automatic linking
-      trustedProviders: ['google'],
+      trustedProviders: ["google"],
       // Allow linking accounts with different emails (useful for OAuth providers)
       allowDifferentEmails: true,
     },
@@ -130,7 +136,7 @@ export const makeBetterAuthOptions = (params: {
   user: {
     additionalFields: {
       fake: {
-        type: 'boolean',
+        type: "boolean",
         defaultValue: false,
         required: false,
         input: false, // Don't allow setting via input, only programmatically
@@ -154,7 +160,7 @@ export const makeBetterAuthOptions = (params: {
     // Anonymous authentication - allows users to use the app without signing up
     // When they later sign up/sign in, their data can be migrated via onLinkAccount
     anonymous({
-      emailDomainName: 'anonymous.local',
+      emailDomainName: "anonymous.local",
       // Keep the anonymous user record for audit trail and data migration
       // The onLinkAccount callback handles data migration
       disableDeleteAnonymousUser: false,
@@ -162,8 +168,8 @@ export const makeBetterAuthOptions = (params: {
     }),
 
     admin({
-      defaultRole: 'user',
-      adminRoles: ['admin', 'superadmin'],
+      defaultRole: "user",
+      adminRoles: ["admin", "superadmin"],
       impersonationSessionDuration: 60 * 60, // 1 hour
       defaultBanExpiresIn: undefined, // Bans never expire by default
       // Use custom access control for fine-grained permissions
@@ -173,7 +179,7 @@ export const makeBetterAuthOptions = (params: {
 
     organization({
       allowUserToCreateOrganization: true,
-      creatorRole: 'owner',
+      creatorRole: "owner",
       membershipLimit: 100,
       organizationLimit: 10,
       // Use custom access control for organization permissions
@@ -185,7 +191,7 @@ export const makeBetterAuthOptions = (params: {
           data.email,
           `Invitation to join ${data.organization.name}`,
           `<p>You've been invited to join <strong>${data.organization.name}</strong>.</p>
-					<p>Invitation ID: ${data.invitation.id}</p>`,
+					<p>Invitation ID: ${data.invitation.id}</p>`
         );
       },
 
@@ -199,7 +205,7 @@ export const makeBetterAuthOptions = (params: {
           fields: {},
           additionalFields: {
             fake: {
-              type: 'boolean',
+              type: "boolean",
               defaultValue: false,
               required: false,
               input: false,
@@ -220,7 +226,14 @@ export const makeBetterAuthOptions = (params: {
     }),
   ],
 
-  trustedOrigins: [params.clientOrigin, params.baseURL],
+  trustedOrigins: [
+    params.clientOrigin,
+    params.baseURL,
+    // Production URL
+    "https://my-artist-type.netlify.app",
+    // Match all Netlify deploy preview URLs (subdomain pattern: deployid--sitename)
+    "https://*--my-artist-type.netlify.app",
+  ],
 });
 
 /**
@@ -246,14 +259,16 @@ const makeAuthService = Effect.gen(function* () {
       : undefined,
     appName: env.APP_NAME,
     sendEmail: async (to, subject, html) => {
-      await Runtime.runPromise(runtime)(emailService.send({ to, subject, html }));
+      await Runtime.runPromise(runtime)(
+        emailService.send({ to, subject, html })
+      );
     },
     onLinkAccount: async ({ anonymousUser, newUser }) => {
       await Runtime.runPromise(runtime)(
         linkAccountHandler.handle({
           anonymousUserId: anonymousUser.user.id,
           newUserId: newUser.user.id,
-        }),
+        })
       );
     },
   });
@@ -283,8 +298,8 @@ const makeAuthService = Effect.gen(function* () {
       catch: () => new Unauthenticated(),
     }).pipe(
       Effect.flatMap((session) =>
-        session ? Effect.succeed(session) : Effect.fail(new Unauthenticated()),
-      ),
+        session ? Effect.succeed(session) : Effect.fail(new Unauthenticated())
+      )
     ),
 
     /**
@@ -306,7 +321,9 @@ const makeAuthService = Effect.gen(function* () {
      * }
      * ```
      */
-    getUserIdFromHeaders: (headers?: HeadersInit): Effect.Effect<UserId | null, never, never> =>
+    getUserIdFromHeaders: (
+      headers?: HeadersInit
+    ): Effect.Effect<UserId | null, never, never> =>
       Effect.sync(() => headers ?? getRequestHeaders()).pipe(
         Effect.flatMap((requestHeaders) =>
           Effect.tryPromise({
@@ -314,17 +331,21 @@ const makeAuthService = Effect.gen(function* () {
               auth.api.getSession({
                 headers: requestHeaders,
               }) as Promise<SessionData | null>,
-            catch: () => new Error('Failed to get session'),
+            catch: () => new Error("Failed to get session"),
           }).pipe(
             Effect.catchAll(() =>
               Effect.gen(function* () {
-                yield* Effect.logInfo('[getUserIdFromHeaders] Session error - returning null');
+                yield* Effect.logInfo(
+                  "[getUserIdFromHeaders] Session error - returning null"
+                );
                 return null;
-              }),
+              })
             ),
-            Effect.map((session) => (session ? (session.user.id as UserId) : null)),
-          ),
-        ),
+            Effect.map((session) =>
+              session ? (session.user.id as UserId) : null
+            )
+          )
+        )
       ),
 
     /**
@@ -342,7 +363,9 @@ const makeAuthService = Effect.gen(function* () {
      * // currentUserId is guaranteed to be valid here
      * ```
      */
-    currentUserId: (headers?: HeadersInit): Effect.Effect<UserId, Unauthenticated, never> =>
+    currentUserId: (
+      headers?: HeadersInit
+    ): Effect.Effect<UserId, Unauthenticated, never> =>
       Effect.sync(() => headers ?? getRequestHeaders()).pipe(
         Effect.flatMap((requestHeaders) =>
           Effect.tryPromise({
@@ -355,15 +378,15 @@ const makeAuthService = Effect.gen(function* () {
             Effect.flatMap((session: SessionData | null) =>
               session
                 ? Effect.succeed(session.user.id as UserId)
-                : Effect.fail(new Unauthenticated()),
-            ),
-          ),
-        ),
+                : Effect.fail(new Unauthenticated())
+            )
+          )
+        )
       ),
   };
 });
 
-export class AuthService extends Effect.Service<AuthService>()('AuthService', {
+export class AuthService extends Effect.Service<AuthService>()("AuthService", {
   effect: makeAuthService,
   accessors: true,
   // Use Layer.orDie to convert ConfigError into defects
@@ -393,7 +416,7 @@ export class AuthService extends Effect.Service<AuthService>()('AuthService', {
    * ```
    */
   static withLinkAccountHandler<R, E>(
-    handlerLayer: Layer.Layer<OnLinkAccountHandler, E, R>,
+    handlerLayer: Layer.Layer<OnLinkAccountHandler, E, R>
   ): Layer.Layer<AuthService, E, R> {
     return Layer.provide(AuthService.Default, handlerLayer);
   }
@@ -404,5 +427,5 @@ export {
   OnLinkAccountHandler,
   OnLinkAccountHandlerNoop,
   makeOnLinkAccountHandler,
-} from './on-link-account.js';
-export type { LinkAccountData } from './on-link-account.js';
+} from "./on-link-account.js";
+export type { LinkAccountData } from "./on-link-account.js";

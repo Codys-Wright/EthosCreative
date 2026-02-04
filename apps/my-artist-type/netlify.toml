@@ -1,28 +1,21 @@
 [build]
   command = "cd apps/my-artist-type && bun run build"
-  publish = ".output/public"
+  publish = "apps/my-artist-type/output/client"
+  functions = "apps/my-artist-type/.netlify/v1/functions"
 
 [build.environment]
   NODE_VERSION = "20"
   BUN_INSTALL_DISABLE_CACHE = "true"
 
-[context.production.environment]
-  BETTER_AUTH_URL = "$DEPLOY_PRIME_URL"
-  CLIENT_ORIGIN = "$DEPLOY_PRIME_URL"
-  VITE_API_URL = "$DEPLOY_PRIME_URL"
-  API_URL = "$DEPLOY_PRIME_URL"
-
-[context.deploy-preview.environment]
-  BETTER_AUTH_URL = "$DEPLOY_PRIME_URL"
-  CLIENT_ORIGIN = "$DEPLOY_PRIME_URL"
-  VITE_API_URL = "$DEPLOY_PRIME_URL"
-  API_URL = "$DEPLOY_PRIME_URL"
-
-[context.branch-deploy.environment]
-  BETTER_AUTH_URL = "$DEPLOY_PRIME_URL"
-  CLIENT_ORIGIN = "$DEPLOY_PRIME_URL"
-  VITE_API_URL = "$DEPLOY_PRIME_URL"
-  API_URL = "$DEPLOY_PRIME_URL"
+# Server-side env vars (BETTER_AUTH_URL, CLIENT_ORIGIN, API_URL) now fall back to
+# Netlify's built-in URL env var at runtime, so no need to set them here.
+# VITE_API_URL is not needed since the client uses window.location.origin.
 
 [dev]
   command = "bun run dev"
+
+[context.dev.environment]
+  BETTER_AUTH_URL = "http://localhost:8888"
+  CLIENT_ORIGIN = "http://localhost:8888"
+  VITE_API_URL = "http://localhost:8888"
+  API_URL = "http://localhost:8888"

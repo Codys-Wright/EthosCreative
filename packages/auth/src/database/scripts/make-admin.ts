@@ -17,7 +17,8 @@ async function makeAdmin(email: string) {
 
   // Create database connection
   const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString:
+      process.env.DATABASE_URL || process.env.NETLIFY_DATABASE_URL,
   });
 
   try {

@@ -17,12 +17,13 @@
  * View traces at http://localhost:16686 (Jaeger UI)
  */
 
-import * as OtlpTracer from '@effect/opentelemetry/OtlpTracer';
-import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
-import * as Layer from 'effect/Layer';
+import * as OtlpTracer from "@effect/opentelemetry/OtlpTracer";
+import * as OtlpSerialization from "@effect/opentelemetry/OtlpSerialization";
+import * as FetchHttpClient from "@effect/platform/FetchHttpClient";
+import * as Layer from "effect/Layer";
 
 // OTLP endpoint - Jaeger collector
-const OTLP_URL = process.env.OTLP_URL ?? 'http://localhost:4318/v1/traces';
+const OTLP_URL = process.env.OTLP_URL ?? "http://localhost:4318/v1/traces";
 
 /**
  * TracerLive - OpenTelemetry tracer layer that sends traces to Jaeger.
@@ -36,8 +37,11 @@ const OTLP_URL = process.env.OTLP_URL ?? 'http://localhost:4318/v1/traces';
 export const TracerLive = OtlpTracer.layer({
   url: OTLP_URL,
   resource: {
-    serviceName: process.env.OTEL_SERVICE_NAME ?? 'my-artist-type-api',
+    serviceName: process.env.OTEL_SERVICE_NAME ?? "my-artist-type-api",
   },
-  exportInterval: '1 second',
+  exportInterval: "1 second",
   maxBatchSize: 100,
-}).pipe(Layer.provide(FetchHttpClient.layer));
+}).pipe(
+  Layer.provide(FetchHttpClient.layer),
+  Layer.provide(OtlpSerialization.layerJson)
+);

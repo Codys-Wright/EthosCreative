@@ -1,17 +1,17 @@
-import { createAuthClient } from 'better-auth/react';
+import { createAuthClient } from "better-auth/react";
 import {
   adminClient,
   anonymousClient,
   organizationClient,
   twoFactorClient,
-} from 'better-auth/client/plugins';
-import { passkeyClient } from '@better-auth/passkey/client';
+} from "better-auth/client/plugins";
+import { passkeyClient } from "@better-auth/passkey/client";
 import {
   adminAccessControl,
   adminRoles,
   orgAccessControl,
   orgRoles,
-} from '@auth/features/permissions/index';
+} from "@auth/features/permissions/index";
 
 /**
  * Better Auth client for React components with admin, organization, passkey, 2FA, and anonymous auth support.
@@ -63,8 +63,24 @@ import {
  * await authClient.signOut();
  * ```
  */
+const getBaseURL = () => {
+  // Use VITE_API_URL if available (set in netlify.toml and .env)
+  if (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  // Fall back to window.location.origin in browser
+  if (
+    typeof window !== "undefined" &&
+    window.location?.origin &&
+    window.location.origin !== "null"
+  ) {
+    return window.location.origin;
+  }
+  return "";
+};
+
 export const authClient = createAuthClient({
-  baseURL: typeof window !== 'undefined' ? window.location.origin : '',
+  baseURL: getBaseURL(),
   plugins: [
     adminClient({
       ac: adminAccessControl,

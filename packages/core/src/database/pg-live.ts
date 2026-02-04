@@ -30,7 +30,10 @@ export const pgConfig: PgClient.PgClientConfig = {
 
 export const PgLive = Layer.unwrapEffect(
   Effect.gen(function* () {
-    const databaseUrl = yield* Config.redacted("DATABASE_URL");
+    // DATABASE_URL falls back to Netlify's NETLIFY_DATABASE_URL at runtime
+    const databaseUrl = yield* Config.redacted("DATABASE_URL").pipe(
+      Config.orElse(() => Config.redacted("NETLIFY_DATABASE_URL"))
+    );
 
     return PgClient.layer({
       url: databaseUrl,

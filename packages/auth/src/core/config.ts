@@ -16,21 +16,27 @@ export type AuthConfigValues = {
 };
 
 const authConfig: Config.Config<AuthConfigValues> = Config.all({
-  BETTER_AUTH_URL: Config.string("BETTER_AUTH_URL"),
+  // BETTER_AUTH_URL falls back to Netlify's DEPLOY_URL/URL env vars at runtime
+  BETTER_AUTH_URL: Config.string("BETTER_AUTH_URL").pipe(
+    Config.orElse(() => Config.string("DEPLOY_URL")),
+    Config.orElse(() => Config.string("URL"))
+  ),
   BETTER_AUTH_SECRET: Config.redacted("BETTER_AUTH_SECRET"),
-  DATABASE_URL: Config.redacted("DATABASE_URL"),
-  CLIENT_ORIGIN: Config.option(Config.string("CLIENT_ORIGIN")).pipe(
-    Config.map(Option.getOrElse(() => "http://localhost:5173"))
+  DATABASE_URL: Config.redacted("DATABASE_URL").pipe(
+    Config.orElse(() => Config.redacted("NETLIFY_DATABASE_URL"))
+  ),
+  // CLIENT_ORIGIN falls back to Netlify's DEPLOY_URL/URL env vars at runtime
+  CLIENT_ORIGIN: Config.string("CLIENT_ORIGIN").pipe(
+    Config.orElse(() => Config.string("DEPLOY_URL")),
+    Config.orElse(() => Config.string("URL")),
+    Config.withDefault("http://localhost:5173")
   ),
   GOOGLE_CLIENT_ID: Config.option(Config.redacted("GOOGLE_CLIENT_ID")),
   GOOGLE_CLIENT_SECRET: Config.option(Config.redacted("GOOGLE_CLIENT_SECRET")),
   APP_NAME: Config.withDefault(Config.string("APP_NAME"), "TanStack App"),
 });
 
-export class AuthConfig extends Effect.Service<AuthConfig>()(
-  "AuthConfig",
-  {
-    effect: authConfig,
-    dependencies: [Layer.setConfigProvider(ConfigProvider.fromEnv())],
-  }
-) {}
+export class AuthConfig extends Effect.Service<AuthConfig>()("AuthConfig", {
+  effect: authConfig,
+  dependencies: [Layer.setConfigProvider(ConfigProvider.fromEnv())],
+}) {}
