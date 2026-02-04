@@ -4,6 +4,51 @@ import { cn } from "@shadcn";
 import { AnimatePresence, motion } from "motion/react";
 import React, { useRef } from "react";
 
+// ============================================================================
+// Animation Constants
+// ============================================================================
+
+/** Collision detection threshold in pixels */
+const COLLISION_THRESHOLD_PX = 6;
+
+/** Time in ms to wait before resetting beam after collision */
+const BEAM_RESET_DELAY_MS = 1400;
+
+/** Default beam animation duration in seconds */
+const DEFAULT_BEAM_DURATION_S = 8;
+
+/** Beam configurations for the animated background */
+const BEAM_CONFIGS = [
+  {
+    initialX: "-25vw",
+    translateX: "80vw",
+    translateY: "120vh",
+    duration: 7,
+    repeatDelay: 3,
+  },
+  {
+    initialX: "-12vw",
+    translateX: "100vw",
+    translateY: "120vh",
+    duration: 4,
+    repeatDelay: 3,
+  },
+  {
+    initialX: "12vw",
+    translateX: "120vw",
+    translateY: "120vh",
+    duration: 5,
+    repeatDelay: 3,
+  },
+  {
+    initialX: "25vw",
+    translateX: "140vw",
+    translateY: "120vh",
+    duration: 6,
+    repeatDelay: 3,
+  },
+] as const;
+
 type BackgroundWrapperProps = {
   children: React.ReactNode;
   className?: string;
@@ -24,59 +69,20 @@ export const BackgroundWrapper: React.FC<BackgroundWrapperProps> = ({
     <div
       ref={parentRef}
       className={cn(
-        "relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 min-w-screen",
-        className,
+        "relative flex h-screen flex-col items-center justify-center overflow-hidden px-4 min-w-screen",
+        className
       )}
     >
       {showGrids && <BackgroundGrids />}
-      {showBeams && (
-        <>
+      {showBeams &&
+        BEAM_CONFIGS.map((config, idx) => (
           <CollisionMechanism
-            beamOptions={{
-              initialX: "-25vw",
-              translateX: "80vw",
-              translateY: "120vh",
-              duration: 7,
-              repeatDelay: 3,
-            }}
+            key={idx}
+            beamOptions={config}
             containerRef={containerRef}
             parentRef={parentRef}
           />
-          <CollisionMechanism
-            beamOptions={{
-              initialX: "-12vw",
-              translateX: "100vw",
-              translateY: "120vh",
-              duration: 4,
-              repeatDelay: 3,
-            }}
-            containerRef={containerRef}
-            parentRef={parentRef}
-          />
-          <CollisionMechanism
-            beamOptions={{
-              initialX: "12vw",
-              translateX: "120vw",
-              translateY: "120vh",
-              duration: 5,
-              repeatDelay: 3,
-            }}
-            containerRef={containerRef}
-            parentRef={parentRef}
-          />
-          <CollisionMechanism
-            containerRef={containerRef}
-            parentRef={parentRef}
-            beamOptions={{
-              initialX: "25vw",
-              translateX: "140vw",
-              translateY: "120vh",
-              duration: 6,
-              repeatDelay: 3,
-            }}
-          />
-        </>
-      )}
+        ))}
       {children}
     </div>
   );
@@ -139,7 +145,7 @@ const CollisionMechanism = React.forwardRef<
 
   React.useEffect(() => {
     const choices = Object.keys(artistColors).map((artistType) =>
-      getArtistColorHex(artistType as any),
+      getArtistColorHex(artistType as any)
     );
     setColorChoices(choices);
   }, []);
@@ -151,6 +157,8 @@ const CollisionMechanism = React.forwardRef<
   }, []);
 
   React.useEffect(() => {
+    let animationFrameId: number;
+
     const checkCollision = () => {
       const beam = beamRef.current;
       const container = containerRef.current;
@@ -169,7 +177,9 @@ const CollisionMechanism = React.forwardRef<
         const horizontallyOverlapping =
           beamRect.right >= containerRect.left &&
           beamRect.left <= containerRect.right;
-        const nearTopEdge = Math.abs(beamRect.bottom - containerRect.top) <= 6;
+        const nearTopEdge =
+          Math.abs(beamRect.bottom - containerRect.top) <=
+          COLLISION_THRESHOLD_PX;
 
         if (horizontallyOverlapping && nearTopEdge) {
           const relativeX =
@@ -188,18 +198,19 @@ const CollisionMechanism = React.forwardRef<
           beam.style.opacity = "0";
         }
       }
+
+      animationFrameId = requestAnimationFrame(checkCollision);
     };
 
-    const animationInterval = setInterval(checkCollision, 50);
+    animationFrameId = requestAnimationFrame(checkCollision);
 
     return () => {
-      clearInterval(animationInterval);
+      cancelAnimationFrame(animationFrameId);
     };
-  }, [cycleCollisionDetected, containerRef]);
+  }, [cycleCollisionDetected, containerRef, parentRef]);
 
   React.useEffect(() => {
     if (collision.detected && collision.coordinates !== null) {
-      const RESET_MS = 1400;
       const reset = () => {
         setCollision({ detected: false, coordinates: null });
         setCycleCollisionDetected(false);
@@ -209,7 +220,7 @@ const CollisionMechanism = React.forwardRef<
         }
         setBeamKey((prevKey) => prevKey + 1);
       };
-      const id = setTimeout(reset, RESET_MS);
+      const id = setTimeout(reset, BEAM_RESET_DELAY_MS);
       return () => {
         clearTimeout(id);
       };
@@ -236,7 +247,7 @@ const CollisionMechanism = React.forwardRef<
           },
         }}
         transition={{
-          duration: beamOptions.duration ?? 8,
+          duration: beamOptions.duration ?? DEFAULT_BEAM_DURATION_S,
           repeat: Infinity,
           repeatType: "loop",
           ease: "linear",
@@ -245,7 +256,7 @@ const CollisionMechanism = React.forwardRef<
         }}
         className={cn(
           "absolute left-96 top-20 m-auto h-14 w-px rounded-full",
-          beamOptions.className,
+          beamOptions.className
         )}
         style={{
           background: `linear-gradient(to top, ${currentColorHex}, transparent)`,
@@ -338,7 +349,7 @@ const GridLineVertical = ({
         "[mask-composite:exclude]",
         "z-30",
         "dark:bg-[linear-gradient(to_bottom,var(--color-dark),var(--color-dark)_50%,transparent_0,transparent)]",
-        className,
+        className
       )}
     ></div>
   );
