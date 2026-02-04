@@ -1,7 +1,5 @@
-# Root netlify.toml - points to the my-artist-type app
 [build]
-  base = "apps/my-artist-type"
-  command = "bun install && bun run build"
+  command = "bun install && cd apps/my-artist-type && bun run build"
   publish = "apps/my-artist-type/.output/public"
 
 [build.environment]
