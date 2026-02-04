@@ -42,10 +42,10 @@ packages/
 ## Commands
 
 ```bash
-bun run dev          # Start dev server
-bun run build        # Build for production
-bun run typecheck    # Type check
-bun run lint         # Lint with oxlint
+bunx nx dev my-artist-type       # Start dev server
+bunx nx build my-artist-type     # Build for production
+bunx nx typecheck my-artist-type # Type check
+bun run lint                     # Lint with oxlint
 ```
 
 ## Database
