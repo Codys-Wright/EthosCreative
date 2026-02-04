@@ -895,7 +895,7 @@ function ColorPickerRootImpl(props: ColorPickerRootImplProps) {
   )
   const composedRef = useComposedRefs(ref, (node) => setFormTrigger(node))
 
-  const isFormControl = formTrigger ? !!formTrigger.closest("form") : true
+  const isFormControl = formTrigger ? Boolean(formTrigger.closest("form")) : true
 
   React.useEffect(() => {
     if (valueProp !== undefined) {
@@ -1334,7 +1334,7 @@ function ColorPickerEyeDropper(props: ColorPickerEyeDropperProps) {
     }
   }, [color, store])
 
-  const hasEyeDropper = typeof window !== "undefined" && !!window.EyeDropper
+  const hasEyeDropper = typeof window !== "undefined" && Boolean(window.EyeDropper)
 
   if (!hasEyeDropper) return null
 

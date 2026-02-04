@@ -1,11 +1,12 @@
-import { JSX } from "react"
-import { ContentEditable as LexicalContentEditable } from "@lexical/react/LexicalContentEditable"
+import { JSX } from "react";
+import { ContentEditable as LexicalContentEditable } from "@lexical/react/LexicalContentEditable";
+import { cn } from "@shadcn/src/lib/utils";
 
 type Props = {
-  placeholder: string
-  className?: string
-  placeholderClassName?: string
-}
+  placeholder: string;
+  className?: string;
+  placeholderClassName?: string;
+};
 
 export function ContentEditable({
   placeholder,
@@ -14,21 +15,21 @@ export function ContentEditable({
 }: Props): JSX.Element {
   return (
     <LexicalContentEditable
-      className={
-        className ??
-        `ContentEditable__root relative block min-h-72 min-h-full overflow-auto px-8 py-4 focus:outline-none`
-      }
+      className={cn(
+        "ContentEditable__root relative block min-h-[500px] w-full overflow-auto px-4 sm:px-6 lg:px-8 py-4 focus:outline-none",
+        className
+      )}
       aria-placeholder={placeholder}
       placeholder={
         <div
-          className={
-            placeholderClassName ??
-            `text-muted-foreground pointer-events-none absolute top-0 left-0 overflow-hidden px-8 py-[18px] text-ellipsis select-none`
-          }
+          className={cn(
+            "text-muted-foreground pointer-events-none absolute top-0 left-0 overflow-hidden px-4 sm:px-6 lg:px-8 py-4 text-ellipsis select-none",
+            placeholderClassName
+          )}
         >
           {placeholder}
         </div>
       }
     />
-  )
+  );
 }
