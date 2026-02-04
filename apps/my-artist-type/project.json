@@ -1,9 +1,27 @@
 {
-  "name": "my-artist-type",
+  "name": "@my-artist-type",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/my-artist-type/src",
   "projectType": "application",
   "tags": [],
   "targets": {
+    "dev": {
+      "command": "bun --bun vite dev --port 3000",
+      "options": {
+        "cwd": "apps/my-artist-type"
+      }
+    },
+    "build": {
+      "command": "bun --bun vite build",
+      "options": {
+        "cwd": "apps/my-artist-type"
+      }
+    },
+    "serve": {
+      "command": "bun --bun vite dev --port 3000",
+      "options": {
+        "cwd": "apps/my-artist-type"
+      }
+    }
   }
 }

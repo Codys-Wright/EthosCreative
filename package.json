@@ -189,6 +189,11 @@
       }
     }
   ],
+  "patchedDependencies": {
+    "srvx@0.9.7": "patches/srvx@0.9.7.patch",
+    "nitro@3.0.1-alpha.1": "patches/nitro@3.0.1-alpha.1.patch",
+    "@netlify/config@24.3.0": "patches/@netlify%2Fconfig@24.3.0.patch"
+  },
   "workspaces": [
     "apps/*",
     "packages/**"
