@@ -5,7 +5,6 @@ import netlify from "@netlify/vite-plugin-tanstack-start";
 import viteReact from "@vitejs/plugin-react";
 import viteTsConfigPaths from "vite-tsconfig-paths";
 import tailwindcss from "@tailwindcss/vite";
-import { nitro } from "nitro/vite";
 import path from "node:path";
 
 const config = defineConfig({
@@ -33,7 +32,7 @@ const config = defineConfig({
       "@quiz": path.resolve(__dirname, "../../packages/quiz/src"),
       "@artist-types": path.resolve(
         __dirname,
-        "../../packages/artist-types/src",
+        "../../packages/artist-types/src"
       ),
       "@auth": path.resolve(__dirname, "../../packages/auth/src"),
       "@core": path.resolve(__dirname, "../../packages/core/src"),
@@ -43,7 +42,7 @@ const config = defineConfig({
       "@example": path.resolve(__dirname, "../../packages/example/src"),
       "@components": path.resolve(
         __dirname,
-        "../../packages/ui/components/src",
+        "../../packages/ui/components/src"
       ),
       "@email": path.resolve(__dirname, "../../packages/email/src"),
       "@playground": path.resolve(__dirname, "../../packages/playground/src"),

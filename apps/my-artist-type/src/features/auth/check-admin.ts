@@ -3,11 +3,11 @@
  * Used in route protection for admin-only pages.
  */
 
-import { createServerFn } from '@tanstack/react-start';
-import { getRequestHeaders } from '@tanstack/react-start/server';
-import { serverRuntime } from '../core/server/server-runtime.js';
-import { AuthService } from '@auth/server';
-import * as Effect from 'effect/Effect';
+import { createServerFn } from "@tanstack/react-start";
+import { getRequestHeaders } from "@tanstack/react-start/server";
+import { serverRuntime } from "../core/server/server-runtime.js";
+import { AuthService } from "@auth/server";
+import * as Effect from "effect/Effect";
 
 export interface AdminCheckResult {
   isAuthenticated: boolean;
@@ -19,14 +19,16 @@ export interface AdminCheckResult {
 /**
  * Check if the current user is authenticated and has admin privileges.
  */
-export const checkAdmin = createServerFn({ method: 'GET' }).handler(
+export const checkAdmin = createServerFn({ method: "GET" }).handler(
   async (): Promise<AdminCheckResult> => {
     const result = await serverRuntime.runPromiseExit(
       Effect.gen(function* () {
         const auth = yield* AuthService;
         const headers = getRequestHeaders();
 
-        yield* Effect.logInfo('[checkAdmin] Checking admin status with headers...');
+        yield* Effect.logInfo(
+          "[checkAdmin] Checking admin status with headers..."
+        );
 
         // Get session with explicit headers from TanStack Start request
         const session = yield* Effect.tryPromise({
@@ -37,47 +39,54 @@ export const checkAdmin = createServerFn({ method: 'GET' }).handler(
           catch: (error) => new Error(`Failed to get session: ${error}`),
         });
 
-        yield* Effect.logInfo('[checkAdmin] Raw session result:', { session });
+        yield* Effect.logInfo("[checkAdmin] Raw session result:", { session });
 
         if (!session) {
-          yield* Effect.logInfo('[checkAdmin] No session found');
+          yield* Effect.logInfo("[checkAdmin] No session found");
           return {
             isAuthenticated: false,
             isAdmin: false,
           };
         }
 
-        yield* Effect.logInfo('[checkAdmin] Session retrieved:', {
-          userId: session.user.id,
-          role: session.user.role,
-          isAnonymous: session.user.isAnonymous,
+        // Better Auth's native type may not include role, but our DB schema has it
+        const user = session.user as {
+          id: string;
+          role?: string | null;
+          isAnonymous?: boolean;
+        };
+        const role = user.role ?? undefined;
+
+        yield* Effect.logInfo("[checkAdmin] Session retrieved:", {
+          userId: user.id,
+          role,
+          isAnonymous: user.isAnonymous,
         });
 
-        const isAdmin =
-          session.user.role === 'admin' || session.user.role === 'superadmin';
+        const isAdmin = role === "admin" || role === "superadmin";
 
-        yield* Effect.logInfo('[checkAdmin] Admin check:', { isAdmin });
+        yield* Effect.logInfo("[checkAdmin] Admin check:", { isAdmin });
 
         return {
           isAuthenticated: true,
           isAdmin,
-          userId: session.user.id,
-          role: session.user.role,
+          userId: user.id,
+          role,
         };
       }).pipe(
         Effect.catchAll((error) =>
           Effect.gen(function* () {
-            yield* Effect.logError('[checkAdmin] Error checking admin:', error);
+            yield* Effect.logError("[checkAdmin] Error checking admin:", error);
             return {
               isAuthenticated: false,
               isAdmin: false,
             };
-          }),
-        ),
-      ),
+          })
+        )
+      )
     );
 
-    if (result._tag === 'Success') {
+    if (result._tag === "Success") {
       return result.value;
     }
 
@@ -86,5 +95,5 @@ export const checkAdmin = createServerFn({ method: 'GET' }).handler(
       isAuthenticated: false,
       isAdmin: false,
     };
-  },
+  }
 );

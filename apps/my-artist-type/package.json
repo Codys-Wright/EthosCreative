@@ -10,7 +10,7 @@
     "build": "bun --bun vite build",
     "preview": "bun --bun vite preview",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json --skipLibCheck",
     "db:setup": "bun run db:reset && bun run db:migrate && bun run db:seed",
     "db:migrate": "dotenv -- bun --tsconfig-override=tsconfig.app.json run ./src/scripts/migrate.ts",
     "db:reset": "dotenv -- bun run ./src/scripts/reset-database.ts",

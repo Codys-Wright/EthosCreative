@@ -5,6 +5,7 @@
 @source "../../../packages/ui/theme/src";
 @source "../../../packages/ui/shadcn/src/";
 @source "../../../packages/ui/components/src/";
+@source "../../../packages/chat/src/";
 
 @custom-variant dark (&:is(.dark *));
 
