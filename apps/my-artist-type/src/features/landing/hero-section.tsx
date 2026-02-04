@@ -1,161 +1,116 @@
-import { ArtistTypeGraphCard, type ArtistData } from '@quiz';
-import { useEffect, useState, useSyncExternalStore } from 'react';
-import { BackgroundWrapper } from './background-wrapper.js';
+import {
+  ArtistTypeGraphCard,
+  ArtistTypeGraphCardSkeleton,
+  type ArtistData,
+} from "@quiz";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { BackgroundWrapper } from "./background-wrapper.js";
 
 // Media query hook to conditionally render charts (avoids Recharts 0-dimension warnings from hidden elements)
 const useLargeScreen = () => {
   const subscribe = (callback: () => void) => {
-    const mediaQuery = window.matchMedia('(min-width: 1024px)');
-    mediaQuery.addEventListener('change', callback);
-    return () => mediaQuery.removeEventListener('change', callback);
+    const mediaQuery = window.matchMedia("(min-width: 1024px)");
+    mediaQuery.addEventListener("change", callback);
+    return () => mediaQuery.removeEventListener("change", callback);
   };
-  const getSnapshot = () => window.matchMedia('(min-width: 1024px)').matches;
+  const getSnapshot = () => window.matchMedia("(min-width: 1024px)").matches;
   const getServerSnapshot = () => false; // Default to mobile on SSR
 
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 };
 
+// Single source of truth for artist type metadata
+const BASE_ARTIST_TYPES: ReadonlyArray<
+  Omit<ArtistData, "percentage" | "points">
+> = [
+  {
+    artistType: "Visionary",
+    fullName: "The Visionary Artist",
+    databaseId: "the-visionary-artist",
+  },
+  {
+    artistType: "Consummate",
+    fullName: "The Consummate Artist",
+    databaseId: "the-consummate-artist",
+  },
+  {
+    artistType: "Analyzer",
+    fullName: "The Analyzer Artist",
+    databaseId: "the-analyzer-artist",
+  },
+  {
+    artistType: "Tech",
+    fullName: "The Tech Artist",
+    databaseId: "the-tech-artist",
+  },
+  {
+    artistType: "Entertainer",
+    fullName: "The Entertainer Artist",
+    databaseId: "the-entertainer-artist",
+  },
+  {
+    artistType: "Maverick",
+    fullName: "The Maverick Artist",
+    databaseId: "the-maverick-artist",
+  },
+  {
+    artistType: "Dreamer",
+    fullName: "The Dreamer Artist",
+    databaseId: "the-dreamer-artist",
+  },
+  {
+    artistType: "Feeler",
+    fullName: "The Feeler Artist",
+    databaseId: "the-feeler-artist",
+  },
+  {
+    artistType: "Tortured",
+    fullName: "The Tortured Artist",
+    databaseId: "the-tortured-artist",
+  },
+  {
+    artistType: "Solo",
+    fullName: "The Solo Artist",
+    databaseId: "the-solo-artist",
+  },
+] as const;
+
+// Initial percentage/points values for SSR (deterministic)
+const INITIAL_VALUES = [
+  { percentage: 15, points: 450 },
+  { percentage: 12, points: 380 },
+  { percentage: 11, points: 340 },
+  { percentage: 10, points: 310 },
+  { percentage: 10, points: 300 },
+  { percentage: 9, points: 280 },
+  { percentage: 9, points: 270 },
+  { percentage: 9, points: 260 },
+  { percentage: 8, points: 240 },
+  { percentage: 7, points: 210 },
+] as const;
+
 // Static initial data for SSR - deterministic values that render on the server
-const INITIAL_ARTIST_DATA: Array<ArtistData> = [
-  {
-    artistType: 'Visionary',
-    fullName: 'The Visionary Artist',
-    databaseId: 'the-visionary-artist',
-    percentage: 15,
-    points: 450,
-  },
-  {
-    artistType: 'Consummate',
-    fullName: 'The Consummate Artist',
-    databaseId: 'the-consummate-artist',
-    percentage: 12,
-    points: 380,
-  },
-  {
-    artistType: 'Analyzer',
-    fullName: 'The Analyzer Artist',
-    databaseId: 'the-analyzer-artist',
-    percentage: 11,
-    points: 340,
-  },
-  {
-    artistType: 'Tech',
-    fullName: 'The Tech Artist',
-    databaseId: 'the-tech-artist',
-    percentage: 10,
-    points: 310,
-  },
-  {
-    artistType: 'Entertainer',
-    fullName: 'The Entertainer Artist',
-    databaseId: 'the-entertainer-artist',
-    percentage: 10,
-    points: 300,
-  },
-  {
-    artistType: 'Maverick',
-    fullName: 'The Maverick Artist',
-    databaseId: 'the-maverick-artist',
-    percentage: 9,
-    points: 280,
-  },
-  {
-    artistType: 'Dreamer',
-    fullName: 'The Dreamer Artist',
-    databaseId: 'the-dreamer-artist',
-    percentage: 9,
-    points: 270,
-  },
-  {
-    artistType: 'Feeler',
-    fullName: 'The Feeler Artist',
-    databaseId: 'the-feeler-artist',
-    percentage: 9,
-    points: 260,
-  },
-  {
-    artistType: 'Tortured',
-    fullName: 'The Tortured Artist',
-    databaseId: 'the-tortured-artist',
-    percentage: 8,
-    points: 240,
-  },
-  {
-    artistType: 'Solo',
-    fullName: 'The Solo Artist',
-    databaseId: 'the-solo-artist',
-    percentage: 7,
-    points: 210,
-  },
-];
+const INITIAL_ARTIST_DATA: Array<ArtistData> = BASE_ARTIST_TYPES.map(
+  (base, idx) => ({
+    ...base,
+    ...INITIAL_VALUES[idx],
+  })
+);
 
 const generateFakeData = (): Array<ArtistData> => {
-  const base: Array<Omit<ArtistData, 'percentage' | 'points'>> = [
-    {
-      artistType: 'Visionary',
-      fullName: 'The Visionary Artist',
-      databaseId: 'the-visionary-artist',
-    },
-    {
-      artistType: 'Consummate',
-      fullName: 'The Consummate Artist',
-      databaseId: 'the-consummate-artist',
-    },
-    {
-      artistType: 'Analyzer',
-      fullName: 'The Analyzer Artist',
-      databaseId: 'the-analyzer-artist',
-    },
-    {
-      artistType: 'Tech',
-      fullName: 'The Tech Artist',
-      databaseId: 'the-tech-artist',
-    },
-    {
-      artistType: 'Entertainer',
-      fullName: 'The Entertainer Artist',
-      databaseId: 'the-entertainer-artist',
-    },
-    {
-      artistType: 'Maverick',
-      fullName: 'The Maverick Artist',
-      databaseId: 'the-maverick-artist',
-    },
-    {
-      artistType: 'Dreamer',
-      fullName: 'The Dreamer Artist',
-      databaseId: 'the-dreamer-artist',
-    },
-    {
-      artistType: 'Feeler',
-      fullName: 'The Feeler Artist',
-      databaseId: 'the-feeler-artist',
-    },
-    {
-      artistType: 'Tortured',
-      fullName: 'The Tortured Artist',
-      databaseId: 'the-tortured-artist',
-    },
-    {
-      artistType: 'Solo',
-      fullName: 'The Solo Artist',
-      databaseId: 'the-solo-artist',
-    },
-  ];
-  const weights = base.map(() => Math.random() + 0.05);
+  const weights = BASE_ARTIST_TYPES.map(() => Math.random() + 0.05);
   const sum = weights.reduce((a, b) => a + b, 0);
   const rawPercentages = weights.map((w) => (w / sum) * 100);
   const rounded = rawPercentages.map((p) => Math.round(p));
   let diff = 100 - rounded.reduce((a, b) => a + b, 0);
   for (let i = 0; diff !== 0 && i < rounded.length; i++) {
-    let item = rounded[i];
-    if (item !== undefined) {
-      item += diff > 0 ? 1 : -1;
+    if (rounded[i] !== undefined) {
+      rounded[i] += diff > 0 ? 1 : -1;
       diff += diff > 0 ? -1 : 1;
     }
   }
-  return base.map((b, idx) => ({
-    ...b,
+  return BASE_ARTIST_TYPES.map((base, idx) => ({
+    ...base,
     percentage: Math.max(0, rounded[idx] ?? 0),
     points: Math.floor(Math.random() * 1000),
   }));
@@ -163,7 +118,8 @@ const generateFakeData = (): Array<ArtistData> => {
 
 export function HeroSectionWithBeamsAndGrid() {
   // Start with deterministic data for SSR, then switch to random data on client
-  const [fakeData, setFakeData] = useState<Array<ArtistData>>(INITIAL_ARTIST_DATA);
+  const [fakeData, setFakeData] =
+    useState<Array<ArtistData>>(INITIAL_ARTIST_DATA);
   const [isClient, setIsClient] = useState(false);
   const isLargeScreen = useLargeScreen();
 
@@ -184,7 +140,7 @@ export function HeroSectionWithBeamsAndGrid() {
       <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-6 px-4 py-20 sm:gap-8 md:px-8 lg:grid-cols-3 lg:py-0">
         <div className="lg:col-span-2 flex flex-col items-center lg:items-start text-center lg:text-left">
           <h2 className="relative z-50 mb-4 mt-4 max-w-4xl text-balance text-center text-4xl font-semibold tracking-tight text-gray-700 sm:text-5xl md:text-7xl lg:text-left dark:text-neutral-300">
-            Discover your{' '}
+            Discover your{" "}
             <div className="relative mx-auto inline-block w-max lg:mx-0 [filter:drop-shadow(0px_1px_3px_rgba(27,_37,_80,_0.14))]">
               <div className="text-black [text-shadow:0_0_rgba(0,0,0,0.1)] dark:text-white">
                 <span className="">Artist Type</span>
@@ -221,8 +177,14 @@ export function HeroSectionWithBeamsAndGrid() {
                 transparent
               />
             ) : (
-              // Placeholder during SSR to prevent layout shift
-              <div className="aspect-square w-full" />
+              // Skeleton during SSR to show loading state and prevent layout shift
+              // Use showBarChartOnLg to match actual component behavior (bar chart only on lg screens)
+              <ArtistTypeGraphCardSkeleton
+                showBarChart={false}
+                showBarChartOnLg={true}
+                barChartHeight="h-40"
+                transparent
+              />
             )}
           </div>
         </div>
