@@ -1,16 +1,38 @@
 {
   "extends": "../../../tsconfig.base.json",
   "compilerOptions": {
-    "rootDir": "src",
+    "baseUrl": "../../..",
     "outDir": "dist",
-    "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
-    "emitDeclarationOnly": true,
-    "forceConsistentCasingInFileNames": true,
+    "lib": ["es2022", "dom", "DOM.Iterable"],
+    "types": [
+      "node",
+      "@nx/react/typings/cssmodule.d.ts",
+      "@nx/react/typings/image.d.ts",
+      "vite/client"
+    ],
+    "rootDir": "src",
     "jsx": "react-jsx",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": ["node"]
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
+    "noImplicitOverride": false,
+    "noImplicitReturns": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": [
+    "out-tsc",
+    "dist",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/*.spec.tsx",
+    "**/*.test.tsx",
+    "**/*.spec.js",
+    "**/*.test.js",
+    "**/*.spec.jsx",
+    "**/*.test.jsx"
+  ],
+  "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"],
   "references": [
     {
       "path": "../shadcn/tsconfig.lib.json"
