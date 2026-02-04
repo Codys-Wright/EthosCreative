@@ -1,0 +1,11 @@
+# Root netlify.toml - points to the my-artist-type app
+[build]
+  base = "apps/my-artist-type"
+  command = "bun install && bun run build"
+  publish = "apps/my-artist-type/.output/public"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[plugins]]
+  package = "@netlify/vite-plugin-tanstack-start"
