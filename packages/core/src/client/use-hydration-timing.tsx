@@ -15,7 +15,7 @@
  * ```
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import * as Effect from 'effect/Effect';
 import * as Logger from 'effect/Logger';
 
@@ -231,5 +231,24 @@ export function HydrationDebugPanel({ show = true }: { show?: boolean }) {
         SSR + Hydration = Total
       </div>
     </div>
+  );
+}
+
+// ============================================================================
+// useHydrated Hook
+// ============================================================================
+
+const noopSubscribe = () => () => {};
+
+/**
+ * Hook to detect client-side hydration.
+ * Returns `false` during SSR and `true` after hydration is complete.
+ * Uses useSyncExternalStore for consistency and to avoid hydration mismatches.
+ */
+export function useHydrated(): boolean {
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => true,  // Client snapshot
+    () => false  // Server snapshot
   );
 }
