@@ -9,12 +9,3 @@ index 1234567..abcdefg 100644
  import { removeFalsy } from '../utils/remove_falsy.js';
  import { getEnvelope } from './envelope.js';
  import { getGitEnv } from './git.js';
-@@ -144,7 +145,7 @@ const getConfigFileEnv = function ({ config: { build: { environment = {} }, },
- };
- // Some environment variables cannot be overridden by configuration
- const cleanUserEnv = function (userEnv) {
--    return omit.default(userEnv, READONLY_ENV);
-+    return omit(userEnv, READONLY_ENV);
- };
- const READONLY_ENV = [
-     // Set in local builds
