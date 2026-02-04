@@ -1,9 +1,0 @@
-[build]
-  command = "bun install && cd apps/my-artist-type && bun run build"
-  publish = "apps/my-artist-type/.output/public"
-
-[build.environment]
-  NODE_VERSION = "20"
-
-[[plugins]]
-  package = "@netlify/vite-plugin-tanstack-start"
