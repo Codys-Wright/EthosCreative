@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { Link } from '@tanstack/react-router';
-import { cn } from '@shadcn';
-import { BackgroundRippleEffect } from './background-ripple-effect.js';
+import { Link } from "@tanstack/react-router";
+import { cn } from "@shadcn";
+import { BackgroundRippleEffect } from "./background-ripple-effect.js";
 
 // =============================================================================
 // TYPES
@@ -49,17 +49,21 @@ export interface BlogCardProps {
 // BLOG CARD COMPONENT
 // =============================================================================
 
-export function BlogCard({ blog, basePath = '', isIconImage = false }: BlogCardProps) {
+export function BlogCard({
+  blog,
+  basePath = "",
+  isIconImage = false,
+}: BlogCardProps) {
   const truncate = (text: string, length: number) => {
-    return text.length > length ? text.slice(0, length) + '...' : text;
+    return text.length > length ? text.slice(0, length) + "..." : text;
   };
 
   // Check if image is an SVG (either by extension or if isIconImage is explicitly set)
-  const isSvgOrIcon = isIconImage || blog.image?.endsWith('.svg');
+  const isSvgOrIcon = isIconImage || blog.image?.endsWith(".svg");
 
   return (
     <Link
-      to={`${basePath}/${blog.slug}`}
+      to={`${basePath}/${blog.slug}` as string}
       className="shadow-derek w-full overflow-hidden rounded-2xl md:rounded-3xl border border-border bg-card transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
     >
       {/* Mobile: horizontal layout, Desktop: vertical layout */}
@@ -67,20 +71,20 @@ export function BlogCard({ blog, basePath = '', isIconImage = false }: BlogCardP
         {blog.image ? (
           <div
             className={cn(
-              'flex items-center justify-center shrink-0',
+              "flex items-center justify-center shrink-0",
               // Mobile: smaller square, Desktop: full width banner
-              'h-24 w-24 md:h-52 md:w-full',
-              isSvgOrIcon ? 'bg-muted p-3 md:p-6' : '',
+              "h-24 w-24 md:h-52 md:w-full",
+              isSvgOrIcon ? "bg-muted p-3 md:p-6" : ""
             )}
           >
             <img
               src={blog.image}
               alt={blog.title}
               className={cn(
-                'h-full w-full',
+                "h-full w-full",
                 isSvgOrIcon
-                  ? 'object-contain dark:brightness-0 dark:invert'
-                  : 'object-cover object-center',
+                  ? "object-contain dark:brightness-0 dark:invert"
+                  : "object-cover object-center"
               )}
             />
           </div>
@@ -97,7 +101,7 @@ export function BlogCard({ blog, basePath = '', isIconImage = false }: BlogCardP
               {blog.authorAvatar && (
                 <img
                   src={blog.authorAvatar}
-                  alt={blog.author ?? 'Author'}
+                  alt={blog.author ?? "Author"}
                   className="h-4 w-4 md:h-5 md:w-5 rounded-full"
                 />
               )}
@@ -125,16 +129,16 @@ export function BlogCard({ blog, basePath = '', isIconImage = false }: BlogCardP
 // =============================================================================
 
 const COLUMN_CLASSES = {
-  2: 'md:grid-cols-2',
-  3: 'md:grid-cols-3',
-  4: 'md:grid-cols-4',
+  2: "md:grid-cols-2",
+  3: "md:grid-cols-3",
+  4: "md:grid-cols-4",
 } as const;
 
 export function SimpleBlogWithGrid({
   title,
   description,
   items,
-  basePath = '',
+  basePath = "",
   className,
   columns = 3,
   isIconImage,
@@ -142,7 +146,7 @@ export function SimpleBlogWithGrid({
   renderCard,
 }: SimpleBlogWithGridProps) {
   return (
-    <div className={cn('relative overflow-hidden', className)}>
+    <div className={cn("relative overflow-hidden", className)}>
       {/* Header with animated ripple background - full width */}
       <div className="relative overflow-hidden">
         <BackgroundRippleEffect
@@ -155,8 +159,8 @@ export function SimpleBlogWithGrid({
         {/* When withNavbarSpacing is true, add pt-24 for fixed navbar clearance */}
         <div
           className={cn(
-            'relative z-20 mx-auto max-w-7xl px-4 py-10 md:px-8 md:py-20',
-            withNavbarSpacing && 'pt-24 md:pt-32',
+            "relative z-20 mx-auto max-w-7xl px-4 py-10 md:px-8 md:py-20",
+            withNavbarSpacing && "pt-24 md:pt-32"
           )}
         >
           <h1 className="mb-3 md:mb-6 scroll-m-20 text-center text-2xl md:text-4xl font-bold tracking-tight text-black md:text-left dark:text-white">
@@ -174,8 +178,8 @@ export function SimpleBlogWithGrid({
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between px-4 pb-10 md:pb-20 md:px-8">
         <div
           className={cn(
-            'relative z-20 grid w-full grid-cols-1 gap-3 md:gap-10',
-            COLUMN_CLASSES[columns],
+            "relative z-20 grid w-full grid-cols-1 gap-3 md:gap-10",
+            COLUMN_CLASSES[columns]
           )}
         >
           {items.map((item, index) =>
@@ -188,7 +192,7 @@ export function SimpleBlogWithGrid({
                 basePath={basePath}
                 isIconImage={isIconImage}
               />
-            ),
+            )
           )}
         </div>
       </div>
@@ -196,5 +200,5 @@ export function SimpleBlogWithGrid({
   );
 }
 
-SimpleBlogWithGrid.displayName = 'SimpleBlogWithGrid';
-BlogCard.displayName = 'BlogCard';
+SimpleBlogWithGrid.displayName = "SimpleBlogWithGrid";
+BlogCard.displayName = "BlogCard";
