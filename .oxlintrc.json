@@ -114,6 +114,10 @@
   "ignorePatterns": [
     "**/dist",
     "**/build",
+    "**/output",
+    "**/.output",
+    "**/out-tsc",
+    "**/node_modules",
     "**/docs",
     "**/*.md",
     "**/vitest.config.ts",
