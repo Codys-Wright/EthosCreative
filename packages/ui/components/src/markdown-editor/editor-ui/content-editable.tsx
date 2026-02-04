@@ -1,6 +1,6 @@
 import { JSX } from "react";
 import { ContentEditable as LexicalContentEditable } from "@lexical/react/LexicalContentEditable";
-import { cn } from "@shadcn/src/lib/utils";
+import { cn } from "@shadcn/lib/utils";
 
 type Props = {
   placeholder: string;
