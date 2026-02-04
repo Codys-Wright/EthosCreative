@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useAtomSet, useAtomValue, Result } from '@effect-atom/atom-react';
-import { useRouter } from '@tanstack/react-router';
-import { Button, Card, Input, Label, cn, Separator } from '@shadcn';
-import { CheckCircle2, Mail, Lock, User, Loader2 } from 'lucide-react';
+import { useState } from "react";
+import { useAtomSet, useAtomValue, Result } from "@effect-atom/atom-react";
+import { useRouter } from "@tanstack/react-router";
+import { Button, Card, Input, Label, cn, Separator } from "@shadcn";
+import { CheckCircle2, Mail, Lock, User, Loader2 } from "lucide-react";
 import {
   sessionAtom,
   signUpAtom,
   signInWithGoogleAtom,
-} from '@auth/features/session/client/atoms.js';
+} from "@auth/features/session/client/atoms.js";
 
 // Google icon component
 function GoogleIcon({ className }: { className?: string }) {
@@ -56,20 +56,20 @@ export interface ClaimAccountFormProps {
  */
 export function ClaimAccountForm({
   className,
-  callbackURL = '/account/settings',
+  callbackURL = "/account/settings",
   onSuccess,
 }: ClaimAccountFormProps) {
   const router = useRouter();
   const sessionResult = useAtomValue(sessionAtom);
-  const signUp = useAtomSet(signUpAtom, { mode: 'promise' });
+  const signUp = useAtomSet(signUpAtom, { mode: "promise" });
   const signInWithGoogle = useAtomSet(signInWithGoogleAtom, {
-    mode: 'promise',
+    mode: "promise",
   });
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,12 +77,13 @@ export function ClaimAccountForm({
 
   // Get current user info for pre-filling
   const session = Result.isSuccess(sessionResult) ? sessionResult.value : null;
-  const isAnonymous = session?.user && (session.user as { isAnonymous?: boolean }).isAnonymous;
+  const isAnonymous =
+    session?.user && (session.user as { isAnonymous?: boolean }).isAnonymous;
 
   // If not anonymous, show a message
   if (session && !isAnonymous) {
     return (
-      <Card className={cn('p-6', className)}>
+      <Card className={cn("p-6", className)}>
         <div className="text-center space-y-4">
           <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />
           <h2 className="text-xl font-semibold">Account Already Claimed</h2>
@@ -100,23 +101,23 @@ export function ClaimAccountForm({
 
     // Validation
     if (!name.trim()) {
-      setError('Please enter your name');
+      setError("Please enter your name");
       return;
     }
     if (!email.trim()) {
-      setError('Please enter your email');
+      setError("Please enter your email");
       return;
     }
     if (!password) {
-      setError('Please enter a password');
+      setError("Please enter a password");
       return;
     }
     if (password.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError("Password must be at least 8 characters");
       return;
     }
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
 
@@ -131,9 +132,9 @@ export function ClaimAccountForm({
       setSuccess(true);
       onSuccess?.();
       // Redirect to account page after successful signup
-      router.navigate({ to: callbackURL as '/account/settings' });
+      router.navigate({ to: callbackURL as "/account/settings" });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create account');
+      setError(err instanceof Error ? err.message : "Failed to create account");
     } finally {
       setIsLoading(false);
     }
@@ -146,19 +147,22 @@ export function ClaimAccountForm({
       await signInWithGoogle();
       // OAuth will redirect, so we don't need to handle success here
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign in with Google');
+      setError(
+        err instanceof Error ? err.message : "Failed to sign in with Google"
+      );
       setIsGoogleLoading(false);
     }
   };
 
   if (success) {
     return (
-      <Card className={cn('p-6', className)}>
+      <Card className={cn("p-6", className)}>
         <div className="text-center space-y-4">
           <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />
           <h2 className="text-xl font-semibold">Account Created!</h2>
           <p className="text-muted-foreground">
-            Your account has been successfully created and your data has been preserved.
+            Your account has been successfully created and your data has been
+            preserved.
           </p>
         </div>
       </Card>
@@ -166,13 +170,14 @@ export function ClaimAccountForm({
   }
 
   return (
-    <Card className={cn('p-6', className)}>
+    <Card className={cn("p-6", className)}>
       <div className="space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
           <h2 className="text-2xl font-bold">Claim Your Account</h2>
           <p className="text-muted-foreground">
-            Create a permanent account to save your quiz results and access them anytime.
+            Create a permanent account to save your quiz results and access them
+            anytime.
           </p>
         </div>
 
@@ -198,7 +203,9 @@ export function ClaimAccountForm({
             <Separator />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card px-2 text-muted-foreground">Or continue with email</span>
+            <span className="bg-card px-2 text-muted-foreground">
+              Or continue with email
+            </span>
           </div>
         </div>
 
@@ -269,7 +276,9 @@ export function ClaimAccountForm({
           </div>
 
           {error && (
-            <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{error}</div>
+            <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+              {error}
+            </div>
           )}
 
           <Button type="submit" className="w-full" disabled={isLoading}>
@@ -279,14 +288,26 @@ export function ClaimAccountForm({
                 Creating Account...
               </>
             ) : (
-              'Create Account'
+              "Create Account"
             )}
           </Button>
         </form>
 
         {/* Info */}
         <p className="text-xs text-center text-muted-foreground">
-          Your quiz results and data will be automatically linked to your new account.
+          Your quiz results and data will be automatically linked to your new
+          account.
+        </p>
+
+        {/* Sign In Link */}
+        <p className="text-sm text-center text-muted-foreground">
+          Already have an account?{" "}
+          <a
+            href="/auth/sign-in"
+            className="text-primary hover:underline font-medium"
+          >
+            Sign In
+          </a>
         </p>
       </div>
     </Card>

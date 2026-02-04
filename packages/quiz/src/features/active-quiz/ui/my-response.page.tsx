@@ -1,24 +1,36 @@
-'use client';
+"use client";
 
-import { Result, useAtomValue, useAtomSet, useAtomRefresh } from '@effect-atom/atom-react';
-import { HydrationBoundary } from '@effect-atom/atom-react/ReactHydration';
-import { Badge, Button, Card, cn, Spinner } from '@shadcn';
-import { CheckIcon, LinkIcon } from 'lucide-react';
-import React from 'react';
-import { Link } from '@tanstack/react-router';
-import confetti from 'canvas-confetti';
-import { BackgroundRippleEffect } from '@components';
-import { ArtistTypeGraphCard } from '../components/artist-type/artist-type-graph-card.js';
-import type { ArtistData } from '../components/artist-type/artist-data-utils.js';
-import { getArtistTypeInfo } from '../components/artist-type/artist-type-descriptions.js';
-import { generateShareableUrl, copyToClipboard } from './share-utils.js';
-import { MyResponsePageLoading, MOBILE_TOP_CARD_HEIGHT } from './my-response-skeleton.js';
-import type { MyResponseLoaderData } from './load-my-response.js';
-import { responsesAtom } from '../../responses/client/atoms.js';
-import { analysesAtom, analyzeResponseWithServiceAtom } from '../../analysis/client/atoms.js';
-import { enginesAtom } from '../../analysis-engine/client/atoms.js';
-import { ResponseId } from '../../responses/domain/schema.js';
-import { AnalyzeResponseRequest } from '../../analysis/domain/schema.js';
+import {
+  Result,
+  useAtomValue,
+  useAtomSet,
+  useAtomRefresh,
+} from "@effect-atom/atom-react";
+import { isAnonymousAtom } from "@auth/features/session/client/atoms.js";
+import { HydrationBoundary } from "@effect-atom/atom-react/ReactHydration";
+import { Badge, Button, Card, cn, Spinner } from "@shadcn";
+import { CheckIcon, LinkIcon } from "lucide-react";
+import React from "react";
+import { Link } from "@tanstack/react-router";
+import confetti from "canvas-confetti";
+import { BackgroundRippleEffect } from "@components";
+import { ArtistTypeGraphCard } from "../components/artist-type/artist-type-graph-card.js";
+import type { ArtistData } from "../components/artist-type/artist-data-utils.js";
+import { getArtistTypeInfo } from "../components/artist-type/artist-type-descriptions.js";
+import { generateShareableUrl, copyToClipboard } from "./share-utils.js";
+import {
+  MyResponsePageLoading,
+  MOBILE_TOP_CARD_HEIGHT,
+} from "./my-response-skeleton.js";
+import type { MyResponseLoaderData } from "./load-my-response.js";
+import { responsesAtom } from "../../responses/client/atoms.js";
+import {
+  analysesAtom,
+  analyzeResponseWithServiceAtom,
+} from "../../analysis/client/atoms.js";
+import { enginesAtom } from "../../analysis-engine/client/atoms.js";
+import { ResponseId } from "../../responses/domain/schema.js";
+import { AnalyzeResponseRequest } from "../../analysis/domain/schema.js";
 
 // ============================================================================
 // Confetti Effect
@@ -32,16 +44,16 @@ function fireSideCannons() {
   const duration = 1.5 * 1000; // 1.5 seconds
   const end = Date.now() + duration;
   const colors = [
-    '#a786ff', // purple
-    '#fd8bbc', // pink
-    '#eca184', // peach
-    '#f8deb1', // cream
-    '#87ceeb', // sky blue
-    '#98fb98', // pale green
-    '#ffd700', // gold
-    '#ff6b6b', // coral red
-    '#c9b1ff', // lavender
-    '#88d8b0', // mint
+    "#a786ff", // purple
+    "#fd8bbc", // pink
+    "#eca184", // peach
+    "#f8deb1", // cream
+    "#87ceeb", // sky blue
+    "#98fb98", // pale green
+    "#ffd700", // gold
+    "#ff6b6b", // coral red
+    "#c9b1ff", // lavender
+    "#88d8b0", // mint
   ];
 
   let frameCount = 0;
@@ -97,11 +109,11 @@ function fireSideCannons() {
  */
 function useResultsConfetti() {
   React.useEffect(() => {
-    console.log('[Confetti] useResultsConfetti effect running');
+    console.log("[Confetti] useResultsConfetti effect running");
 
     // Small delay to ensure the content is visible
     const timer = setTimeout(() => {
-      console.log('[Confetti] Timer fired, calling fireSideCannons');
+      console.log("[Confetti] Timer fired, calling fireSideCannons");
       fireSideCannons();
     }, 200);
 
@@ -140,7 +152,9 @@ export interface MyResponsePageProps {
 // Page Container
 // ============================================================================
 
-const PageContainer: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+const PageContainer: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
   <div className="relative w-full px-4 pt-4 pb-8">
     {/* Background ripple effect */}
     <BackgroundRippleEffect
@@ -188,14 +202,16 @@ const WinnerHeroSection: React.FC<WinnerHeroProps> = ({
     return (
       <Card className="text-center py-12">
         <Card.Content className="space-y-4">
-          <p className="text-muted-foreground">Could not load artist type information</p>
+          <p className="text-muted-foreground">
+            Could not load artist type information
+          </p>
         </Card.Content>
       </Card>
     );
   }
 
   return (
-    <div className={compact ? 'space-y-3' : 'space-y-6'}>
+    <div className={compact ? "space-y-3" : "space-y-6"}>
       {/* Header with icon, title, and share button */}
       <div className="flex items-start gap-4 md:gap-6">
         <div className="shrink-0">
@@ -203,8 +219,8 @@ const WinnerHeroSection: React.FC<WinnerHeroProps> = ({
             src={artistInfo.iconPath}
             alt={artistInfo.title}
             className={cn(
-              'dark:brightness-0 dark:invert',
-              compact ? 'w-16 h-16' : 'w-20 h-20 md:w-28 md:h-28',
+              "dark:brightness-0 dark:invert",
+              compact ? "w-16 h-16" : "w-20 h-20 md:w-28 md:h-28"
             )}
           />
         </div>
@@ -215,20 +231,25 @@ const WinnerHeroSection: React.FC<WinnerHeroProps> = ({
             </div>
             <h1
               className={cn(
-                'font-bold tracking-tight',
-                compact ? 'text-xl' : 'text-2xl md:text-4xl',
+                "font-bold tracking-tight",
+                compact ? "text-xl" : "text-2xl md:text-4xl"
               )}
             >
               {artistInfo.title}
             </h1>
             {/* First trait as subtitle in compact mode */}
             {compact && artistInfo.traits[0] && (
-              <p className="text-xs text-muted-foreground">{artistInfo.traits[0]}</p>
+              <p className="text-xs text-muted-foreground">
+                {artistInfo.traits[0]}
+              </p>
             )}
           </div>
           <Badge
             variant="secondary"
-            className={cn('font-semibold', compact ? 'text-xs px-2 py-0.5' : 'text-sm px-3 py-1')}
+            className={cn(
+              "font-semibold",
+              compact ? "text-xs px-2 py-0.5" : "text-sm px-3 py-1"
+            )}
           >
             {percentage.toFixed(1)}% Match
           </Badge>
@@ -289,7 +310,9 @@ interface RankingsSectionProps {
 
 const RankingsSection: React.FC<RankingsSectionProps> = ({ artistData }) => {
   // Sort by percentage descending, skip the first (winner is shown separately)
-  const sortedData = [...artistData].sort((a, b) => b.percentage - a.percentage);
+  const sortedData = [...artistData].sort(
+    (a, b) => b.percentage - a.percentage
+  );
 
   return (
     <div className="space-y-2">
@@ -305,8 +328,10 @@ const RankingsSection: React.FC<RankingsSectionProps> = ({ artistData }) => {
             <div
               key={data.databaseId}
               className={cn(
-                'flex items-center gap-3 p-2 rounded-lg transition-colors',
-                isWinner ? 'bg-primary/10 border border-primary/20' : 'hover:bg-muted/50',
+                "flex items-center gap-3 p-2 rounded-lg transition-colors",
+                isWinner
+                  ? "bg-primary/10 border border-primary/20"
+                  : "hover:bg-muted/50"
               )}
             >
               {/* Rank */}
@@ -316,7 +341,10 @@ const RankingsSection: React.FC<RankingsSectionProps> = ({ artistData }) => {
 
               {/* Icon */}
               <img
-                src={info?.iconPath ?? `/svgs/artist-type-logos/${index + 1}_LOGO.svg`}
+                src={
+                  info?.iconPath ??
+                  `/svgs/artist-type-logos/${index + 1}_LOGO.svg`
+                }
                 alt={data.fullName}
                 className="w-7 h-7 dark:brightness-0 dark:invert"
               />
@@ -358,6 +386,7 @@ interface ActionsSectionProps {
 
 const ActionsSection: React.FC<ActionsSectionProps> = ({ shareUrl }) => {
   const [copied, setCopied] = React.useState(false);
+  const isAnonymous = useAtomValue(isAnonymousAtom);
 
   const handleShare = async () => {
     if (!shareUrl) return;
@@ -370,8 +399,24 @@ const ActionsSection: React.FC<ActionsSectionProps> = ({ shareUrl }) => {
 
   return (
     <div className="flex flex-col gap-3 pt-2">
+      {/* Claim Account CTA for anonymous users */}
+      {isAnonymous && (
+        <Link to="/account/claim-account" className="w-full">
+          <Button
+            size="lg"
+            className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg"
+          >
+            Save Your Results - Create Account
+          </Button>
+        </Link>
+      )}
       {shareUrl && (
-        <Button variant="outline" size="lg" onClick={handleShare} className="w-full">
+        <Button
+          variant="outline"
+          size="lg"
+          onClick={handleShare}
+          className="w-full"
+        >
           {copied ? (
             <>
               <CheckIcon className="h-4 w-4 mr-1.5" />
@@ -412,17 +457,20 @@ interface MyResponseContentProps {
   winnerId: string;
 }
 
-const MyResponseContent: React.FC<MyResponseContentProps> = ({ artistData, winnerId }) => {
+const MyResponseContent: React.FC<MyResponseContentProps> = ({
+  artistData,
+  winnerId,
+}) => {
   // Fire confetti when results are shown
   useResultsConfetti();
 
   // Share URL state
-  const [shareUrl, setShareUrl] = React.useState('');
+  const [shareUrl, setShareUrl] = React.useState("");
 
   // Find the winner's percentage
   const winner = artistData.find((d) => d.databaseId === winnerId);
   const winnerPercentage = winner?.percentage ?? artistData[0]?.percentage ?? 0;
-  const effectiveWinnerId = winnerId || artistData[0]?.databaseId || '';
+  const effectiveWinnerId = winnerId || artistData[0]?.databaseId || "";
   const artistInfo = getArtistTypeInfo(effectiveWinnerId);
 
   return (
@@ -430,7 +478,7 @@ const MyResponseContent: React.FC<MyResponseContentProps> = ({ artistData, winne
       <div className="max-w-6xl mx-auto space-y-6 lg:space-y-8">
         {/* Mobile: Compact winner header on TOP - fixed height to match loading (hidden on desktop) */}
         <div className="lg:hidden">
-          <Card className={cn('p-4', MOBILE_TOP_CARD_HEIGHT)}>
+          <Card className={cn("p-4", MOBILE_TOP_CARD_HEIGHT)}>
             <WinnerHeroSection
               winnerId={effectiveWinnerId}
               percentage={winnerPercentage}
@@ -512,7 +560,7 @@ function useResponseAnalysis(responseId: string) {
   const analysesResult = useAtomValue(analysesAtom);
   const enginesResult = useAtomValue(enginesAtom);
   const analyzeResponse = useAtomSet(analyzeResponseWithServiceAtom, {
-    mode: 'promise',
+    mode: "promise",
   });
   const refreshAnalyses = useAtomRefresh(analysesAtom);
 
@@ -532,14 +580,14 @@ function useResponseAnalysis(responseId: string) {
 
   // Debug logging
   React.useEffect(() => {
-    console.log('[useResponseAnalysis] State:', {
+    console.log("[useResponseAnalysis] State:", {
       responseId,
       responsesResult: Result.isSuccess(responsesResult)
         ? `${responsesResult.value.length} responses`
-        : 'loading/error',
+        : "loading/error",
       analysesResult: Result.isSuccess(analysesResult)
         ? `${analysesResult.value.length} analyses`
-        : 'loading/error',
+        : "loading/error",
       hasAnalysis: !!analysis,
       retryCount,
     });
@@ -550,7 +598,7 @@ function useResponseAnalysis(responseId: string) {
     // Don't poll if we already have analysis or hit max retries
     if (analysis) return;
     if (retryCount >= maxRetries) {
-      setAnalysisError('Analysis timed out. Please refresh the page.');
+      setAnalysisError("Analysis timed out. Please refresh the page.");
       return;
     }
     if (!Result.isSuccess(analysesResult)) return;
@@ -558,7 +606,9 @@ function useResponseAnalysis(responseId: string) {
     // Start polling
     const timeoutId = setTimeout(() => {
       console.log(
-        `[useResponseAnalysis] Polling for analysis (attempt ${retryCount + 1}/${maxRetries})`,
+        `[useResponseAnalysis] Polling for analysis (attempt ${
+          retryCount + 1
+        }/${maxRetries})`
       );
       refreshAnalyses();
       setRetryCount((c) => c + 1);
@@ -577,15 +627,18 @@ function useResponseAnalysis(responseId: string) {
 
     const activeEngine = enginesResult.value.find((e) => e.isActive);
     if (!activeEngine) {
-      console.log('[useResponseAnalysis] No active engine found');
-      setAnalysisError('No active analysis engine found');
+      console.log("[useResponseAnalysis] No active engine found");
+      setAnalysisError("No active analysis engine found");
       return;
     }
 
     // Trigger analysis as fallback
     hasAttemptedAnalysis.current = true;
     setIsAnalyzing(true);
-    console.log('[useResponseAnalysis] Triggering analysis for response:', responseId);
+    console.log(
+      "[useResponseAnalysis] Triggering analysis for response:",
+      responseId
+    );
 
     // Create proper schema instance for the request
     const request = new AnalyzeResponseRequest({
@@ -595,14 +648,14 @@ function useResponseAnalysis(responseId: string) {
 
     analyzeResponse({ input: request })
       .then((result) => {
-        console.log('[useResponseAnalysis] Analysis complete:', result);
+        console.log("[useResponseAnalysis] Analysis complete:", result);
         setIsAnalyzing(false);
         // Refresh to get the new analysis in the atom
         refreshAnalyses();
       })
       .catch((error) => {
-        console.error('[useResponseAnalysis] Analysis failed:', error);
-        setAnalysisError('Failed to analyze response');
+        console.error("[useResponseAnalysis] Analysis failed:", error);
+        setAnalysisError("Failed to analyze response");
         setIsAnalyzing(false);
       });
   }, [
@@ -616,7 +669,8 @@ function useResponseAnalysis(responseId: string) {
   ]);
 
   // Determine current state
-  const isDataLoading = !Result.isSuccess(responsesResult) || !Result.isSuccess(analysesResult);
+  const isDataLoading =
+    !Result.isSuccess(responsesResult) || !Result.isSuccess(analysesResult);
 
   // Convert analysis to artist data if available
   const artistData: ArtistData[] | undefined = analysis
@@ -634,7 +688,7 @@ function useResponseAnalysis(responseId: string) {
 
   // Find winner
   const winner = analysis?.endingResults.find((r) => r.isWinner);
-  const winnerId = winner?.endingId ?? artistData?.[0]?.databaseId ?? '';
+  const winnerId = winner?.endingId ?? artistData?.[0]?.databaseId ?? "";
 
   return {
     isDataLoading,
@@ -650,7 +704,9 @@ function useResponseAnalysis(responseId: string) {
  * Coordinated loading component that shows loading animation while
  * hydration and data fetching happen concurrently in the background.
  */
-const MyResponseWithLoading: React.FC<MyResponseInnerProps> = ({ responseId }) => {
+const MyResponseWithLoading: React.FC<MyResponseInnerProps> = ({
+  responseId,
+}) => {
   // Minimum loading time for smooth UX (prevents flash of content)
   const MIN_LOADING_MS = 2000;
 
@@ -658,13 +714,19 @@ const MyResponseWithLoading: React.FC<MyResponseInnerProps> = ({ responseId }) =
   const [shouldShowContent, setShouldShowContent] = React.useState(false);
 
   // Get data state from atoms (this triggers hydration)
-  const { isDataLoading, isAnalyzing, analysisError, hasAnalysis, artistData, winnerId } =
-    useResponseAnalysis(responseId);
+  const {
+    isDataLoading,
+    isAnalyzing,
+    analysisError,
+    hasAnalysis,
+    artistData,
+    winnerId,
+  } = useResponseAnalysis(responseId);
 
   // Start minimum loading timer on mount
   React.useEffect(() => {
     const timer = setTimeout(() => {
-      console.log('[MyResponseWithLoading] Min loading time complete');
+      console.log("[MyResponseWithLoading] Min loading time complete");
       setMinLoadingComplete(true);
     }, MIN_LOADING_MS);
     return () => clearTimeout(timer);
@@ -676,21 +738,29 @@ const MyResponseWithLoading: React.FC<MyResponseInnerProps> = ({ responseId }) =
   // Transition to content when both conditions are met
   React.useEffect(() => {
     if (minLoadingComplete && dataReady) {
-      console.log('[MyResponseWithLoading] Both conditions met, showing content');
+      console.log(
+        "[MyResponseWithLoading] Both conditions met, showing content"
+      );
       setShouldShowContent(true);
     }
   }, [minLoadingComplete, dataReady]);
 
   // Debug logging
   React.useEffect(() => {
-    console.log('[MyResponseWithLoading] Render state:', {
+    console.log("[MyResponseWithLoading] Render state:", {
       minLoadingComplete,
       isDataLoading,
       hasAnalysis,
       dataReady,
       shouldShowContent,
     });
-  }, [minLoadingComplete, isDataLoading, hasAnalysis, dataReady, shouldShowContent]);
+  }, [
+    minLoadingComplete,
+    isDataLoading,
+    hasAnalysis,
+    dataReady,
+    shouldShowContent,
+  ]);
 
   // Show error state if analysis failed
   if (analysisError && minLoadingComplete) {
@@ -734,7 +804,8 @@ const MyResponseWithLoading: React.FC<MyResponseInnerProps> = ({ responseId }) =
           <Card.Content className="space-y-4">
             <h2 className="text-xl font-semibold">Analysis Not Found</h2>
             <p className="text-muted-foreground">
-              No analysis results found for this response. The analysis may still be processing.
+              No analysis results found for this response. The analysis may
+              still be processing.
             </p>
             <Link to="/quiz">
               <Button>Take the Quiz</Button>
@@ -781,7 +852,12 @@ export const MyResponsePage: React.FC<MyResponsePageProps> = ({
 }) => {
   // If we have preloaded data (from shared URL), use it directly
   if (preloadedArtistData && preloadedWinnerId) {
-    return <MyResponseContent artistData={preloadedArtistData} winnerId={preloadedWinnerId} />;
+    return (
+      <MyResponseContent
+        artistData={preloadedArtistData}
+        winnerId={preloadedWinnerId}
+      />
+    );
   }
 
   // If we have loaderData and responseId, use hydration boundary
