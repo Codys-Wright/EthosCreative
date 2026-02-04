@@ -1,10 +1,10 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
     "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo",
     "jsx": "react-jsx",
-    "lib": ["dom"],
+    "lib": ["dom", "es2023"],
     "types": [
       "node",
       "@nx/react/typings/cssmodule.d.ts",
@@ -12,48 +12,30 @@
       "vite/client"
     ],
     "module": "esnext",
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "emitDeclarationOnly": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
   },
   "exclude": [
     "out-tsc",
     "dist",
-    "src/**/*.spec.ts",
-    "src/**/*.test.ts",
-    "src/**/*.spec.tsx",
-    "src/**/*.test.tsx",
-    "src/**/*.spec.js",
-    "src/**/*.test.js",
-    "src/**/*.spec.jsx",
-    "src/**/*.test.jsx"
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/*.spec.tsx",
+    "**/*.test.tsx",
+    "**/*.spec.js",
+    "**/*.test.js",
+    "**/*.spec.jsx",
+    "**/*.test.jsx"
   ],
-  "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"],
-  "references": [
-    {
-      "path": "../../packages/artist-types/tsconfig.lib.json"
-    },
-    {
-      "path": "../../packages/ui/components/tsconfig.lib.json"
-    },
-    {
-      "path": "../../packages/quiz/tsconfig.lib.json"
-    },
-    {
-      "path": "../../packages/auth/tsconfig.lib.json"
-    },
-    {
-      "path": "../../packages/example/tsconfig.lib.json"
-    },
-    {
-      "path": "../../packages/todo/tsconfig.lib.json"
-    },
-    {
-      "path": "../../packages/ui/theme/tsconfig.lib.json"
-    },
-    {
-      "path": "../../packages/ui/shadcn/tsconfig.lib.json"
-    },
-    {
-      "path": "../../packages/core/tsconfig.lib.json"
-    }
+  "include": [
+    "src/**/*.js",
+    "src/**/*.jsx",
+    "src/**/*.ts",
+    "src/**/*.tsx"
   ]
 }
