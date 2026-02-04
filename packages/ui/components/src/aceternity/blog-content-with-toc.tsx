@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
-import { Menu } from 'lucide-react';
-import { cn } from '@shadcn';
-import ReactMarkdown from 'react-markdown';
-import { format } from 'date-fns';
+import { useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { Menu } from "lucide-react";
+import { cn } from "@shadcn";
+import ReactMarkdown from "react-markdown";
+import { format } from "date-fns";
 
 // =============================================================================
 // TYPES
@@ -27,6 +27,8 @@ export interface BlogContentProps {
   thumbnail?: string;
   /** Whether the thumbnail is an SVG/icon that needs special styling (auto-detects from .svg extension) */
   isIconThumbnail?: boolean;
+  /** Display the thumbnail in a sticky sidebar on the right instead of at the top */
+  sidebarImage?: boolean;
   /** Author name */
   author?: string;
   /** Author avatar URL */
@@ -139,8 +141,8 @@ function extractTocFromMarkdown(content: string): TocLink[] {
     // Create a slug from the title
     const href = `#${title
       .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')}`;
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")}`;
     links.push({ title, href });
   }
 
@@ -157,6 +159,7 @@ export function BlogContentWithToc({
   content,
   thumbnail,
   isIconThumbnail,
+  sidebarImage,
   author,
   authorImage,
   date,
@@ -168,34 +171,45 @@ export function BlogContentWithToc({
   const links = tocLinks ?? extractTocFromMarkdown(content);
 
   // Check if thumbnail is an SVG (either by extension or if isIconThumbnail is explicitly set)
-  const isSvgOrIcon = isIconThumbnail || thumbnail?.endsWith('.svg');
+  const isSvgOrIcon = isIconThumbnail || thumbnail?.endsWith(".svg");
+
+  // Determine if we should show the thumbnail at top vs sidebar
+  const showTopThumbnail = thumbnail && !sidebarImage;
+  const showSidebarThumbnail = thumbnail && sidebarImage;
 
   return (
     <div
       className={cn(
-        'mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 md:flex-row md:px-8',
-        className,
+        "mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 md:flex-row md:px-8",
+        className
       )}
     >
       <Toc links={links} />
 
-      <div className="flex max-w-2xl flex-1 flex-col">
-        {/* Thumbnail */}
-        {thumbnail && (
+      <div
+        className={cn(
+          "flex flex-1 flex-col",
+          !showSidebarThumbnail && "max-w-2xl"
+        )}
+      >
+        {/* Top Thumbnail (default behavior) */}
+        {showTopThumbnail && (
           <div
             className={cn(
-              'flex items-center justify-center rounded-3xl',
+              "flex items-center justify-center rounded-3xl",
               isSvgOrIcon
-                ? 'h-48 bg-neutral-100 p-8 md:h-72 dark:bg-neutral-800'
-                : 'h-60 md:h-[30rem]',
+                ? "h-48 bg-neutral-100 p-8 md:h-72 dark:bg-neutral-800"
+                : "h-60 md:h-[30rem]"
             )}
           >
             <img
               src={thumbnail}
               alt={title}
               className={cn(
-                'h-full w-full rounded-3xl',
-                isSvgOrIcon ? 'object-contain dark:brightness-0 dark:invert' : 'object-cover',
+                "h-full w-full rounded-3xl",
+                isSvgOrIcon
+                  ? "object-contain dark:brightness-0 dark:invert"
+                  : "object-cover"
               )}
             />
           </div>
@@ -205,7 +219,11 @@ export function BlogContentWithToc({
         <h1 className="mt-6 mb-2 text-2xl font-bold tracking-tight text-black dark:text-white md:text-3xl">
           {title}
         </h1>
-        {subtitle && <p className="text-lg text-neutral-600 dark:text-neutral-400">{subtitle}</p>}
+        {subtitle && (
+          <p className="text-lg text-neutral-600 dark:text-neutral-400">
+            {subtitle}
+          </p>
+        )}
 
         {/* Markdown Content */}
         <div className="prose prose-sm dark:prose-invert mt-10 max-w-none prose-headings:scroll-mt-20">
@@ -216,8 +234,8 @@ export function BlogContentWithToc({
                 const text = String(children);
                 const id = text
                   .toLowerCase()
-                  .replace(/[^a-z0-9\s-]/g, '')
-                  .replace(/\s+/g, '-');
+                  .replace(/[^a-z0-9\s-]/g, "")
+                  .replace(/\s+/g, "-");
                 return (
                   <h2 id={id} {...props}>
                     {children}
@@ -242,25 +260,56 @@ export function BlogContentWithToc({
             </div>
             <div className="mt-10 flex items-center">
               {authorImage && (
-                <img src={authorImage} alt={author ?? 'Author'} className="h-5 w-5 rounded-full" />
+                <img
+                  src={authorImage}
+                  alt={author ?? "Author"}
+                  className="h-5 w-5 rounded-full dark:brightness-0 dark:invert"
+                />
               )}
               {author && (
-                <p className="pl-2 text-sm text-neutral-600 dark:text-neutral-400">{author}</p>
+                <p className="pl-2 text-sm text-neutral-600 dark:text-neutral-400">
+                  {author}
+                </p>
               )}
               {author && date && (
                 <div className="mx-2 h-1 w-1 rounded-full bg-neutral-200 dark:bg-neutral-700" />
               )}
               {date && (
                 <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                  {format(new Date(date), 'LLLL d, yyyy')}
+                  {format(new Date(date), "LLLL d, yyyy")}
                 </p>
               )}
             </div>
           </>
         )}
       </div>
+
+      {/* Sidebar Thumbnail (sticky on right) */}
+      {showSidebarThumbnail && (
+        <div className="hidden lg:block lg:w-80 xl:w-96 flex-shrink-0">
+          <div className="sticky top-20">
+            <div
+              className={cn(
+                "flex items-center justify-center rounded-3xl overflow-hidden",
+                isSvgOrIcon ? "bg-neutral-100 p-8 dark:bg-neutral-800" : ""
+              )}
+            >
+              <img
+                src={thumbnail}
+                alt={title}
+                className={cn(
+                  "w-full rounded-3xl",
+                  isSvgOrIcon
+                    ? "object-contain dark:brightness-0 dark:invert"
+                    : "object-cover"
+                )}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-BlogContentWithToc.displayName = 'BlogContentWithToc';
+BlogContentWithToc.displayName = "BlogContentWithToc";
