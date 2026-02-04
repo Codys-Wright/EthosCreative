@@ -1,14 +1,14 @@
-import * as HttpApiError from '@effect/platform/HttpApiError';
-import * as HttpApiMiddleware from '@effect/platform/HttpApiMiddleware';
-import * as HttpApiSecurity from '@effect/platform/HttpApiSecurity';
-import * as HttpServerRequest from '@effect/platform/HttpServerRequest';
-import * as RpcMiddleware from '@effect/rpc/RpcMiddleware';
-import * as Context from 'effect/Context';
-import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
-import * as Schema from 'effect/Schema';
-import type { UserId } from '@auth/features/user';
-import { AuthService } from './service';
+import * as HttpApiError from "@effect/platform/HttpApiError";
+import * as HttpApiMiddleware from "@effect/platform/HttpApiMiddleware";
+import * as HttpApiSecurity from "@effect/platform/HttpApiSecurity";
+import * as HttpServerRequest from "@effect/platform/HttpServerRequest";
+import * as RpcMiddleware from "@effect/rpc/RpcMiddleware";
+import * as Context from "effect/Context";
+import * as Effect from "effect/Effect";
+import * as Layer from "effect/Layer";
+import * as Schema from "effect/Schema";
+import type { UserId } from "@auth/features/user";
+import { AuthService } from "./service";
 
 // ============================================================================
 // Auth Context
@@ -22,7 +22,7 @@ import { AuthService } from './service';
  *   const currentUser = yield* AuthContext;
  *   const userId = currentUser.userId;
  */
-export class AuthContext extends Context.Tag('AuthContext')<
+export class AuthContext extends Context.Tag("AuthContext")<
   AuthContext,
   { readonly userId: UserId }
 >() {
@@ -31,7 +31,7 @@ export class AuthContext extends Context.Tag('AuthContext')<
    * No database or Better Auth required.
    */
   static Mock = Layer.succeed(this, {
-    userId: '00000000-0000-0000-0000-000000000001' as UserId,
+    userId: "00000000-0000-0000-0000-000000000001" as UserId,
   });
 
   /**
@@ -47,7 +47,7 @@ export class AuthContext extends Context.Tag('AuthContext')<
       const auth = yield* AuthService;
       const session = yield* auth.getSession;
       return { userId: session.user.id as UserId };
-    }),
+    })
   );
 }
 
@@ -60,17 +60,17 @@ export class AuthContext extends Context.Tag('AuthContext')<
  * Uses cookie-based authentication to validate sessions with Better Auth.
  */
 export class HttpAuthenticationMiddleware extends HttpApiMiddleware.Tag<HttpAuthenticationMiddleware>()(
-  'HttpAuthenticationMiddleware',
+  "HttpAuthenticationMiddleware",
   {
     failure: HttpApiError.Unauthorized,
     provides: AuthContext,
     security: {
       cookieAuth: HttpApiSecurity.apiKey({
-        in: 'cookie',
-        key: 'better-auth.session_token',
+        in: "cookie",
+        key: "better-auth.session_token",
       }),
     },
-  },
+  }
 ) {
   /**
    * Mock implementation for testing - always returns a static user ID.
@@ -81,9 +81,9 @@ export class HttpAuthenticationMiddleware extends HttpApiMiddleware.Tag<HttpAuth
     this.of({
       cookieAuth: () =>
         Effect.succeed({
-          userId: '00000000-0000-0000-0000-000000000001' as UserId,
+          userId: "00000000-0000-0000-0000-000000000001" as UserId,
         }),
-    }),
+    })
   );
 }
 
@@ -105,16 +105,16 @@ export const HttpAuthenticationMiddlewareLive = Layer.effect(
             Schema.Struct({
               cookie: Schema.optional(Schema.String),
               authorization: Schema.optional(Schema.String),
-            }),
+            })
           ).pipe(Effect.mapError(() => new HttpApiError.Unauthorized()));
 
           // Forward to Better Auth
           const forwardedHeaders = new Headers();
           if (headers.cookie) {
-            forwardedHeaders.set('cookie', headers.cookie);
+            forwardedHeaders.set("cookie", headers.cookie);
           }
           if (headers.authorization) {
-            forwardedHeaders.set('authorization', headers.authorization);
+            forwardedHeaders.set("authorization", headers.authorization);
           }
 
           // Get session from Better Auth
@@ -131,7 +131,7 @@ export const HttpAuthenticationMiddlewareLive = Layer.effect(
           return { userId: session.user.id as UserId };
         }),
     });
-  }),
+  })
 );
 
 // ============================================================================
@@ -143,20 +143,20 @@ export const HttpAuthenticationMiddlewareLive = Layer.effect(
  * Used to protect RPC endpoints requiring authenticated users.
  */
 export class RpcAuthenticationMiddleware extends RpcMiddleware.Tag<RpcAuthenticationMiddleware>()(
-  'RpcAuthenticationMiddleware',
+  "RpcAuthenticationMiddleware",
   {
     failure: HttpApiError.Unauthorized,
     provides: AuthContext,
-  },
+  }
 ) {}
 
 /**
  * Live implementation of RpcAuthenticationMiddleware.
  * For RPC calls, we attempt to get the session from Better Auth.
  *
- * Note: RPC authentication in SSR context may require different handling
- * depending on whether RPC calls are server-side only or from the browser.
- * Currently this implementation attempts to validate with Better Auth.
+ * Note: This middleware allows unauthenticated access by providing
+ * an anonymous user ID when no session exists. Individual RPC handlers
+ * should check the userId if they require authentication.
  */
 export const RpcAuthenticationMiddlewareLive = Layer.effect(
   RpcAuthenticationMiddleware,
@@ -168,16 +168,18 @@ export const RpcAuthenticationMiddlewareLive = Layer.effect(
         // Get session from Better Auth using the actual request headers
         const session = yield* Effect.tryPromise({
           try: () => auth.api.getSession({ headers: options.headers }),
-          catch: () => new HttpApiError.Unauthorized(),
+          catch: () => null,
         });
 
+        // Allow unauthenticated access - provide anonymous context
+        // Individual handlers can check userId if they require auth
         if (!session) {
-          return yield* Effect.fail(new HttpApiError.Unauthorized());
+          return { userId: "anonymous" as UserId };
         }
 
-        // Return AuthContext
+        // Return AuthContext with actual user
         return { userId: session.user.id as UserId };
-      }),
+      })
     );
-  }),
+  })
 );
