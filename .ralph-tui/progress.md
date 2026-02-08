@@ -2,6 +2,13 @@
 
 ## Codebase Patterns
 
+### Effect Schema Test Patterns
+- `S.decodeSync(BrandedType)(value)` for testing branded type encoding
+- `S.decodeUnknownSync(SchemaClass)({...})` for testing class-based schemas
+- Effect Schema error messages use `"is missing"` for required fields, not `"Expected"` — match with `.toThrow('is missing')`
+- DB-dependent tests use `@effect/vitest` with `it.layer()` + `it.scoped()` + `withTransactionRollback`
+- `makePgTestMigrations()` uses testcontainers — tests gracefully skip without Docker
+
 ### Quiz Data Model Pattern
 - Inline quiz questions stored as JSONB on `LessonPart` via `quizQuestions: S.optional(S.NullOr(S.parseJson(S.Array(CourseQuizQuestion))))`
 - Follow same pattern as `downloadFiles` - JSONB array alongside the part
@@ -51,4 +58,19 @@
   - Effect Schema `S.parseJson(S.Array(...))` pattern requires `JSON.stringify()` when providing mock data
   - Threading props through nested admin components (ContentTab -> SectionColumn -> SectionLessonCard -> SortablePartItem) requires updating each component's interface
   - Pre-existing lint issues in lesson viewer and admin files (unused imports like Clock, Home, Music, etc.) should not be fixed as part of unrelated changes
+---
+
+## 2026-02-08 - ethos-17x.4
+- Added unit tests for @artist-types package covering domain, data loading, service, and RPC layers
+- Files created:
+  - `packages/artist-types/src/domain/schema.test.ts` (18 tests) - ArtistTypeId branding, ARTIST_TYPE_IDS validation, isValidArtistTypeId, normalizeArtistTypeId, ArtistTypeNotFoundError, ArtistTypeMetadata schema validation
+  - `packages/artist-types/src/database/data/index.test.ts` (19 tests) - Seed data loading (getAllArtistTypeSeedData, getArtistTypeSeedData, getArtistTypeSeedDataBySlug, getArtistTypeSeedDataByOrder), sync variants, data integrity (unique IDs, unique orders, all required fields)
+  - `packages/artist-types/src/server/live-service.test.ts` (8 tests) - ArtistTypeService list/getById/getBySlug/invalidateCache, error propagation, slug normalization (DB-dependent via testcontainers)
+  - `packages/artist-types/src/server/rpc-live.test.ts` (5 tests) - RPC layer construction, handler routing through service, error propagation (DB-dependent via testcontainers)
+- **Total**: 50 new tests (37 pure unit + 13 DB-dependent via testcontainers)
+- **Learnings:**
+  - Effect Schema `S.Class` validation errors use `"is missing"` text for required fields — not the `"Expected"` pattern from plain schemas
+  - `ArtistTypeService.DefaultWithoutDependencies` can be combined with `ArtistTypesRepo.DefaultWithoutDependencies` and `PgTest` to create a full test layer
+  - The `normalizeArtistTypeId` function has edge cases with partial formats (e.g., "the-visionary" without "-artist" suffix gets double-wrapped) — documented in tests
+  - Pre-existing typecheck errors in artist-types/core/server/runtime.ts (Layer type mismatch) — not from our changes
 ---
