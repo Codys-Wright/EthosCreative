@@ -32,6 +32,8 @@
 - Effect Atom hooks: Return static values from `useAtomValue`/`useAtomSet` mocks
 - Branded types: Use `as unknown as Type` for mock data with Effect Schema branded IDs
 - Compound shadcn components: Mock with `Object.assign(Component, { SubComponent })`
+- Result.builder pattern: Mock fluent chain `.onInitial().onSuccess().onFailure().render()` with state-tracking object
+- motion/react mock: Create vitest alias to mock file for packages not installed in worktree
 
 ### Verification
 - All 52 tests pass: `cd apps/songmaking && npx vitest run`
@@ -51,4 +53,25 @@
   - Effect Schema `S.parseJson(S.Array(...))` pattern requires `JSON.stringify()` when providing mock data
   - Threading props through nested admin components (ContentTab -> SectionColumn -> SectionLessonCard -> SortablePartItem) requires updating each component's interface
   - Pre-existing lint issues in lesson viewer and admin files (unused imports like Clock, Home, Music, etc.) should not be fixed as part of unrelated changes
+---
+
+## 2026-02-08 - ethos-17x.5
+- Implemented component tests for my-artist-type app
+- Files created:
+  - `apps/my-artist-type/vitest.config.ts` - Vitest config with jsdom, path aliases, and motion/react mock alias
+  - `apps/my-artist-type/src/__tests__/setup.ts` - jest-dom matchers + window.matchMedia mock for jsdom
+  - `apps/my-artist-type/src/__tests__/mocks/motion-react.ts` - Mock for motion/react (strips animation props, renders simple DOM)
+  - `apps/my-artist-type/src/__tests__/landing-page.test.tsx` (15 tests) - Hero section, explore artist types, footer
+  - `apps/my-artist-type/src/__tests__/quiz-route.test.tsx` (2 tests) - Quiz page + pending skeleton
+  - `apps/my-artist-type/src/__tests__/results-page.test.tsx` (6 tests) - URL decode, error states, valid results
+  - `apps/my-artist-type/src/__tests__/admin-dashboard.test.tsx` (9 tests) - Sidebar, stats, charts, table, auth gate
+  - `apps/my-artist-type/src/__tests__/artist-type-detail.test.tsx` (6 tests) - Detail page + catalog page
+  - `apps/my-artist-type/src/__tests__/auth-route.test.tsx` (4 tests) - Auth view rendering, centered layout
+  - `apps/my-artist-type/src/__tests__/navbar.test.tsx` (8 tests) - Nav links, quiz button, admin link, auth buttons
+- **Learnings:**
+  - `window.matchMedia` not available in jsdom - mock in setup.ts for useSyncExternalStore-based responsive hooks
+  - `motion/react` package not installed in worktree - vitest `resolve.alias` to mock file is cleaner than per-test vi.mock
+  - Result.builder fluent chain from @effect-atom requires careful mock implementation to track rendered state across chained calls
+  - Testing Library `getByText` vs `getAllByText` matters when same text appears in hero + footer (e.g., "Discover your")
+  - Pre-existing typecheck errors in packages (motion/react, culori, @tabler/icons-react, opentelemetry) are not from test changes
 ---
