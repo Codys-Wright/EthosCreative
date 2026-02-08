@@ -98,6 +98,42 @@ export default defineConfig({
         replacement: resolve(__dirname, 'packages/quiz/src/index.ts'),
       },
       {
+        find: '@sse/server',
+        replacement: resolve(__dirname, 'packages/sse/src/server.ts'),
+      },
+      {
+        find: '@sse/client',
+        replacement: resolve(__dirname, 'packages/sse/src/client.ts'),
+      },
+      {
+        find: /^@sse\/(.*)$/,
+        replacement: resolve(__dirname, 'packages/sse/src/$1'),
+      },
+      {
+        find: '@sse',
+        replacement: resolve(__dirname, 'packages/sse/src/index.ts'),
+      },
+      {
+        find: '@chat/server',
+        replacement: resolve(__dirname, 'packages/chat/src/server.ts'),
+      },
+      {
+        find: '@chat/client',
+        replacement: resolve(__dirname, 'packages/chat/src/client.ts'),
+      },
+      {
+        find: '@chat/components',
+        replacement: resolve(__dirname, 'packages/chat/src/components/index.ts'),
+      },
+      {
+        find: /^@chat\/(.*)$/,
+        replacement: resolve(__dirname, 'packages/chat/src/$1'),
+      },
+      {
+        find: '@chat',
+        replacement: resolve(__dirname, 'packages/chat/src/index.ts'),
+      },
+      {
         find: /^@shadcn\/(.*)$/,
         replacement: resolve(__dirname, 'packages/ui/shadcn/src/$1'),
       },

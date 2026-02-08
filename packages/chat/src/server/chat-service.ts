@@ -16,7 +16,7 @@ import {
   type UserId,
   type RoomId,
   type MessageId,
-  type ChatMessage,
+  ChatMessage,
   type ChatRoom,
   type SendMessageInput,
   type CreateRoomInput,
@@ -211,7 +211,7 @@ export const ChatServiceLive = Layer.effect(
           const messageId = crypto.randomUUID() as MessageId;
           const now = Date.now();
 
-          const message: ChatMessage = {
+          const message = new ChatMessage({
             id: messageId,
             roomId: input.roomId,
             senderId,
@@ -222,7 +222,7 @@ export const ChatServiceLive = Layer.effect(
             attachments: [],
             isPinned: false,
             isDeleted: false,
-          };
+          });
 
           yield* Ref.update(stateRef, (state) => {
             const existingMessages = HashMap.get(
@@ -250,14 +250,14 @@ export const ChatServiceLive = Layer.effect(
           });
 
           // Create a placeholder sender for the event
-          const sender: ChatUser = {
+          const sender = new ChatUser({
             id: senderId,
             name: "User",
             username: "user",
             avatarUrl: Option.none(),
             status: "online",
             roleColor: Option.none(),
-          };
+          });
 
           return new MessageSentEvent({ _tag: "MessageSent", message, sender });
         }),
