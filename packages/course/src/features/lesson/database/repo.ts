@@ -22,6 +22,7 @@ import {
 const InsertLesson = S.Struct({
   section_id: S.UUID,
   course_id: S.UUID,
+  path_id: S.NullOr(S.UUID),
   title: S.String,
   description: S.NullOr(S.String),
   type: LessonType,
@@ -35,10 +36,12 @@ const InsertLesson = S.Struct({
   duration_minutes: S.Number,
   is_free: S.Boolean,
   is_preview: S.Boolean,
+  is_published: S.Boolean,
 });
 
 const UpdateLessonDb = S.Struct({
   id: LessonId,
+  path_id: S.optional(S.NullOr(S.UUID)),
   title: S.optional(S.String),
   description: S.optional(S.NullOr(S.String)),
   type: S.optional(LessonType),
@@ -52,6 +55,7 @@ const UpdateLessonDb = S.Struct({
   duration_minutes: S.optional(S.Number),
   is_free: S.optional(S.Boolean),
   is_preview: S.optional(S.Boolean),
+  is_published: S.optional(S.Boolean),
 });
 type UpdateLessonDb = typeof UpdateLessonDb.Type;
 
@@ -78,6 +82,7 @@ export class LessonRepository extends Effect.Service<LessonRepository>()(
           id,
           section_id AS "sectionId",
           course_id AS "courseId",
+          path_id AS "pathId",
           title,
           description,
           type,
@@ -91,6 +96,7 @@ export class LessonRepository extends Effect.Service<LessonRepository>()(
           duration_minutes AS "durationMinutes",
           is_free AS "isFree",
           is_preview AS "isPreview",
+          is_published AS "isPublished",
           created_at AS "createdAt",
           updated_at AS "updatedAt"
         FROM
@@ -108,6 +114,7 @@ export class LessonRepository extends Effect.Service<LessonRepository>()(
           id,
           section_id AS "sectionId",
           course_id AS "courseId",
+          path_id AS "pathId",
           title,
           description,
           type,
@@ -121,6 +128,7 @@ export class LessonRepository extends Effect.Service<LessonRepository>()(
           duration_minutes AS "durationMinutes",
           is_free AS "isFree",
           is_preview AS "isPreview",
+          is_published AS "isPublished",
           created_at AS "createdAt",
           updated_at AS "updatedAt"
         FROM
@@ -140,6 +148,7 @@ export class LessonRepository extends Effect.Service<LessonRepository>()(
           id,
           section_id AS "sectionId",
           course_id AS "courseId",
+          path_id AS "pathId",
           title,
           description,
           type,
@@ -153,6 +162,7 @@ export class LessonRepository extends Effect.Service<LessonRepository>()(
           duration_minutes AS "durationMinutes",
           is_free AS "isFree",
           is_preview AS "isPreview",
+          is_published AS "isPublished",
           created_at AS "createdAt",
           updated_at AS "updatedAt"
         FROM
@@ -172,6 +182,7 @@ export class LessonRepository extends Effect.Service<LessonRepository>()(
           id,
           section_id AS "sectionId",
           course_id AS "courseId",
+          path_id AS "pathId",
           title,
           description,
           type,
@@ -185,6 +196,7 @@ export class LessonRepository extends Effect.Service<LessonRepository>()(
           duration_minutes AS "durationMinutes",
           is_free AS "isFree",
           is_preview AS "isPreview",
+          is_published AS "isPublished",
           created_at AS "createdAt",
           updated_at AS "updatedAt"
         FROM
@@ -220,6 +232,7 @@ export class LessonRepository extends Effect.Service<LessonRepository>()(
           id,
           section_id AS "sectionId",
           course_id AS "courseId",
+          path_id AS "pathId",
           title,
           description,
           type,
@@ -233,6 +246,7 @@ export class LessonRepository extends Effect.Service<LessonRepository>()(
           duration_minutes AS "durationMinutes",
           is_free AS "isFree",
           is_preview AS "isPreview",
+          is_published AS "isPublished",
           created_at AS "createdAt",
           updated_at AS "updatedAt"
       `,
@@ -252,6 +266,7 @@ export class LessonRepository extends Effect.Service<LessonRepository>()(
           id,
           section_id AS "sectionId",
           course_id AS "courseId",
+          path_id AS "pathId",
           title,
           description,
           type,
@@ -265,6 +280,7 @@ export class LessonRepository extends Effect.Service<LessonRepository>()(
           duration_minutes AS "durationMinutes",
           is_free AS "isFree",
           is_preview AS "isPreview",
+          is_published AS "isPublished",
           created_at AS "createdAt",
           updated_at AS "updatedAt"
       `,
@@ -325,6 +341,7 @@ export class LessonRepository extends Effect.Service<LessonRepository>()(
             return yield* create({
               section_id: input.sectionId,
               course_id: input.courseId,
+              path_id: null,
               title: input.title,
               description: input.description ?? null,
               type: input.type,
@@ -338,6 +355,7 @@ export class LessonRepository extends Effect.Service<LessonRepository>()(
               duration_minutes: input.durationMinutes ?? 0,
               is_free: input.isFree ?? false,
               is_preview: input.isPreview ?? false,
+              is_published: input.isPublished ?? true,
             });
           }).pipe(Effect.orDie),
 
@@ -374,6 +392,9 @@ export class LessonRepository extends Effect.Service<LessonRepository>()(
             ...(input.isFree !== undefined && { is_free: input.isFree }),
             ...(input.isPreview !== undefined && {
               is_preview: input.isPreview,
+            }),
+            ...(input.isPublished !== undefined && {
+              is_published: input.isPublished,
             }),
           }).pipe(
             Effect.catchTags({

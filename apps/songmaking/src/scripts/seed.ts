@@ -4,10 +4,13 @@
  * Seeds the database with data for development and testing.
  * Uses composable seeders from feature packages.
  *
+ * After seeding auth data, also seeds the songmaking course content
+ * (course, sections, lessons, lesson parts, paths).
+ *
  * Usage:
- *   bun run db:seed                    # Seed with all data (users, orgs)
+ *   bun run db:seed                    # Seed with all data (users, orgs, course)
  *   bun run db:seed --cleanup          # Remove all fake data
- *   bun run db:seed --minimal          # Minimal seed (dev admin only)
+ *   bun run db:seed --minimal          # Minimal seed (dev admin + course only)
  */
 
 import * as Effect from 'effect/Effect';
@@ -34,4 +37,10 @@ if (isCleanup) {
   await Effect.runPromise(
     runSeed(...auth({ users: 20, organizations: 5 })).pipe(Effect.provide(Logger.pretty)),
   );
+}
+
+// After auth seeding, seed course data (always, unless cleanup)
+if (!isCleanup) {
+  // Import and run course seed script
+  await import('./seed-courses.js');
 }

@@ -9,6 +9,8 @@ export * from '../features/course/database/index.js';
 export * from '../features/enrollment/database/index.js';
 export * from '../features/instructor/database/index.js';
 export * from '../features/lesson/database/index.js';
+export * from '../features/lesson-part/database/index.js';
+export * from '../features/path/database/index.js';
 export * from '../features/progress/database/index.js';
 export * from '../features/review/database/index.js';
 export * from '../features/section/database/index.js';
