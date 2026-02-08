@@ -132,3 +132,27 @@ export class EnrollmentExpiredError extends S.TaggedError<EnrollmentExpiredError
     return `Enrollment ${this.id} has expired`;
   }
 }
+
+// ===========================================
+// Admin View Models
+// ===========================================
+
+/**
+ * EnrollmentWithUser - enrollment joined with user details for admin views
+ */
+export class EnrollmentWithUser extends S.Class<EnrollmentWithUser>('EnrollmentWithUser')({
+  id: EnrollmentId,
+  userId: UserId,
+  courseId: CourseId,
+  status: EnrollmentStatus,
+  source: EnrollmentSource,
+  enrolledAt: S.DateTimeUtc,
+  progressPercent: S.NumberFromString,
+  completedLessonCount: S.Number,
+  lastAccessedAt: S.optional(S.NullOr(S.DateTimeUtc)),
+  completedAt: S.optional(S.NullOr(S.DateTimeUtc)),
+  // User details
+  userName: S.String,
+  userEmail: S.String,
+  userImage: S.optional(S.NullOr(S.String)),
+}) {}

@@ -1,7 +1,7 @@
 import { AuthContext } from '@auth/server';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import { EnrollmentRpc } from '../domain/index.js';
+import { CreateEnrollmentInput, EnrollmentRpc } from '../domain/index.js';
 import { EnrollmentService } from './service.js';
 
 export const EnrollmentRpcLive = EnrollmentRpc.toLayer(
@@ -32,6 +32,13 @@ export const EnrollmentRpcLive = EnrollmentRpc.toLayer(
         return yield* enrollments.listByCourse(courseId);
       }),
 
+      enrollment_listByCourseWithUsers: Effect.fn('EnrollmentRpc.listByCourseWithUsers')(
+        function* ({ courseId }) {
+          yield* Effect.log(`[RPC] Listing enrollments with users for course: ${courseId}`);
+          return yield* enrollments.listByCourseWithUsers(courseId);
+        },
+      ),
+
       enrollment_listActiveByUser: Effect.fn('EnrollmentRpc.listActiveByUser')(function* ({
         userId,
       }) {
@@ -54,6 +61,14 @@ export const EnrollmentRpcLive = EnrollmentRpc.toLayer(
       enrollment_enroll: Effect.fn('EnrollmentRpc.enroll')(function* ({ input }) {
         yield* Effect.log(`[RPC] Enrolling in course: ${input.courseId}`);
         return yield* enrollments.enroll(input);
+      }),
+
+      enrollment_enrollSelf: Effect.fn('EnrollmentRpc.enrollSelf')(function* ({ courseId, source }) {
+        const auth = yield* AuthContext;
+        yield* Effect.log(`[RPC] Self-enrolling user ${auth.userId} in course: ${courseId}`);
+        return yield* enrollments.enroll(
+          new CreateEnrollmentInput({ userId: auth.userId, courseId, source }),
+        );
       }),
 
       enrollment_update: Effect.fn('EnrollmentRpc.update')(function* ({ id, input }) {

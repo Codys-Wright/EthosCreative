@@ -9,8 +9,8 @@
  */
 
 import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
-import { useState, useEffect, useMemo } from "react";
-import { useAtomValue } from "@effect-atom/atom-react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { useAtomSet } from "@effect-atom/atom-react";
 import {
   DndContext,
   closestCenter,
@@ -53,20 +53,15 @@ import {
   BarChart3,
   BookOpen,
   CheckCircle2,
-  ChevronDown,
   ChevronRight,
   ClipboardList,
-  Edit,
   ExternalLink,
-  Eye,
-  EyeOff,
   FileDown,
   FileText,
   Filter,
   GripVertical,
   HelpCircle,
   LayoutDashboard,
-  MoreHorizontal,
   Music,
   PlayCircle,
   Plus,
@@ -80,9 +75,13 @@ import {
   Zap,
 } from "lucide-react";
 import { useCourse } from "../../features/course/client/course-context.js";
-import { progressAtom } from "../../features/course/client/course-atoms.js";
-import type { Section, Lesson, LessonPart, LessonType } from "@course";
-import type { Week } from "../../data/course-registry.js";
+import {
+  courseEnrollmentsWithUsersAtom,
+  enrollInCourseAtom,
+  cancelEnrollmentAtom,
+} from "@course/features/enrollment/client";
+import type { Section, Lesson, LessonPart, LessonType, CourseId } from "@course";
+import type { EnrollmentWithUser } from "@course";
 import { cn } from "@shadcn/lib/utils";
 
 // =============================================================================
@@ -97,6 +96,8 @@ interface SectionProgress {
 
 interface StudentProgress {
   user: { id: string; name: string; email: string; image?: string | null };
+  enrollmentId: string;
+  enrollmentStatus: string;
   completedLessons: number;
   totalLessons: number;
   progressPercent: number;
@@ -174,213 +175,6 @@ const SECTION_STYLES = [
 
 type SectionStyleType = (typeof SECTION_STYLES)[number];
 
-const MOCK_STUDENTS: StudentProgress[] = [
-  {
-    user: { id: "1", name: "John Doe", email: "john@example.com", image: null },
-    completedLessons: 12,
-    totalLessons: 18,
-    progressPercent: 67,
-    lastActiveAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    status: "in_progress",
-    sectionProgress: [
-      {
-        sectionId: "10000000-0000-0000-0000-000000000000",
-        completed: 2,
-        total: 2,
-      },
-      {
-        sectionId: "10000000-0000-0000-0000-000000000001",
-        completed: 6,
-        total: 6,
-      },
-      {
-        sectionId: "10000000-0000-0000-0000-000000000002",
-        completed: 4,
-        total: 6,
-      },
-      {
-        sectionId: "10000000-0000-0000-0000-000000000003",
-        completed: 0,
-        total: 4,
-      },
-    ],
-  },
-  {
-    user: {
-      id: "2",
-      name: "Jane Smith",
-      email: "jane@example.com",
-      image: null,
-    },
-    completedLessons: 18,
-    totalLessons: 18,
-    progressPercent: 100,
-    lastActiveAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-    status: "completed",
-    sectionProgress: [
-      {
-        sectionId: "10000000-0000-0000-0000-000000000000",
-        completed: 2,
-        total: 2,
-      },
-      {
-        sectionId: "10000000-0000-0000-0000-000000000001",
-        completed: 6,
-        total: 6,
-      },
-      {
-        sectionId: "10000000-0000-0000-0000-000000000002",
-        completed: 6,
-        total: 6,
-      },
-      {
-        sectionId: "10000000-0000-0000-0000-000000000003",
-        completed: 4,
-        total: 4,
-      },
-    ],
-  },
-  {
-    user: {
-      id: "3",
-      name: "Bob Wilson",
-      email: "bob@example.com",
-      image: null,
-    },
-    completedLessons: 6,
-    totalLessons: 18,
-    progressPercent: 33,
-    lastActiveAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-    status: "in_progress",
-    sectionProgress: [
-      {
-        sectionId: "10000000-0000-0000-0000-000000000000",
-        completed: 2,
-        total: 2,
-      },
-      {
-        sectionId: "10000000-0000-0000-0000-000000000001",
-        completed: 3,
-        total: 6,
-      },
-      {
-        sectionId: "10000000-0000-0000-0000-000000000002",
-        completed: 1,
-        total: 6,
-      },
-      {
-        sectionId: "10000000-0000-0000-0000-000000000003",
-        completed: 0,
-        total: 4,
-      },
-    ],
-  },
-  {
-    user: {
-      id: "4",
-      name: "Alice Brown",
-      email: "alice@example.com",
-      image: null,
-    },
-    completedLessons: 0,
-    totalLessons: 18,
-    progressPercent: 0,
-    lastActiveAt: null,
-    status: "not_started",
-    sectionProgress: [
-      {
-        sectionId: "10000000-0000-0000-0000-000000000000",
-        completed: 0,
-        total: 2,
-      },
-      {
-        sectionId: "10000000-0000-0000-0000-000000000001",
-        completed: 0,
-        total: 6,
-      },
-      {
-        sectionId: "10000000-0000-0000-0000-000000000002",
-        completed: 0,
-        total: 6,
-      },
-      {
-        sectionId: "10000000-0000-0000-0000-000000000003",
-        completed: 0,
-        total: 4,
-      },
-    ],
-  },
-  {
-    user: {
-      id: "5",
-      name: "Charlie Davis",
-      email: "charlie@example.com",
-      image: null,
-    },
-    completedLessons: 2,
-    totalLessons: 18,
-    progressPercent: 11,
-    lastActiveAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
-    status: "in_progress",
-    sectionProgress: [
-      {
-        sectionId: "10000000-0000-0000-0000-000000000000",
-        completed: 2,
-        total: 2,
-      },
-      {
-        sectionId: "10000000-0000-0000-0000-000000000001",
-        completed: 0,
-        total: 6,
-      },
-      {
-        sectionId: "10000000-0000-0000-0000-000000000002",
-        completed: 0,
-        total: 6,
-      },
-      {
-        sectionId: "10000000-0000-0000-0000-000000000003",
-        completed: 0,
-        total: 4,
-      },
-    ],
-  },
-];
-
-const MOCK_ACTIVITIES: ActivityItem[] = [
-  {
-    id: "1",
-    type: "completed_lesson",
-    user: { name: "John Doe" },
-    lessonTitle: "Chord Progressions",
-    timestamp: new Date(Date.now() - 15 * 60 * 1000),
-  },
-  {
-    id: "2",
-    type: "enrolled",
-    user: { name: "Sarah Miller" },
-    timestamp: new Date(Date.now() - 45 * 60 * 1000),
-  },
-  {
-    id: "3",
-    type: "completed_course",
-    user: { name: "Jane Smith" },
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-  },
-  {
-    id: "4",
-    type: "started",
-    user: { name: "Mike Johnson" },
-    timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
-  },
-  {
-    id: "5",
-    type: "completed_lesson",
-    user: { name: "Bob Wilson" },
-    lessonTitle: "Melody Basics",
-    timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
-  },
-];
 
 // =============================================================================
 // Route
@@ -401,7 +195,83 @@ export const Route = createFileRoute("/$courseSlug/admin")({
 
 function AdminPage() {
   const { tab } = useSearch({ from: "/$courseSlug/admin" });
-  const { course, routes, isExample } = useCourse();
+  const { course, sections, routes, isExample } = useCourse();
+  const fetchEnrollments = useAtomSet(courseEnrollmentsWithUsersAtom);
+  const enrollUser = useAtomSet(enrollInCourseAtom);
+  const cancelEnrollment = useAtomSet(cancelEnrollmentAtom);
+  const [enrollments, setEnrollments] = useState<EnrollmentWithUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadEnrollments = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const result = await fetchEnrollments({
+        courseId: course.id as CourseId,
+      });
+      if (result._tag === "Right") {
+        setEnrollments(result.right);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [course.id, fetchEnrollments]);
+
+  useEffect(() => {
+    loadEnrollments();
+  }, [loadEnrollments]);
+
+  // Convert enrollments to StudentProgress for the existing overview/student components
+  const students: StudentProgress[] = useMemo(
+    () =>
+      enrollments.map((e) => ({
+        user: {
+          id: e.userId,
+          name: e.userName,
+          email: e.userEmail,
+          image: e.userImage ?? null,
+        },
+        enrollmentId: e.id,
+        completedLessons: e.completedLessonCount,
+        totalLessons: course.lessonCount,
+        progressPercent: Number(e.progressPercent),
+        lastActiveAt: e.lastAccessedAt
+          ? new Date(e.lastAccessedAt as any)
+          : null,
+        status:
+          e.completedAt != null
+            ? ("completed" as const)
+            : Number(e.progressPercent) > 0
+            ? ("in_progress" as const)
+            : ("not_started" as const),
+        enrollmentStatus: e.status,
+        sectionProgress: sections.map((s) => ({
+          sectionId: s.id,
+          completed: 0,
+          total: s.lessonCount ?? 0,
+        })),
+      })),
+    [enrollments, course.lessonCount, sections]
+  );
+
+  const handleRemoveStudent = useCallback(
+    async (enrollmentId: string) => {
+      await cancelEnrollment({ enrollmentId });
+      loadEnrollments();
+    },
+    [cancelEnrollment, loadEnrollments]
+  );
+
+  const handleInviteStudent = useCallback(
+    async (userId: string) => {
+      await enrollUser({
+        userId: userId as any,
+        courseId: course.id as CourseId,
+        source: "free" as any,
+      } as any);
+      loadEnrollments();
+    },
+    [enrollUser, course.id, loadEnrollments]
+  );
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -478,10 +348,7 @@ function AdminPage() {
           </Tabs.List>
 
           <Tabs.Content value="overview">
-            <OverviewTab
-              students={MOCK_STUDENTS}
-              activities={MOCK_ACTIVITIES}
-            />
+            <OverviewTab students={students} activities={[]} />
           </Tabs.Content>
 
           <Tabs.Content value="content">
@@ -489,7 +356,12 @@ function AdminPage() {
           </Tabs.Content>
 
           <Tabs.Content value="students">
-            <StudentsTab students={MOCK_STUDENTS} />
+            <StudentsTab
+              students={students}
+              isLoading={isLoading}
+              onRemoveStudent={handleRemoveStudent}
+              onInviteStudent={handleInviteStudent}
+            />
           </Tabs.Content>
 
           <Tabs.Content value="settings">
@@ -2063,13 +1935,25 @@ function SortablePartItem({
 // Students Tab
 // =============================================================================
 
-function StudentsTab({ students }: { students: StudentProgress[] }) {
+function StudentsTab({
+  students,
+  isLoading,
+  onRemoveStudent,
+  onInviteStudent,
+}: {
+  students: StudentProgress[];
+  isLoading: boolean;
+  onRemoveStudent: (enrollmentId: string) => void;
+  onInviteStudent: (userId: string) => void;
+}) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"name" | "progress" | "lastActive">(
     "name"
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [inviteUserId, setInviteUserId] = useState("");
 
   const filteredStudents = useMemo(() => {
     let result = [...students];
@@ -2152,6 +2036,14 @@ function StudentsTab({ students }: { students: StudentProgress[] }) {
                 <Select.Item value="not_started">Not Started</Select.Item>
               </Select.Content>
             </Select>
+            <Button
+              size="sm"
+              className="gap-2"
+              onClick={() => setInviteDialogOpen(true)}
+            >
+              <Plus className="w-4 h-4" />
+              Add Student
+            </Button>
           </div>
         </div>
       </Card.Header>
@@ -2237,13 +2129,29 @@ function StudentsTab({ students }: { students: StudentProgress[] }) {
                   <StatusBadge status={student.status} />
                 </Table.Cell>
                 <Table.Cell>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreHorizontal className="w-4 h-4" />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                    title="Remove student"
+                    onClick={() => onRemoveStudent(student.enrollmentId)}
+                  >
+                    <Trash2 className="w-4 h-4" />
                   </Button>
                 </Table.Cell>
               </Table.Row>
             ))}
-            {filteredStudents.length === 0 && (
+            {isLoading && (
+              <Table.Row>
+                <Table.Cell
+                  colSpan={5}
+                  className="text-center py-8 text-muted-foreground"
+                >
+                  Loading students...
+                </Table.Cell>
+              </Table.Row>
+            )}
+            {!isLoading && filteredStudents.length === 0 && (
               <Table.Row>
                 <Table.Cell
                   colSpan={5}
@@ -2256,6 +2164,56 @@ function StudentsTab({ students }: { students: StudentProgress[] }) {
           </Table.Body>
         </Table>
       </Card.Content>
+
+      {/* Invite Student Dialog */}
+      <Dialog open={inviteDialogOpen} onOpenChange={(open) => {
+        setInviteDialogOpen(open);
+        if (!open) setInviteUserId("");
+      }}>
+        <Dialog.Content className="sm:max-w-[425px]">
+          <Dialog.Header>
+            <Dialog.Title className="flex items-center gap-2">
+              <Plus className="w-5 h-5" />
+              Add Student
+            </Dialog.Title>
+            <Dialog.Description>
+              Enroll a user in this course by entering their user ID.
+            </Dialog.Description>
+          </Dialog.Header>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            if (inviteUserId.trim()) {
+              onInviteStudent(inviteUserId.trim());
+              setInviteUserId("");
+              setInviteDialogOpen(false);
+            }
+          }}>
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <FormLabel htmlFor="invite-user-id">User ID</FormLabel>
+                <Input
+                  id="invite-user-id"
+                  placeholder="Enter user ID..."
+                  value={inviteUserId}
+                  onChange={(e) => setInviteUserId(e.target.value)}
+                />
+              </div>
+            </div>
+            <Dialog.Footer>
+              <Button type="button" variant="outline" onClick={() => {
+                setInviteDialogOpen(false);
+                setInviteUserId("");
+              }}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={!inviteUserId.trim()}>
+                <Plus className="w-4 h-4 mr-2" />
+                Enroll Student
+              </Button>
+            </Dialog.Footer>
+          </form>
+        </Dialog.Content>
+      </Dialog>
     </Card>
   );
 }

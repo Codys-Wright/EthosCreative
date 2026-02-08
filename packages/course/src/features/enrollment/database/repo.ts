@@ -13,6 +13,7 @@ import {
   EnrollmentNotFoundError,
   EnrollmentSource,
   EnrollmentStatus,
+  EnrollmentWithUser,
   UpdateEnrollmentInput,
 } from '../domain/index.js';
 
@@ -196,6 +197,34 @@ export class EnrollmentRepository extends Effect.Service<EnrollmentRepository>()
         `,
       });
 
+      const findByCourseWithUsers = SqlSchema.findAll({
+        Result: EnrollmentWithUser,
+        Request: S.Struct({ courseId: CourseId }),
+        execute: ({ courseId }) => sql`
+          SELECT
+            e.id,
+            e.user_id AS "userId",
+            e.course_id AS "courseId",
+            e.status,
+            e.source,
+            e.enrolled_at AS "enrolledAt",
+            e.progress_percent AS "progressPercent",
+            e.completed_lesson_count AS "completedLessonCount",
+            e.last_accessed_at AS "lastAccessedAt",
+            e.completed_at AS "completedAt",
+            u.name AS "userName",
+            u.email AS "userEmail",
+            u.image AS "userImage"
+          FROM
+            course_enrollments e
+            INNER JOIN "user" u ON u.id = e.user_id
+          WHERE
+            e.course_id = ${courseId}
+          ORDER BY
+            e.enrolled_at DESC
+        `,
+      });
+
       // ─────────────────────────────────────────────────────────────────────────
       // Mutations
       // ─────────────────────────────────────────────────────────────────────────
@@ -313,6 +342,9 @@ export class EnrollmentRepository extends Effect.Service<EnrollmentRepository>()
         findByUser: (userId: UserId) => findByUser({ userId }).pipe(Effect.orDie),
 
         findByCourse: (courseId: CourseId) => findByCourse({ courseId }).pipe(Effect.orDie),
+
+        findByCourseWithUsers: (courseId: CourseId) =>
+          findByCourseWithUsers({ courseId }).pipe(Effect.orDie),
 
         findActiveByUser: (userId: UserId) => findActiveByUser({ userId }).pipe(Effect.orDie),
 
