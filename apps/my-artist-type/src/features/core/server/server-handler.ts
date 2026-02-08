@@ -75,27 +75,6 @@ const HealthRoute = HttpLayerRouter.use((router) =>
   router.add("GET", "/api/health", HttpServerResponse.text("OK"))
 );
 
-// Debug route to check env vars - REMOVE AFTER DEBUGGING
-const DebugEnvRoute = HttpLayerRouter.use((router) =>
-  router.add(
-    "GET",
-    "/api/debug-env",
-    HttpServerResponse.json({
-      BETTER_AUTH_URL: process.env.BETTER_AUTH_URL ?? "NOT SET",
-      CLIENT_ORIGIN: process.env.CLIENT_ORIGIN ?? "NOT SET",
-      API_URL: process.env.API_URL ?? "NOT SET",
-      URL: process.env.URL ?? "NOT SET",
-      DEPLOY_URL: process.env.DEPLOY_URL ?? "NOT SET",
-      DEPLOY_PRIME_URL: process.env.DEPLOY_PRIME_URL ?? "NOT SET",
-      DATABASE_URL: process.env.DATABASE_URL ? "SET" : "NOT SET",
-      NETLIFY_DATABASE_URL: process.env.NETLIFY_DATABASE_URL
-        ? "SET"
-        : "NOT SET",
-      BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET ? "SET" : "NOT SET",
-    })
-  )
-);
-
 // Each package provides its own complete route layer with docs:
 // - TodosApiRoutes: /api/todos/* routes + docs at its path
 // - ExampleApiLive: /api/features/* routes + docs at /api/example/docs
@@ -106,7 +85,6 @@ const AllRoutes = Layer.mergeAll(
   TodoApiRoutes,
   ExampleApiLive,
   HealthRoute,
-  DebugEnvRoute,
   BetterAuthRouter
 ).pipe(
   Layer.provideMerge(AuthServiceWithQuizMigration),

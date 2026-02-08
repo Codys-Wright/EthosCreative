@@ -100,17 +100,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <ThemeProvider>
           <ThemeSystemProviderWithContext>
             <RegistryProvider defaultIdleTTL={60_000}>{children}</RegistryProvider>
-            {/* <TanStackDevtools
-              config={{
-                position: "bottom-right",
-              }}
-              plugins={[
-                {
-                  name: "Tanstack Router",
-                  render: <TanStackRouterDevtoolsPanel />,
-                },
-              ]}
-            /> */}
           </ThemeSystemProviderWithContext>
         </ThemeProvider>
         <Scripts />
