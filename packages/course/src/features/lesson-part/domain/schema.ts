@@ -14,6 +14,34 @@ export const LessonPartId = S.UUID.pipe(S.brand('LessonPartId'));
 export type LessonPartId = typeof LessonPartId.Type;
 
 // ===========================================
+// Quiz Question Types (for inline course quizzes)
+// ===========================================
+
+export const QuizQuestionType = S.Literal('multiple-choice', 'true-false');
+export type QuizQuestionType = typeof QuizQuestionType.Type;
+
+/**
+ * A single option in a multiple-choice question
+ */
+export class QuizOption extends S.Class<QuizOption>('QuizOption')({
+  id: S.String,
+  text: S.String,
+  isCorrect: S.Boolean,
+}) {}
+
+/**
+ * A quiz question for course lesson parts.
+ * Supports multiple-choice and true/false question types.
+ */
+export class CourseQuizQuestion extends S.Class<CourseQuizQuestion>('CourseQuizQuestion')({
+  id: S.String,
+  type: QuizQuestionType,
+  question: S.String,
+  options: S.Array(QuizOption),
+  explanation: S.optional(S.NullOr(S.String)),
+}) {}
+
+// ===========================================
 // LessonPart Entity
 // ===========================================
 
@@ -47,10 +75,13 @@ export class LessonPart extends S.Class<LessonPart>('LessonPart')({
   // Video content for video parts
   videoContent: S.optional(S.NullOr(S.parseJson(VideoContent))),
 
-  // Quiz reference for quiz parts
+  // Quiz reference for quiz parts (external quiz system)
   quizId: S.optional(S.NullOr(S.UUID)),
   quizPassingScore: S.optional(S.NullOr(S.Number)),
   quizIsRequired: S.optional(S.Boolean),
+
+  // Inline quiz questions for course quizzes
+  quizQuestions: S.optional(S.NullOr(S.parseJson(S.Array(CourseQuizQuestion)))),
 
   // Download files for download parts
   downloadFiles: S.optional(S.NullOr(S.parseJson(S.Array(DownloadFile)))),
@@ -78,6 +109,7 @@ export class CreateLessonPartInput extends S.Class<CreateLessonPartInput>('Creat
   quizId: S.optional(S.NullOr(S.UUID)),
   quizPassingScore: S.optional(S.NullOr(S.Number.pipe(S.between(0, 100)))),
   quizIsRequired: S.optional(S.Boolean),
+  quizQuestions: S.optional(S.NullOr(S.Array(CourseQuizQuestion))),
   downloadFiles: S.optional(S.Array(DownloadFile)),
 }) {}
 
@@ -98,6 +130,7 @@ export class UpdateLessonPartInput extends S.Class<UpdateLessonPartInput>('Updat
   quizId: S.optional(S.NullOr(S.UUID)),
   quizPassingScore: S.optional(S.NullOr(S.Number.pipe(S.between(0, 100)))),
   quizIsRequired: S.optional(S.Boolean),
+  quizQuestions: S.optional(S.NullOr(S.Array(CourseQuizQuestion))),
   downloadFiles: S.optional(S.Array(DownloadFile)),
 }) {}
 

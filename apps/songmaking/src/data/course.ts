@@ -732,6 +732,42 @@ Give yourself permission to experiment. Your first songs don't need to be master
     quizId: "40000000-0000-0000-0000-000000000001",
     quizPassingScore: 70,
     quizIsRequired: false,
+    quizQuestions: JSON.stringify([
+      {
+        id: "q1",
+        type: "multiple-choice",
+        question: "What is the most important factor when setting up a creative space?",
+        options: [
+          { id: "q1-a", text: "Having the most expensive equipment", isCorrect: false },
+          { id: "q1-b", text: "A comfortable environment that inspires creativity", isCorrect: true },
+          { id: "q1-c", text: "A large room with high ceilings", isCorrect: false },
+          { id: "q1-d", text: "Professional acoustic treatment", isCorrect: false },
+        ],
+        explanation: "While equipment and acoustics matter, the most important factor is creating a space where you feel comfortable and inspired to create.",
+      },
+      {
+        id: "q2",
+        type: "true-false",
+        question: "You need a professional recording studio to write great songs.",
+        options: [
+          { id: "q2-a", text: "True", isCorrect: false },
+          { id: "q2-b", text: "False", isCorrect: true },
+        ],
+        explanation: "Many hit songs have been written in bedrooms, on tour buses, and in coffee shops. Inspiration can strike anywhere!",
+      },
+      {
+        id: "q3",
+        type: "multiple-choice",
+        question: "Which of the following is essential for your creative space?",
+        options: [
+          { id: "q3-a", text: "A comfortable seat", isCorrect: true },
+          { id: "q3-b", text: "A grand piano", isCorrect: false },
+          { id: "q3-c", text: "Soundproofing", isCorrect: false },
+          { id: "q3-d", text: "A mixing console", isCorrect: false },
+        ],
+        explanation: "A comfortable seat is an essential basic item. You'll spend long hours writing, so comfort matters!",
+      },
+    ]),
     downloadFiles: null,
     createdAt: now,
     updatedAt: now,

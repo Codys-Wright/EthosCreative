@@ -81,7 +81,7 @@ import {
 } from "lucide-react";
 import { useCourse } from "../../features/course/client/course-context.js";
 import { progressAtom } from "../../features/course/client/course-atoms.js";
-import type { Section, Lesson, LessonPart, LessonType } from "@course";
+import type { Section, Lesson, LessonPart, LessonType, CourseQuizQuestion } from "@course";
 import type { Week } from "../../data/course-registry.js";
 import { cn } from "@shadcn/lib/utils";
 
@@ -822,6 +822,12 @@ interface AddPartDialogState {
   lessonId: string | null;
 }
 
+interface QuizEditorDialogState {
+  isOpen: boolean;
+  lessonId: string | null;
+  partId: string | null;
+}
+
 interface LessonPartsState {
   [lessonId: string]: LessonPart[];
 }
@@ -880,6 +886,12 @@ function ContentTab() {
     isOpen: false,
     lessonId: null,
   });
+  const [quizEditorDialog, setQuizEditorDialog] =
+    useState<QuizEditorDialogState>({
+      isOpen: false,
+      lessonId: null,
+      partId: null,
+    });
 
   // Initialize lesson parts state from course data
   const [lessonParts, setLessonParts] = useState<LessonPartsState>(() => {
@@ -907,6 +919,31 @@ function ContentTab() {
   // Close add part dialog
   const closeAddPartDialog = () => {
     setAddPartDialog({ isOpen: false, lessonId: null });
+  };
+
+  // Open quiz editor for a quiz part
+  const openQuizEditor = (lessonId: string, partId: string) => {
+    setQuizEditorDialog({ isOpen: true, lessonId, partId });
+  };
+
+  // Save quiz questions to a part
+  const saveQuizQuestions = (
+    lessonId: string,
+    partId: string,
+    questions: CourseQuizQuestion[]
+  ) => {
+    setLessonParts((prev) => ({
+      ...prev,
+      [lessonId]: (prev[lessonId] || []).map((p) =>
+        p.id === partId
+          ? ({
+              ...p,
+              quizQuestions: questions,
+            } as unknown as LessonPart)
+          : p
+      ),
+    }));
+    setQuizEditorDialog({ isOpen: false, lessonId: null, partId: null });
   };
 
   // Add a new part to a lesson
@@ -1122,6 +1159,7 @@ function ContentTab() {
                 onOpenAddPart={openAddPartDialog}
                 onRemovePart={removePart}
                 onReorderParts={reorderParts}
+                onEditQuiz={openQuizEditor}
               />
             ))}
           </div>
@@ -1142,6 +1180,36 @@ function ContentTab() {
         isOpen={addPartDialog.isOpen}
         onClose={closeAddPartDialog}
         onAdd={addPart}
+      />
+
+      {/* Quiz Editor Dialog */}
+      <QuizEditorDialog
+        isOpen={quizEditorDialog.isOpen}
+        onClose={() =>
+          setQuizEditorDialog({
+            isOpen: false,
+            lessonId: null,
+            partId: null,
+          })
+        }
+        onSave={(questions) => {
+          if (quizEditorDialog.lessonId && quizEditorDialog.partId) {
+            saveQuizQuestions(
+              quizEditorDialog.lessonId,
+              quizEditorDialog.partId,
+              questions
+            );
+          }
+        }}
+        initialQuestions={
+          quizEditorDialog.lessonId && quizEditorDialog.partId
+            ? ((
+                lessonParts[quizEditorDialog.lessonId]?.find(
+                  (p) => p.id === quizEditorDialog.partId
+                ) as any
+              )?.quizQuestions ?? [])
+            : []
+        }
       />
     </div>
   );
@@ -1491,6 +1559,7 @@ function SectionColumn({
   onOpenAddPart,
   onRemovePart,
   onReorderParts,
+  onEditQuiz,
 }: {
   section: Section;
   sectionIndex: number;
@@ -1504,6 +1573,7 @@ function SectionColumn({
   onOpenAddPart: (lessonId: string) => void;
   onRemovePart: (lessonId: string, partId: string) => void;
   onReorderParts: (lessonId: string, parts: LessonPart[]) => void;
+  onEditQuiz: (lessonId: string, partId: string) => void;
 }) {
   const sectionStyle = SECTION_STYLES[sectionIndex] ?? SECTION_STYLES[0];
   const SectionIcon = sectionStyle?.icon ?? BookOpen;
@@ -1586,6 +1656,7 @@ function SectionColumn({
                     onOpenAddPart={() => onOpenAddPart(lesson.id)}
                     onRemovePart={(partId) => onRemovePart(lesson.id, partId)}
                     onReorderParts={(parts) => onReorderParts(lesson.id, parts)}
+                    onEditQuiz={(partId) => onEditQuiz(lesson.id, partId)}
                   />
                 ))}
               </SortableContext>
@@ -1820,6 +1891,342 @@ function AddPartDialog({
 }
 
 // =============================================================================
+// Quiz Editor Dialog
+// =============================================================================
+
+interface QuizQuestionDraft {
+  id: string;
+  type: "multiple-choice" | "true-false";
+  question: string;
+  options: Array<{ id: string; text: string; isCorrect: boolean }>;
+  explanation: string;
+}
+
+function makeEmptyQuestion(type: "multiple-choice" | "true-false"): QuizQuestionDraft {
+  const id = `q-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+  if (type === "true-false") {
+    return {
+      id,
+      type: "true-false",
+      question: "",
+      options: [
+        { id: `${id}-t`, text: "True", isCorrect: true },
+        { id: `${id}-f`, text: "False", isCorrect: false },
+      ],
+      explanation: "",
+    };
+  }
+  return {
+    id,
+    type: "multiple-choice",
+    question: "",
+    options: [
+      { id: `${id}-a`, text: "", isCorrect: true },
+      { id: `${id}-b`, text: "", isCorrect: false },
+      { id: `${id}-c`, text: "", isCorrect: false },
+      { id: `${id}-d`, text: "", isCorrect: false },
+    ],
+    explanation: "",
+  };
+}
+
+function QuizEditorDialog({
+  isOpen,
+  onClose,
+  onSave,
+  initialQuestions,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (questions: CourseQuizQuestion[]) => void;
+  initialQuestions: CourseQuizQuestion[];
+}) {
+  const [questions, setQuestions] = useState<QuizQuestionDraft[]>([]);
+
+  // Sync state when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      if (initialQuestions.length > 0) {
+        setQuestions(
+          initialQuestions.map((q) => ({
+            id: q.id,
+            type: q.type,
+            question: q.question,
+            options: q.options.map((o) => ({
+              id: o.id,
+              text: o.text,
+              isCorrect: o.isCorrect,
+            })),
+            explanation: q.explanation ?? "",
+          }))
+        );
+      } else {
+        setQuestions([makeEmptyQuestion("multiple-choice")]);
+      }
+    }
+  }, [isOpen, initialQuestions]);
+
+  const addQuestion = (type: "multiple-choice" | "true-false") => {
+    setQuestions((prev) => [...prev, makeEmptyQuestion(type)]);
+  };
+
+  const removeQuestion = (qId: string) => {
+    setQuestions((prev) => prev.filter((q) => q.id !== qId));
+  };
+
+  const updateQuestion = (qId: string, field: string, value: string) => {
+    setQuestions((prev) =>
+      prev.map((q) => (q.id === qId ? { ...q, [field]: value } : q))
+    );
+  };
+
+  const updateOptionText = (qId: string, optId: string, text: string) => {
+    setQuestions((prev) =>
+      prev.map((q) =>
+        q.id === qId
+          ? {
+              ...q,
+              options: q.options.map((o) =>
+                o.id === optId ? { ...o, text } : o
+              ),
+            }
+          : q
+      )
+    );
+  };
+
+  const setCorrectOption = (qId: string, optId: string) => {
+    setQuestions((prev) =>
+      prev.map((q) =>
+        q.id === qId
+          ? {
+              ...q,
+              options: q.options.map((o) => ({
+                ...o,
+                isCorrect: o.id === optId,
+              })),
+            }
+          : q
+      )
+    );
+  };
+
+  const addOption = (qId: string) => {
+    setQuestions((prev) =>
+      prev.map((q) => {
+        if (q.id !== qId) return q;
+        const newOpt = {
+          id: `${qId}-${String.fromCharCode(97 + q.options.length)}`,
+          text: "",
+          isCorrect: false,
+        };
+        return { ...q, options: [...q.options, newOpt] };
+      })
+    );
+  };
+
+  const removeOption = (qId: string, optId: string) => {
+    setQuestions((prev) =>
+      prev.map((q) =>
+        q.id === qId
+          ? { ...q, options: q.options.filter((o) => o.id !== optId) }
+          : q
+      )
+    );
+  };
+
+  const handleSave = () => {
+    const valid = questions.filter(
+      (q) =>
+        q.question.trim() &&
+        q.options.length >= 2 &&
+        q.options.some((o) => o.isCorrect) &&
+        q.options.every((o) => o.text.trim())
+    );
+    onSave(
+      valid.map((q) => ({
+        id: q.id,
+        type: q.type,
+        question: q.question,
+        options: q.options.map((o) => ({
+          id: o.id,
+          text: o.text,
+          isCorrect: o.isCorrect,
+        })),
+        explanation: q.explanation || null,
+      })) as unknown as CourseQuizQuestion[]
+    );
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) onClose();
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <Dialog.Content className="sm:max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+        <Dialog.Header>
+          <Dialog.Title className="flex items-center gap-2">
+            <HelpCircle className="w-5 h-5" />
+            Quiz Builder
+          </Dialog.Title>
+          <Dialog.Description>
+            Create and edit quiz questions. Mark the correct answer for each
+            question.
+          </Dialog.Description>
+        </Dialog.Header>
+
+        <ScrollArea className="flex-1 pr-4 -mr-4">
+          <div className="space-y-6 py-4">
+            {questions.map((q, qIndex) => (
+              <Card key={q.id} className="p-4">
+                <div className="space-y-3">
+                  {/* Question header */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="text-xs">
+                        Q{qIndex + 1}
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        {q.type === "true-false"
+                          ? "True/False"
+                          : "Multiple Choice"}
+                      </Badge>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => removeQuestion(q.id)}
+                    >
+                      <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+                    </Button>
+                  </div>
+
+                  {/* Question text */}
+                  <Input
+                    placeholder="Enter your question..."
+                    value={q.question}
+                    onChange={(e) =>
+                      updateQuestion(q.id, "question", e.target.value)
+                    }
+                  />
+
+                  {/* Options */}
+                  <div className="space-y-2">
+                    <FormLabel className="text-xs text-muted-foreground">
+                      Options (click radio to mark correct)
+                    </FormLabel>
+                    {q.options.map((opt) => (
+                      <div key={opt.id} className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setCorrectOption(q.id, opt.id)}
+                          className={cn(
+                            "w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0",
+                            opt.isCorrect
+                              ? "border-emerald-500 bg-emerald-500"
+                              : "border-muted-foreground/30 hover:border-emerald-500/50"
+                          )}
+                        >
+                          {opt.isCorrect && (
+                            <CheckCircle2 className="w-3 h-3 text-white" />
+                          )}
+                        </button>
+                        {q.type === "true-false" ? (
+                          <span className="text-sm flex-1">{opt.text}</span>
+                        ) : (
+                          <Input
+                            placeholder="Option text..."
+                            value={opt.text}
+                            onChange={(e) =>
+                              updateOptionText(q.id, opt.id, e.target.value)
+                            }
+                            className="flex-1 h-8 text-sm"
+                          />
+                        )}
+                        {q.type !== "true-false" && q.options.length > 2 && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 flex-shrink-0"
+                            onClick={() => removeOption(q.id, opt.id)}
+                          >
+                            <Trash2 className="w-3 h-3 text-muted-foreground" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                    {q.type !== "true-false" && q.options.length < 6 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs gap-1 text-muted-foreground"
+                        onClick={() => addOption(q.id)}
+                      >
+                        <Plus className="w-3 h-3" />
+                        Add Option
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Explanation */}
+                  <div className="space-y-1">
+                    <FormLabel className="text-xs text-muted-foreground">
+                      Explanation (shown after answer)
+                    </FormLabel>
+                    <Textarea
+                      placeholder="Explain why this is the correct answer..."
+                      value={q.explanation}
+                      onChange={(e) =>
+                        updateQuestion(q.id, "explanation", e.target.value)
+                      }
+                      className="text-sm min-h-[60px]"
+                    />
+                  </div>
+                </div>
+              </Card>
+            ))}
+
+            {/* Add question buttons */}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => addQuestion("multiple-choice")}
+              >
+                <Plus className="w-4 h-4" />
+                Multiple Choice
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => addQuestion("true-false")}
+              >
+                <Plus className="w-4 h-4" />
+                True / False
+              </Button>
+            </div>
+          </div>
+        </ScrollArea>
+
+        <Dialog.Footer className="mt-4">
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={questions.length === 0}>
+            Save Quiz ({questions.length} question
+            {questions.length !== 1 ? "s" : ""})
+          </Button>
+        </Dialog.Footer>
+      </Dialog.Content>
+    </Dialog>
+  );
+}
+
+// =============================================================================
 // Section Lesson Card (sortable, with add-to-week button)
 // =============================================================================
 
@@ -1834,6 +2241,7 @@ function SectionLessonCard({
   onOpenAddPart,
   onRemovePart,
   onReorderParts,
+  onEditQuiz,
 }: {
   lesson: Lesson;
   index: number;
@@ -1845,6 +2253,7 @@ function SectionLessonCard({
   onOpenAddPart: () => void;
   onRemovePart: (partId: string) => void;
   onReorderParts: (parts: LessonPart[]) => void;
+  onEditQuiz: (partId: string) => void;
 }) {
   const {
     attributes,
@@ -1956,6 +2365,11 @@ function SectionLessonCard({
                         part={part}
                         getPartIcon={getPartIcon}
                         onRemove={() => onRemovePart(part.id)}
+                        onEditQuiz={
+                          part.type === "quiz"
+                            ? () => onEditQuiz(part.id)
+                            : undefined
+                        }
                       />
                     ))}
                   </div>
@@ -2007,10 +2421,12 @@ function SortablePartItem({
   part,
   getPartIcon,
   onRemove,
+  onEditQuiz,
 }: {
   part: LessonPart;
   getPartIcon: (type: string) => React.ElementType;
   onRemove: () => void;
+  onEditQuiz?: () => void;
 }) {
   const {
     attributes,
@@ -2047,6 +2463,17 @@ function SortablePartItem({
       </button>
       <PartIcon className="w-3.5 h-3.5 flex-shrink-0" />
       <span className="flex-1 min-w-0 truncate">{part.title}</span>
+      {onEditQuiz && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-5 w-5 flex-shrink-0 opacity-0 group-hover/part:opacity-100 transition-opacity"
+          onClick={onEditQuiz}
+          title="Edit quiz questions"
+        >
+          <Edit className="w-3 h-3 text-muted-foreground hover:text-primary" />
+        </Button>
+      )}
       <Button
         variant="ghost"
         size="icon"

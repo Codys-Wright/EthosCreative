@@ -34,9 +34,12 @@ import {
   Sparkles,
   Pencil,
   FlaskConical,
+  XCircle,
+  RotateCcw,
+  Trophy,
 } from "lucide-react";
 import { CourseSidebar } from "../../components/course-sidebar";
-import type { Lesson, LessonPart } from "@course";
+import type { Lesson, LessonPart, CourseQuizQuestion } from "@course";
 import { Editor } from "@components/markdown-editor/editor";
 import {
   currentLessonIdAtom,
@@ -46,6 +49,8 @@ import {
   previousLessonAtom,
   progressAtom,
   ProgressUpdate,
+  quizResultsAtom,
+  QuizResultsUpdate,
 } from "../../features/course/client/course-atoms";
 import { useCourse } from "../../features/course/client/course-context";
 import { cn } from "@shadcn/lib/utils";
@@ -143,6 +148,327 @@ function VideoPlayer({
 }
 
 // =============================================================================
+// Quiz Player Component
+// =============================================================================
+
+interface QuizResult {
+  score: number;
+  total: number;
+  passed: boolean;
+  answers: Record<string, string>; // questionId -> selectedOptionId
+}
+
+function QuizPlayer({
+  questions,
+  passingScore = 70,
+  partId,
+}: {
+  questions: ReadonlyArray<CourseQuizQuestion>;
+  passingScore?: number;
+  partId: string;
+}) {
+  const quizResults = useAtomValue(quizResultsAtom);
+  const setQuizResults = useAtomSet(quizResultsAtom);
+  const savedResult = quizResults.get(partId);
+
+  const [selectedAnswers, setSelectedAnswers] = React.useState<
+    Record<string, string>
+  >(savedResult?.answers ?? {});
+  const [result, setResult] = React.useState<QuizResult | null>(
+    savedResult
+      ? {
+          score: savedResult.score,
+          total: savedResult.total,
+          passed: savedResult.passed,
+          answers: savedResult.answers,
+        }
+      : null
+  );
+  const [showExplanations, setShowExplanations] = React.useState(
+    Boolean(savedResult)
+  );
+
+  const allAnswered = questions.every((q) => selectedAnswers[q.id]);
+
+  const handleSelectAnswer = (questionId: string, optionId: string) => {
+    if (result) return; // Don't allow changes after submission
+    setSelectedAnswers((prev) => ({ ...prev, [questionId]: optionId }));
+  };
+
+  const handleSubmit = () => {
+    let correct = 0;
+    for (const question of questions) {
+      const selectedId = selectedAnswers[question.id];
+      const correctOption = question.options.find((o) => o.isCorrect);
+      if (selectedId && correctOption && selectedId === correctOption.id) {
+        correct++;
+      }
+    }
+
+    const score = Math.round((correct / questions.length) * 100);
+    const passed = score >= passingScore;
+    const quizResult: QuizResult = {
+      score,
+      total: questions.length,
+      passed,
+      answers: { ...selectedAnswers },
+    };
+    setResult(quizResult);
+    setShowExplanations(true);
+
+    // Persist to quiz results atom
+    setQuizResults(
+      QuizResultsUpdate.Submit({
+        partId,
+        score,
+        total: questions.length,
+        passed,
+        answers: { ...selectedAnswers },
+      })
+    );
+  };
+
+  const handleRetake = () => {
+    setSelectedAnswers({});
+    setResult(null);
+    setShowExplanations(false);
+    setQuizResults(QuizResultsUpdate.Reset({ partId }));
+  };
+
+  const getOptionState = (
+    question: CourseQuizQuestion,
+    option: (typeof question.options)[number]
+  ): "default" | "correct" | "incorrect" | "missed" => {
+    if (!result) return "default";
+    const selectedId = result.answers[question.id];
+    if (option.isCorrect) return "correct";
+    if (selectedId === option.id && !option.isCorrect) return "incorrect";
+    return "default";
+  };
+
+  const correctCount = result
+    ? questions.filter((q) => {
+        const selectedId = result.answers[q.id];
+        const correctOption = q.options.find((o) => o.isCorrect);
+        return selectedId === correctOption?.id;
+      }).length
+    : 0;
+
+  return (
+    <div className="space-y-6">
+      {/* Quiz header with progress */}
+      {!result && (
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <span>
+            {Object.keys(selectedAnswers).length} of {questions.length} answered
+          </span>
+          <span>Passing score: {passingScore}%</span>
+        </div>
+      )}
+
+      {/* Result banner */}
+      {result && (
+        <Card
+          className={cn(
+            "p-4",
+            result.passed
+              ? "bg-emerald-500/5 border-emerald-500/20"
+              : "bg-red-500/5 border-red-500/20"
+          )}
+        >
+          <div className="flex items-center gap-4">
+            <div
+              className={cn(
+                "w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0",
+                result.passed ? "bg-emerald-500/10" : "bg-red-500/10"
+              )}
+            >
+              {result.passed ? (
+                <Trophy className="w-6 h-6 text-emerald-600" />
+              ) : (
+                <XCircle className="w-6 h-6 text-red-600" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-semibold">
+                {result.passed ? "Quiz Passed!" : "Not quite there yet"}
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                You got {correctCount} out of {result.total} correct (
+                {result.score}%)
+                {!result.passed &&
+                  ` — ${passingScore}% required to pass`}
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRetake}
+              className="gap-2 flex-shrink-0"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Retake
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {/* Questions */}
+      <div className="space-y-6">
+        {questions.map((question, qIndex) => {
+          const wasCorrect = result
+            ? selectedAnswers[question.id] ===
+              question.options.find((o) => o.isCorrect)?.id
+            : null;
+
+          return (
+            <Card
+              key={question.id}
+              className={cn(
+                "p-5",
+                result && wasCorrect && "border-emerald-500/30",
+                result && wasCorrect === false && "border-red-500/30"
+              )}
+            >
+              <div className="space-y-4">
+                {/* Question header */}
+                <div className="flex items-start gap-3">
+                  <span
+                    className={cn(
+                      "w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0",
+                      result && wasCorrect
+                        ? "bg-emerald-500/10 text-emerald-700"
+                        : result && wasCorrect === false
+                          ? "bg-red-500/10 text-red-700"
+                          : "bg-purple-500/10 text-purple-700"
+                    )}
+                  >
+                    {result ? (
+                      wasCorrect ? (
+                        <CheckCircle2 className="w-4 h-4" />
+                      ) : (
+                        <XCircle className="w-4 h-4" />
+                      )
+                    ) : (
+                      qIndex + 1
+                    )}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium">{question.question}</p>
+                    {question.type === "true-false" && (
+                      <Badge
+                        variant="secondary"
+                        className="text-xs mt-1 bg-muted"
+                      >
+                        True / False
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
+                {/* Options */}
+                <div className="space-y-2 ml-10">
+                  {question.options.map((option) => {
+                    const optionState = getOptionState(question, option);
+                    const isSelected =
+                      selectedAnswers[question.id] === option.id;
+
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() =>
+                          handleSelectAnswer(question.id, option.id)
+                        }
+                        disabled={Boolean(result)}
+                        className={cn(
+                          "w-full text-left px-4 py-3 rounded-lg border transition-all text-sm",
+                          !result && isSelected
+                            ? "border-purple-500 bg-purple-500/5 ring-1 ring-purple-500/20"
+                            : !result
+                              ? "border-border hover:border-purple-500/50 hover:bg-muted/50"
+                              : optionState === "correct"
+                                ? "border-emerald-500 bg-emerald-500/5"
+                                : optionState === "incorrect"
+                                  ? "border-red-500 bg-red-500/5"
+                                  : "border-border opacity-60",
+                          result && "cursor-default"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={cn(
+                              "w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0",
+                              !result && isSelected
+                                ? "border-purple-500"
+                                : !result
+                                  ? "border-muted-foreground/30"
+                                  : optionState === "correct"
+                                    ? "border-emerald-500 bg-emerald-500"
+                                    : optionState === "incorrect"
+                                      ? "border-red-500 bg-red-500"
+                                      : "border-muted-foreground/30"
+                            )}
+                          >
+                            {!result && isSelected && (
+                              <div className="w-2.5 h-2.5 rounded-full bg-purple-500" />
+                            )}
+                            {result && optionState === "correct" && (
+                              <CheckCircle2 className="w-3 h-3 text-white" />
+                            )}
+                            {result && optionState === "incorrect" && (
+                              <XCircle className="w-3 h-3 text-white" />
+                            )}
+                          </div>
+                          <span
+                            className={cn(
+                              result && optionState === "correct" && "font-medium text-emerald-700 dark:text-emerald-400",
+                              result && optionState === "incorrect" && "text-red-700 dark:text-red-400"
+                            )}
+                          >
+                            {option.text}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Explanation (shown after submission) */}
+                {showExplanations && question.explanation && (
+                  <div className="ml-10 mt-2 p-3 rounded-lg bg-muted/50 border border-muted">
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">
+                        Explanation:
+                      </span>{" "}
+                      {question.explanation}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Submit button */}
+      {!result && (
+        <div className="flex justify-end">
+          <Button
+            onClick={handleSubmit}
+            disabled={!allAnswered}
+            className="gap-2"
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            Submit Quiz
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// =============================================================================
 // Lesson Part Content Renderer
 // =============================================================================
 
@@ -192,17 +518,24 @@ function LessonPartContent({ part }: { part: LessonPart }) {
           </div>
         )}
 
-        {part.type === "quiz" && (
-          <Card className="p-6 bg-purple-500/5 border-purple-500/20">
-            <div className="text-center">
-              <HelpCircle className="w-12 h-12 mx-auto mb-4 text-purple-500" />
-              <h4 className="font-semibold mb-2">Quiz Coming Soon</h4>
-              <p className="text-sm text-muted-foreground">
-                Interactive quizzes will be available in a future update.
-              </p>
-            </div>
-          </Card>
-        )}
+        {part.type === "quiz" &&
+          (part.quizQuestions && part.quizQuestions.length > 0 ? (
+            <QuizPlayer
+              questions={part.quizQuestions}
+              passingScore={part.quizPassingScore ?? 70}
+              partId={part.id}
+            />
+          ) : (
+            <Card className="p-6 bg-purple-500/5 border-purple-500/20">
+              <div className="text-center">
+                <HelpCircle className="w-12 h-12 mx-auto mb-4 text-purple-500" />
+                <h4 className="font-semibold mb-2">Quiz Coming Soon</h4>
+                <p className="text-sm text-muted-foreground">
+                  Interactive quizzes will be available in a future update.
+                </p>
+              </div>
+            </Card>
+          ))}
 
         {part.type === "assignment" && (
           <Card className="p-6 bg-orange-500/5 border-orange-500/20">
