@@ -10,6 +10,8 @@
 
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useRef, useCallback } from "react";
+import { useAtomSet } from "@effect-atom/atom-react";
+import { toast } from "sonner";
 import {
   DndContext,
   closestCenter,
@@ -65,12 +67,21 @@ import {
   getSectionById,
   getLessonParts,
   SONGMAKING_COURSE,
-  SONGMAKING_LESSON_PARTS,
   type LessonPart,
   type LessonId,
 } from "../data/course.js";
 
 import { cn } from "@shadcn/lib/utils";
+import {
+  createLessonPartAtom,
+  updateLessonPartAtom,
+  deleteLessonPartAtom,
+  reorderLessonPartsAtom,
+} from "@course/features/lesson-part/client/index.js";
+import type {
+  LessonPartId,
+  LessonId as BrandedLessonId,
+} from "@course";
 
 export const Route = createFileRoute("/lesson_/$lessonId/edit")({
   component: LessonEditPageWrapper,
@@ -547,10 +558,21 @@ function LessonEditPageWrapper() {
 function LessonEditPage({ lessonId }: { lessonId: string }) {
   const navigate = useNavigate();
 
+  // RPC mutation atoms
+  const createPart = useAtomSet(createLessonPartAtom);
+  const updatePart = useAtomSet(updateLessonPartAtom);
+  const deletePart = useAtomSet(deleteLessonPartAtom);
+  const reorderParts = useAtomSet(reorderLessonPartsAtom);
+
   // Cast lessonId to branded type for lookup functions
   const lesson = getLessonById(lessonId as LessonId);
   const section = lesson ? getSectionById(lesson.sectionId) : null;
   const initialParts = lesson ? [...getLessonParts(lesson.id)] : [];
+
+  // Track the original part IDs for detecting deletes
+  const initialPartIdsRef = useRef<Set<string>>(
+    new Set(initialParts.map((p) => p.id))
+  );
 
   // Mutable parts state
   const [parts, setParts] = useState<LessonPart[]>(initialParts);
@@ -564,6 +586,12 @@ function LessonEditPage({ lessonId }: { lessonId: string }) {
 
   // Track structural changes (reorder, add, delete)
   const [hasStructuralChanges, setHasStructuralChanges] = useState(false);
+
+  // Track deleted part IDs
+  const deletedPartIdsRef = useRef<Set<string>>(new Set());
+
+  // Saving state
+  const [isSaving, setIsSaving] = useState(false);
 
   // Dialog states
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -640,6 +668,10 @@ function LessonEditPage({ lessonId }: { lessonId: string }) {
   const handleDeletePart = useCallback(() => {
     if (!partToDelete) return;
     const deleteIndex = parts.findIndex((p) => p.id === partToDelete.id);
+    // Track deletion of existing parts (not newly created ones)
+    if (initialPartIdsRef.current.has(partToDelete.id)) {
+      deletedPartIdsRef.current.add(partToDelete.id);
+    }
     setParts((prev) => prev.filter((p) => p.id !== partToDelete.id));
     setHasStructuralChanges(true);
     // Adjust current index if needed
@@ -673,33 +705,82 @@ function LessonEditPage({ lessonId }: { lessonId: string }) {
     [parts]
   );
 
-  const handleSave = () => {
-    const contentChanges = Array.from(changesRef.current.entries());
-    const updatedParts = parts.map((part) => {
-      const contentChange = changesRef.current.get(part.id);
-      if (contentChange !== undefined) {
-        return { ...part, mdxContent: contentChange };
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const isNewPart = (id: string) => id.startsWith("new-");
+      const createdPartIdMap = new Map<string, string>();
+
+      // 1. Delete removed parts
+      for (const partId of deletedPartIdsRef.current) {
+        await deletePart(partId as LessonPartId);
       }
-      return part;
-    });
 
-    console.log("Saving lesson structure:", {
-      lessonId,
-      parts: updatedParts,
-      hasStructuralChanges,
-      contentChanges: contentChanges.length,
-    });
+      // 2. Create new parts
+      for (const part of parts) {
+        if (isNewPart(part.id)) {
+          const contentChange = changesRef.current.get(part.id);
+          const created = await createPart({
+            lessonId: lessonId as BrandedLessonId,
+            title: part.title,
+            type: part.type,
+            sortOrder: part.sortOrder,
+            mdxContent: contentChange ?? part.mdxContent ?? undefined,
+          } as any);
+          createdPartIdMap.set(part.id, created.id);
+        }
+      }
 
-    // In production: await saveLessonParts(lessonId, updatedParts);
+      // 3. Update existing parts with content/metadata changes
+      for (const part of parts) {
+        if (isNewPart(part.id)) continue;
+        const contentChange = changesRef.current.get(part.id);
+        const hasMetadataChange =
+          hasStructuralChanges &&
+          initialPartIdsRef.current.has(part.id);
 
-    setChangedParts(new Set());
-    changesRef.current.clear();
-    setHasStructuralChanges(false);
+        if (contentChange !== undefined || hasMetadataChange) {
+          const input: Record<string, unknown> = {};
+          if (contentChange !== undefined) input.mdxContent = contentChange;
+          if (hasMetadataChange) {
+            input.title = part.title;
+            input.type = part.type;
+          }
+          await updatePart({
+            id: part.id as LessonPartId,
+            input: input as any,
+          });
+        }
+      }
 
-    navigate({
-      to: "/$courseSlug/lesson/$lessonId",
-      params: { courseSlug: "songmaking", lessonId },
-    });
+      // 4. Reorder all parts if there were structural changes
+      if (hasStructuralChanges) {
+        const orderedIds = parts.map((p) => {
+          const newId = createdPartIdMap.get(p.id);
+          return (newId ?? p.id) as LessonPartId;
+        });
+        await reorderParts({
+          lessonId: lessonId as BrandedLessonId,
+          partIds: orderedIds,
+        });
+      }
+
+      toast.success("Lesson saved successfully");
+
+      setChangedParts(new Set());
+      changesRef.current.clear();
+      deletedPartIdsRef.current.clear();
+      setHasStructuralChanges(false);
+
+      navigate({
+        to: "/$courseSlug/lesson/$lessonId",
+        params: { courseSlug: "songmaking", lessonId },
+      });
+    } catch {
+      toast.error("Failed to save lesson. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancel = () => {
@@ -784,10 +865,10 @@ function LessonEditPage({ lessonId }: { lessonId: string }) {
               <Button
                 size="sm"
                 onClick={handleSave}
-                disabled={totalChanges === 0}
+                disabled={totalChanges === 0 || isSaving}
               >
                 <Save className="w-4 h-4 mr-2" />
-                Save All Changes
+                {isSaving ? "Saving..." : "Save All Changes"}
               </Button>
             </div>
           </div>

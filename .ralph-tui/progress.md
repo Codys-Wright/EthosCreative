@@ -1,5 +1,34 @@
 # Progress
 
+## Codebase Patterns
+
+### RPC Client Mutation Pattern
+```
+// 1. Create client (AtomRpc.Tag)
+export class FooClient extends AtomRpc.Tag<FooClient>()('@pkg/FooClient', {
+  group: FooRpc,
+  protocol: RpcProtocol,
+}) {}
+
+// 2. Create mutation atom (Client.runtime.fn)
+export const updateFooAtom = FooClient.runtime.fn<{ id: FooId; input: UpdateFooInput }>()(
+  Effect.fnUntraced(function* ({ id, input }) {
+    const client = yield* FooClient;
+    return yield* client('foo_update', { id, input });
+  }),
+);
+
+// 3. Use in component
+const updateFoo = useAtomSet(updateFooAtom);
+await updateFoo({ id, input });
+```
+
+### Feature Index Export Pattern
+- Feature `index.ts` files ONLY export domain code (safe for client bundle)
+- Client code is imported via direct path: `@course/features/lesson-part/client/index.js`
+- Server code is imported via `@course/server`
+- This prevents bundling pg/server code into the client
+
 ## ethos-17x.16: US-016 - Add component tests for songmaking app
 
 **Status**: Complete
@@ -29,3 +58,24 @@
 - All 52 tests pass: `cd apps/songmaking && npx vitest run`
 - oxlint clean: 0 warnings, 0 errors
 - TypeScript: Only pre-existing server-handler.ts error (not from our changes)
+
+## 2026-02-08 - ethos-17x.10
+- **What was implemented:** Admin save operations - lesson editor persistence, content tab persistence, settings tab persistence
+- **Files changed:**
+  - `packages/course/src/rpc.ts` - Added LessonPartRpc to CourseRpcGroup export
+  - `packages/course/src/features/lesson-part/client/client.ts` - New: LessonPartClient RPC client
+  - `packages/course/src/features/lesson-part/client/atoms.ts` - New: CRUD + reorder mutation atoms
+  - `packages/course/src/features/lesson-part/client/index.ts` - New: barrel export
+  - `packages/course/src/features/lesson/client/atoms.ts` - Added reorderLessonsAtom
+  - `packages/course/src/features/section/client/atoms.ts` - Added reorderSectionsAtom
+  - `apps/songmaking/src/routes/__root.tsx` - Added Toaster component for toast notifications
+  - `apps/songmaking/src/routes/lesson_.$lessonId.edit.tsx` - Wired lesson editor save to RPC (create/update/delete/reorder parts)
+  - `apps/songmaking/src/routes/$courseSlug/admin.tsx` - Wired content tab save (lesson/part CRUD + reorder) and settings tab save (course update/publish/archive)
+- **Learnings:**
+  - LessonPartRpc was included in server-side CourseRpcLayer but missing from client-side CourseRpcGroup export
+  - Feature index.ts files only export domain code; client code must be imported via direct path (`@course/features/*/client/index.js`)
+  - Mutation atoms use `Client.runtime.fn<InputType>()(Effect.fnUntraced(...))` pattern, consumed via `useAtomSet`
+  - Save orchestration order matters: delete first, then create (to get real IDs), then update, then reorder
+  - Sonner toast is already installed in @shadcn but Toaster component needs to be added to root layout
+  - oxlint improved from 66 to 52 errors (cleaned up unused imports in files we touched)
+---

@@ -105,6 +105,19 @@ export const updateLessonAtom = LessonClient.runtime.fn<{
 );
 
 /**
+ * Reorder lessons within a section
+ */
+export const reorderLessonsAtom = LessonClient.runtime.fn<{
+  readonly sectionId: SectionId;
+  readonly lessonIds: ReadonlyArray<LessonId>;
+}>()(
+  Effect.fnUntraced(function* ({ sectionId, lessonIds }) {
+    const client = yield* LessonClient;
+    yield* client('lesson_reorder', { sectionId, lessonIds });
+  }),
+);
+
+/**
  * Delete a lesson
  */
 export const deleteLessonAtom = LessonClient.runtime.fn<LessonId>()(

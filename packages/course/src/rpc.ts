@@ -9,6 +9,7 @@ import { CourseRpc } from './features/course/domain/rpc.js';
 import { EnrollmentRpc } from './features/enrollment/domain/rpc.js';
 import { InstructorRpc } from './features/instructor/domain/rpc.js';
 import { LessonRpc } from './features/lesson/domain/rpc.js';
+import { LessonPartRpc } from './features/lesson-part/domain/rpc.js';
 import { ProgressRpc } from './features/progress/domain/rpc.js';
 import { ReviewRpc } from './features/review/domain/rpc.js';
 import { SectionRpc } from './features/section/domain/rpc.js';
@@ -21,6 +22,7 @@ export {
   EnrollmentRpc,
   InstructorRpc,
   LessonRpc,
+  LessonPartRpc,
   ProgressRpc,
   ReviewRpc,
   SectionRpc,
@@ -31,6 +33,7 @@ export const CourseRpcGroup = CategoryRpc.merge(InstructorRpc)
   .merge(CourseRpc)
   .merge(SectionRpc)
   .merge(LessonRpc)
+  .merge(LessonPartRpc)
   .merge(EnrollmentRpc)
   .merge(ProgressRpc)
   .merge(ReviewRpc)
