@@ -16,6 +16,10 @@
       "types": "./src/database.ts",
       "default": "./src/database.ts"
     },
+    "./rpc": {
+      "types": "./src/rpc.ts",
+      "default": "./src/rpc.ts"
+    },
     "./features/*": {
       "types": "./src/features/*/index.ts",
       "default": "./src/features/*/index.ts"

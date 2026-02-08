@@ -10,6 +10,7 @@
 
 import { Atom } from "@effect-atom/atom-react";
 import * as Data from "effect/Data";
+import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import type {
   Course,
@@ -21,6 +22,7 @@ import type {
   Path,
   PathId,
 } from "@course";
+import { ProgressClient } from "@course/features/progress/client/client.js";
 
 /**
  * Client-side lesson progress type (simplified from server schema)
@@ -35,6 +37,33 @@ import {
   getCourseBySlug,
   type CourseData,
 } from "../../../data/course-registry.js";
+
+// =============================================================================
+// Server Sync - Module-level flag controlled by useProgressSync hook
+// =============================================================================
+
+let _serverSyncEnabled = false;
+
+/** Called by useProgressSync to enable/disable server persistence */
+export function setServerSyncEnabled(enabled: boolean) {
+  _serverSyncEnabled = enabled;
+}
+
+/** Fire-and-forget: persist a mark-complete action to the server */
+function persistMarkComplete(lessonId: string) {
+  if (!_serverSyncEnabled) return;
+
+  const effect = Effect.gen(function* () {
+    const client = yield* ProgressClient;
+    return yield* client("progress_markLessonComplete", {
+      lessonId: lessonId as LessonId,
+    });
+  }).pipe(Effect.provide(ProgressClient.Default));
+
+  Effect.runPromise(effect).catch(() => {
+    // Silently fail - local state already updated optimistically
+  });
+}
 
 // =============================================================================
 // Course Slug Atom - The root of all course-specific state
@@ -220,15 +249,19 @@ export const ProgressUpdate = Data.taggedEnum<ProgressUpdate>();
 type ProgressMap = Map<string, ClientLessonProgress>;
 
 /**
- * Internal store for progress - keyed by lessonId
- * In the future, this will be fetched from the server per user
+ * Internal store for progress - keyed by lessonId.
+ * Hydrated from server on load for authenticated users,
+ * falls back to local-only for unauthenticated users.
  */
-const progressStoreAtom = Atom.make<ProgressMap>(new Map()).pipe(
+export const progressStoreAtom = Atom.make<ProgressMap>(new Map()).pipe(
   Atom.keepAlive
 );
 
 /**
- * Progress atom - writable atom for lesson progress
+ * Progress atom - writable atom for lesson progress.
+ *
+ * Optimistic UI: updates local state immediately, then persists
+ * to server in the background for authenticated users.
  */
 export const progressAtom: Atom.Writable<ProgressMap, ProgressUpdate> =
   Atom.writable(
@@ -245,6 +278,8 @@ export const progressAtom: Atom.Writable<ProgressMap, ProgressUpdate> =
             progressPercent: 100,
             completedAt: new Date().toISOString(),
           });
+          // Persist to server (fire-and-forget)
+          persistMarkComplete(update.lessonId);
           break;
         case "MarkInProgress":
           newMap.set(update.lessonId, {
