@@ -52,3 +52,13 @@
   - Threading props through nested admin components (ContentTab -> SectionColumn -> SectionLessonCard -> SortablePartItem) requires updating each component's interface
   - Pre-existing lint issues in lesson viewer and admin files (unused imports like Clock, Home, Music, etc.) should not be fixed as part of unrelated changes
 ---
+
+## 2026-02-08 - ethos-17x.20
+- Created `CLAUDE.md` at repo root — comprehensive project guide for AI assistants
+- Files changed:
+  - `CLAUDE.md` (new) — Documents monorepo structure, commands, vertical slice architecture, Effect-TS patterns (Schema, Service, RPC, Atom, SQL), database setup, testing conventions, deployment config, UI conventions, and references to @example package READMEs
+- **Learnings:**
+  - CLAUDE.md should reference `@example` package READMEs rather than duplicate their content — keeps documentation DRY and maintainable
+  - Pre-existing typecheck errors in `packages/ui/theme/` are due to missing node_modules in worktrees, not actual code issues
+  - Pre-existing oxlint errors (45 warnings, 237 errors) across the codebase are not related to documentation changes
+---
