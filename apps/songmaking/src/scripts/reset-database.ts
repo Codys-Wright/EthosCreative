@@ -20,6 +20,20 @@ const resetDatabase = Effect.gen(function* () {
 
   yield* Effect.log('[ResetDatabase] Dropping all tables...');
 
+  // Drop course tables (children first)
+  yield* sql`DROP TABLE IF EXISTS public.course_lesson_parts CASCADE`;
+  yield* sql`DROP TABLE IF EXISTS public.course_lessons CASCADE`;
+  yield* sql`DROP TABLE IF EXISTS public.course_paths CASCADE`;
+  yield* sql`DROP TABLE IF EXISTS public.course_sections CASCADE`;
+  yield* sql`DROP TABLE IF EXISTS public.course_enrollments CASCADE`;
+  yield* sql`DROP TABLE IF EXISTS public.course_progress CASCADE`;
+  yield* sql`DROP TABLE IF EXISTS public.course_reviews CASCADE`;
+  yield* sql`DROP TABLE IF EXISTS public.course_certificates CASCADE`;
+  yield* sql`DROP TABLE IF EXISTS public.course_instructors CASCADE`;
+  yield* sql`DROP TABLE IF EXISTS public.instructor_profiles CASCADE`;
+  yield* sql`DROP TABLE IF EXISTS public.courses CASCADE`;
+  yield* sql`DROP TABLE IF EXISTS public.course_categories CASCADE`;
+
   // Drop Effect SQL migrations table
   yield* sql`DROP TABLE IF EXISTS public.effect_sql_migrations CASCADE`;
 

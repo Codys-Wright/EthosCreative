@@ -7,6 +7,7 @@ export * from './features/course/server/index.js';
 export * from './features/enrollment/server/index.js';
 export * from './features/instructor/server/index.js';
 export * from './features/lesson/server/index.js';
+export * from './features/lesson-part/server/index.js';
 export * from './features/progress/server/index.js';
 export * from './features/review/server/index.js';
 export * from './features/section/server/index.js';

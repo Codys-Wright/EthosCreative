@@ -6,6 +6,7 @@ import { CourseRpcLive } from '../../features/course/server/rpc-live.js';
 import { EnrollmentRpcLive } from '../../features/enrollment/server/rpc-live.js';
 import { InstructorRpcLive } from '../../features/instructor/server/rpc-live.js';
 import { LessonRpcLive } from '../../features/lesson/server/rpc-live.js';
+import { LessonPartRpcLive } from '../../features/lesson-part/server/rpc-live.js';
 import { ProgressRpcLive } from '../../features/progress/server/rpc-live.js';
 import { ReviewRpcLive } from '../../features/review/server/rpc-live.js';
 import { SectionRpcLive } from '../../features/section/server/rpc-live.js';
@@ -29,6 +30,7 @@ export const CourseRpcLayer = Layer.mergeAll(
   EnrollmentRpcLive,
   InstructorRpcLive,
   LessonRpcLive,
+  LessonPartRpcLive,
   ProgressRpcLive,
   ReviewRpcLive,
   SectionRpcLive,
