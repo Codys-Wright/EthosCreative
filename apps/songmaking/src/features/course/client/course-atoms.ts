@@ -290,6 +290,77 @@ export const courseProgressAtom = Atom.make((get) => {
 });
 
 // =============================================================================
+// Quiz Results Atoms (per lesson part)
+// =============================================================================
+
+/**
+ * Quiz result for a lesson part
+ */
+export interface QuizPartResult {
+  partId: string;
+  score: number;
+  total: number;
+  passed: boolean;
+  answers: Record<string, string>;
+  submittedAt: string;
+}
+
+/**
+ * Quiz results update action type
+ */
+export type QuizResultsUpdate = Data.TaggedEnum<{
+  Submit: { partId: string; score: number; total: number; passed: boolean; answers: Record<string, string> };
+  Reset: { partId: string };
+}>;
+
+export const QuizResultsUpdate = Data.taggedEnum<QuizResultsUpdate>();
+
+type QuizResultsMap = Map<string, QuizPartResult>;
+
+const quizResultsStoreAtom = Atom.make<QuizResultsMap>(new Map()).pipe(
+  Atom.keepAlive,
+);
+
+/**
+ * Quiz results atom - stores quiz results per lesson part
+ */
+export const quizResultsAtom: Atom.Writable<QuizResultsMap, QuizResultsUpdate> =
+  Atom.writable(
+    (get) => get(quizResultsStoreAtom),
+    (ctx, update: QuizResultsUpdate) => {
+      const current = ctx.get(quizResultsStoreAtom);
+      const newMap = new Map(current);
+
+      switch (update._tag) {
+        case "Submit":
+          newMap.set(update.partId, {
+            partId: update.partId,
+            score: update.score,
+            total: update.total,
+            passed: update.passed,
+            answers: update.answers,
+            submittedAt: new Date().toISOString(),
+          });
+          break;
+        case "Reset":
+          newMap.delete(update.partId);
+          break;
+      }
+
+      ctx.set(quizResultsStoreAtom, newMap);
+    },
+  );
+
+/**
+ * Get quiz result for a specific lesson part
+ */
+export const quizPartResultAtom = (partId: string) =>
+  Atom.make((get) => {
+    const results = get(quizResultsAtom);
+    return Option.fromNullable(results.get(partId));
+  });
+
+// =============================================================================
 // Section Progress Atoms
 // =============================================================================
 

@@ -86,6 +86,7 @@ import type {
   LessonId as BrandedLessonId,
   SectionId as BrandedSectionId,
   CourseId as BrandedCourseId,
+  CourseQuizQuestion,
 } from "@course";
 import {
   createLessonPartAtom,
