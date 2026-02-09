@@ -10,12 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TodosRouteImport } from './routes/todos'
-import { Route as TestRouteImport } from './routes/test'
 import { Route as ResultsRouteImport } from './routes/results'
 import { Route as ResponsesRouteImport } from './routes/responses'
 import { Route as QuizTakerRouteImport } from './routes/quiz-taker'
 import { Route as QuizRouteImport } from './routes/quiz'
-import { Route as PerfRouteImport } from './routes/perf'
 import { Route as AnalysisRouteImport } from './routes/analysis'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
@@ -45,11 +43,6 @@ const TodosRoute = TodosRouteImport.update({
   path: '/todos',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TestRoute = TestRouteImport.update({
-  id: '/test',
-  path: '/test',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ResultsRoute = ResultsRouteImport.update({
   id: '/results',
   path: '/results',
@@ -68,11 +61,6 @@ const QuizTakerRoute = QuizTakerRouteImport.update({
 const QuizRoute = QuizRouteImport.update({
   id: '/quiz',
   path: '/quiz',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PerfRoute = PerfRouteImport.update({
-  id: '/perf',
-  path: '/perf',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnalysisRoute = AnalysisRouteImport.update({
@@ -201,12 +189,10 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/analysis': typeof AnalysisRoute
-  '/perf': typeof PerfRoute
   '/quiz': typeof QuizRoute
   '/quiz-taker': typeof QuizTakerRoute
   '/responses': typeof ResponsesRoute
   '/results': typeof ResultsRoute
-  '/test': typeof TestRoute
   '/todos': typeof TodosRoute
   '/account/$accountView': typeof AccountAccountViewRoute
   '/account/claim-account': typeof AccountClaimAccountRoute
@@ -233,12 +219,10 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/analysis': typeof AnalysisRoute
-  '/perf': typeof PerfRoute
   '/quiz': typeof QuizRoute
   '/quiz-taker': typeof QuizTakerRoute
   '/responses': typeof ResponsesRoute
   '/results': typeof ResultsRoute
-  '/test': typeof TestRoute
   '/todos': typeof TodosRoute
   '/account/$accountView': typeof AccountAccountViewRoute
   '/account/claim-account': typeof AccountClaimAccountRoute
@@ -266,12 +250,10 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/analysis': typeof AnalysisRoute
-  '/perf': typeof PerfRoute
   '/quiz': typeof QuizRoute
   '/quiz-taker': typeof QuizTakerRoute
   '/responses': typeof ResponsesRoute
   '/results': typeof ResultsRoute
-  '/test': typeof TestRoute
   '/todos': typeof TodosRoute
   '/account/$accountView': typeof AccountAccountViewRoute
   '/account/claim-account': typeof AccountClaimAccountRoute
@@ -300,12 +282,10 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/analysis'
-    | '/perf'
     | '/quiz'
     | '/quiz-taker'
     | '/responses'
     | '/results'
-    | '/test'
     | '/todos'
     | '/account/$accountView'
     | '/account/claim-account'
@@ -332,12 +312,10 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/analysis'
-    | '/perf'
     | '/quiz'
     | '/quiz-taker'
     | '/responses'
     | '/results'
-    | '/test'
     | '/todos'
     | '/account/$accountView'
     | '/account/claim-account'
@@ -364,12 +342,10 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/analysis'
-    | '/perf'
     | '/quiz'
     | '/quiz-taker'
     | '/responses'
     | '/results'
-    | '/test'
     | '/todos'
     | '/account/$accountView'
     | '/account/claim-account'
@@ -397,12 +373,10 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRouteWithChildren
   AnalysisRoute: typeof AnalysisRoute
-  PerfRoute: typeof PerfRoute
   QuizRoute: typeof QuizRoute
   QuizTakerRoute: typeof QuizTakerRoute
   ResponsesRoute: typeof ResponsesRoute
   ResultsRoute: typeof ResultsRoute
-  TestRoute: typeof TestRoute
   TodosRoute: typeof TodosRoute
   AccountAccountViewRoute: typeof AccountAccountViewRoute
   AccountClaimAccountRoute: typeof AccountClaimAccountRoute
@@ -426,13 +400,6 @@ declare module '@tanstack/react-router' {
       path: '/todos'
       fullPath: '/todos'
       preLoaderRoute: typeof TodosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/test': {
-      id: '/test'
-      path: '/test'
-      fullPath: '/test'
-      preLoaderRoute: typeof TestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/results': {
@@ -461,13 +428,6 @@ declare module '@tanstack/react-router' {
       path: '/quiz'
       fullPath: '/quiz'
       preLoaderRoute: typeof QuizRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/perf': {
-      id: '/perf'
-      path: '/perf'
-      fullPath: '/perf'
-      preLoaderRoute: typeof PerfRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/analysis': {
@@ -671,12 +631,10 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AdminRoute: AdminRouteWithChildren,
   AnalysisRoute: AnalysisRoute,
-  PerfRoute: PerfRoute,
   QuizRoute: QuizRoute,
   QuizTakerRoute: QuizTakerRoute,
   ResponsesRoute: ResponsesRoute,
   ResultsRoute: ResultsRoute,
-  TestRoute: TestRoute,
   TodosRoute: TodosRoute,
   AccountAccountViewRoute: AccountAccountViewRoute,
   AccountClaimAccountRoute: AccountClaimAccountRoute,
