@@ -10,6 +10,7 @@ import {
   ThemeProvider,
   ThemeSystemProviderWithContext,
 } from "@theme";
+import { Toaster } from "@shadcn";
 import { Construction } from "lucide-react";
 import appCss from "../styles.css?url";
 
@@ -72,6 +73,7 @@ function RootComponent() {
         </div>
       </div>
       <Outlet />
+      <Toaster />
     </div>
   );
 }

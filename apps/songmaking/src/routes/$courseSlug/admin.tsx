@@ -9,8 +9,9 @@
  */
 
 import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
-import { useState, useEffect, useMemo } from "react";
-import { useAtomValue } from "@effect-atom/atom-react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useAtomSet } from "@effect-atom/atom-react";
+import { toast } from "sonner";
 import {
   DndContext,
   closestCenter,
@@ -53,13 +54,9 @@ import {
   BarChart3,
   BookOpen,
   CheckCircle2,
-  ChevronDown,
   ChevronRight,
   ClipboardList,
-  Edit,
   ExternalLink,
-  Eye,
-  EyeOff,
   FileDown,
   FileText,
   Filter,
@@ -80,9 +77,30 @@ import {
   Zap,
 } from "lucide-react";
 import { useCourse } from "../../features/course/client/course-context.js";
-import { progressAtom } from "../../features/course/client/course-atoms.js";
-import type { Section, Lesson, LessonPart, LessonType } from "@course";
-import type { Week } from "../../data/course-registry.js";
+import type {
+  Section,
+  Lesson,
+  LessonPart,
+  LessonType,
+  LessonPartId,
+  LessonId as BrandedLessonId,
+  SectionId as BrandedSectionId,
+  CourseId as BrandedCourseId,
+} from "@course";
+import {
+  createLessonPartAtom,
+  deleteLessonPartAtom,
+  reorderLessonPartsAtom,
+} from "@course/features/lesson-part/client/index.js";
+import {
+  createLessonAtom,
+  reorderLessonsAtom,
+} from "@course/features/lesson/client/index.js";
+import {
+  updateCourseAtom,
+  publishCourseAtom,
+  archiveCourseAtom,
+} from "@course/features/course/client/index.js";
 import { cn } from "@shadcn/lib/utils";
 
 // =============================================================================
@@ -831,9 +849,21 @@ function ContentTab() {
     sections,
     lessons,
     weeks: initialWeeks,
-    getSectionById,
     getLessonParts,
   } = useCourse();
+
+  // RPC mutation atoms
+  const createLesson = useAtomSet(createLessonAtom);
+  const reorderLessonsRpc = useAtomSet(reorderLessonsAtom);
+  const createPartRpc = useAtomSet(createLessonPartAtom);
+  const deletePartRpc = useAtomSet(deleteLessonPartAtom);
+  const reorderPartsRpc = useAtomSet(reorderLessonPartsAtom);
+
+  // Track dirty state and saving
+  const [isDirty, setIsDirty] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const deletedPartIdsRef = useRef<Set<string>>(new Set());
+  const initialPartIdsRef = useRef<Set<string>>(new Set());
 
   // Initialize weeks state from course data or create 8 empty weeks
   const [weeks, setWeeks] = useState<WeekState[]>(() => {
@@ -890,6 +920,15 @@ function ContentTab() {
     return partsMap;
   });
 
+  // Build initial part IDs set for tracking deletions
+  useEffect(() => {
+    const ids = new Set<string>();
+    lessons.forEach((lesson) => {
+      getLessonParts(lesson.id).forEach((p) => ids.add(p.id));
+    });
+    initialPartIdsRef.current = ids;
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -930,16 +969,21 @@ function ContentTab() {
       ...prev,
       [lessonId]: [...(prev[lessonId] || []), newPart],
     }));
+    setIsDirty(true);
 
     closeAddPartDialog();
   };
 
   // Remove a part from a lesson
   const removePart = (lessonId: string, partId: string) => {
+    if (initialPartIdsRef.current.has(partId)) {
+      deletedPartIdsRef.current.add(partId);
+    }
     setLessonParts((prev) => ({
       ...prev,
       [lessonId]: (prev[lessonId] || []).filter((p) => p.id !== partId),
     }));
+    setIsDirty(true);
   };
 
   // Reorder parts within a lesson
@@ -948,6 +992,7 @@ function ContentTab() {
       ...prev,
       [lessonId]: newParts,
     }));
+    setIsDirty(true);
   };
 
   // Open add lesson dialog for a section
@@ -986,6 +1031,7 @@ function ContentTab() {
       ...prev,
       [sectionId]: [...(prev[sectionId] || []), newLesson],
     }));
+    setIsDirty(true);
 
     closeAddLessonDialog();
   };
@@ -1054,7 +1100,97 @@ function ContentTab() {
       ...prev,
       [sectionId]: newLessons,
     }));
+    setIsDirty(true);
   };
+
+  // Save all content changes to the database
+  const handleSaveContent = useCallback(async () => {
+    setIsSaving(true);
+    try {
+      // 1. Delete removed parts
+      for (const partId of deletedPartIdsRef.current) {
+        await deletePartRpc(partId as LessonPartId);
+      }
+
+      // 2. Create new lessons and parts
+      const lessonIdMap = new Map<string, string>(); // old temp ID -> real ID
+
+      for (const section of sections) {
+        const sectionLessonList = sectionLessons[section.id] || [];
+        for (const lesson of sectionLessonList) {
+          if (lesson.id.startsWith("new-lesson-")) {
+            const created = await createLesson({
+              sectionId: section.id as BrandedSectionId,
+              title: lesson.title,
+              sortOrder: lesson.sortOrder,
+            } as any);
+            lessonIdMap.set(lesson.id, created.id);
+          }
+        }
+      }
+
+      // 3. Create new parts
+      for (const [lessonId, parts] of Object.entries(lessonParts)) {
+        const realLessonId = lessonIdMap.get(lessonId) ?? lessonId;
+        for (const part of parts) {
+          if (part.id.startsWith("new-part-")) {
+            await createPartRpc({
+              lessonId: realLessonId as BrandedLessonId,
+              title: part.title,
+              type: part.type,
+              sortOrder: part.sortOrder,
+            } as any);
+          }
+        }
+      }
+
+      // 4. Reorder lessons within each section
+      for (const section of sections) {
+        const sectionLessonList = sectionLessons[section.id] || [];
+        const lessonIds = sectionLessonList.map(
+          (l) =>
+            (lessonIdMap.get(l.id) ?? l.id) as BrandedLessonId
+        );
+        if (lessonIds.length > 0) {
+          await reorderLessonsRpc({
+            sectionId: section.id as BrandedSectionId,
+            lessonIds,
+          });
+        }
+      }
+
+      // 5. Reorder parts within each lesson
+      for (const [lessonId, parts] of Object.entries(lessonParts)) {
+        const realLessonId = lessonIdMap.get(lessonId) ?? lessonId;
+        const existingParts = parts.filter(
+          (p) => !p.id.startsWith("new-part-")
+        );
+        if (existingParts.length > 0) {
+          await reorderPartsRpc({
+            lessonId: realLessonId as BrandedLessonId,
+            partIds: existingParts.map((p) => p.id as LessonPartId),
+          });
+        }
+      }
+
+      toast.success("Content changes saved successfully");
+      setIsDirty(false);
+      deletedPartIdsRef.current.clear();
+    } catch {
+      toast.error("Failed to save content changes. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  }, [
+    sections,
+    sectionLessons,
+    lessonParts,
+    createLesson,
+    reorderLessonsRpc,
+    createPartRpc,
+    deletePartRpc,
+    reorderPartsRpc,
+  ]);
 
   if (!isClient) {
     return (
@@ -1074,9 +1210,20 @@ function ContentTab() {
             learning order
           </p>
         </div>
-        <Badge variant="secondary">
-          {assignedLessonIds.size}/{lessons.length} lessons in weeks
-        </Badge>
+        <div className="flex items-center gap-3">
+          <Badge variant="secondary">
+            {assignedLessonIds.size}/{lessons.length} lessons in weeks
+          </Badge>
+          {isDirty && (
+            <Button
+              size="sm"
+              onClick={handleSaveContent}
+              disabled={isSaving}
+            >
+              {isSaving ? "Saving..." : "Save Changes"}
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="h-[calc(100vh-240px)]">
@@ -2266,8 +2413,69 @@ function StudentsTab({ students }: { students: StudentProgress[] }) {
 
 function SettingsTab() {
   const { course } = useCourse();
-  const [isPublished, setIsPublished] = useState(true);
+
+  // RPC mutation atoms
+  const updateCourse = useAtomSet(updateCourseAtom);
+  const publishCourse = useAtomSet(publishCourseAtom);
+  const archiveCourse = useAtomSet(archiveCourseAtom);
+
+  // Controlled form state
+  const [title, setTitle] = useState(course.title);
+  const [description, setDescription] = useState(course.description ?? "");
+  const [isPublished, setIsPublished] = useState(
+    course.status === "published"
+  );
   const [enrollmentOpen, setEnrollmentOpen] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
+
+  const handleSaveSettings = async () => {
+    setIsSaving(true);
+    try {
+      // Update title and description
+      await updateCourse({
+        id: course.id as BrandedCourseId,
+        input: {
+          title,
+          description: description || undefined,
+        } as any,
+      });
+
+      // Handle publish/unpublish state change
+      const wasPublished = course.status === "published";
+      if (isPublished && !wasPublished) {
+        await publishCourse(course.id as BrandedCourseId);
+      } else if (!isPublished && wasPublished) {
+        await updateCourse({
+          id: course.id as BrandedCourseId,
+          input: { status: "draft" } as any,
+        });
+      }
+
+      toast.success("Settings saved successfully");
+    } catch {
+      toast.error("Failed to save settings. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleArchive = async () => {
+    const confirmed = window.confirm(
+      "Are you sure you want to archive this course? It will be hidden from all students."
+    );
+    if (!confirmed) return;
+
+    setIsArchiving(true);
+    try {
+      await archiveCourse(course.id as BrandedCourseId);
+      toast.success("Course archived successfully");
+    } catch {
+      toast.error("Failed to archive course. Please try again.");
+    } finally {
+      setIsArchiving(false);
+    }
+  };
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -2313,15 +2521,24 @@ function SettingsTab() {
         <Card.Content className="space-y-4">
           <div className="space-y-2">
             <FormLabel>Course Title</FormLabel>
-            <Input defaultValue={course.title} />
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <FormLabel>Description</FormLabel>
-            <Textarea defaultValue={course.description ?? ""} rows={4} />
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={4}
+            />
           </div>
         </Card.Content>
         <Card.Footer>
-          <Button>Save Changes</Button>
+          <Button onClick={handleSaveSettings} disabled={isSaving}>
+            {isSaving ? "Saving..." : "Save Changes"}
+          </Button>
         </Card.Footer>
       </Card>
 
@@ -2343,8 +2560,13 @@ function SettingsTab() {
                 Hide this course from all students
               </div>
             </div>
-            <Button variant="destructive" size="sm">
-              Archive
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleArchive}
+              disabled={isArchiving}
+            >
+              {isArchiving ? "Archiving..." : "Archive"}
             </Button>
           </div>
         </Card.Content>

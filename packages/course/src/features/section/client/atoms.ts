@@ -62,6 +62,19 @@ export const updateSectionAtom = SectionClient.runtime.fn<{
 );
 
 /**
+ * Reorder sections within a course
+ */
+export const reorderSectionsAtom = SectionClient.runtime.fn<{
+  readonly courseId: CourseId;
+  readonly sectionIds: ReadonlyArray<SectionId>;
+}>()(
+  Effect.fnUntraced(function* ({ courseId, sectionIds }) {
+    const client = yield* SectionClient;
+    yield* client('section_reorder', { courseId, sectionIds });
+  }),
+);
+
+/**
  * Delete a section
  */
 export const deleteSectionAtom = SectionClient.runtime.fn<SectionId>()(

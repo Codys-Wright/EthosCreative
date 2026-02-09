@@ -1,0 +1,81 @@
+# Progress
+
+## Codebase Patterns
+
+### RPC Client Mutation Pattern
+```
+// 1. Create client (AtomRpc.Tag)
+export class FooClient extends AtomRpc.Tag<FooClient>()('@pkg/FooClient', {
+  group: FooRpc,
+  protocol: RpcProtocol,
+}) {}
+
+// 2. Create mutation atom (Client.runtime.fn)
+export const updateFooAtom = FooClient.runtime.fn<{ id: FooId; input: UpdateFooInput }>()(
+  Effect.fnUntraced(function* ({ id, input }) {
+    const client = yield* FooClient;
+    return yield* client('foo_update', { id, input });
+  }),
+);
+
+// 3. Use in component
+const updateFoo = useAtomSet(updateFooAtom);
+await updateFoo({ id, input });
+```
+
+### Feature Index Export Pattern
+- Feature `index.ts` files ONLY export domain code (safe for client bundle)
+- Client code is imported via direct path: `@course/features/lesson-part/client/index.js`
+- Server code is imported via `@course/server`
+- This prevents bundling pg/server code into the client
+
+## ethos-17x.16: US-016 - Add component tests for songmaking app
+
+**Status**: Complete
+
+### What was done
+- Configured vitest with jsdom environment (`apps/songmaking/vitest.config.ts`)
+- Created test setup file with jest-dom matchers (`apps/songmaking/src/__tests__/setup.ts`)
+- Created shared test helpers with mock data factories (`apps/songmaking/src/__tests__/helpers.tsx`)
+- Added testing dependencies to songmaking and root package.json
+
+### Test files created (7 files, 52 tests)
+1. **course-overview.test.tsx** (7 tests) - Hero section, navbar, section/lesson counts, curriculum, CTA
+2. **dashboard.test.tsx** (9 tests) - Hero, quick stats, lesson count, content browser, community, sidebar, sections, messaging cards
+3. **lesson-viewer.test.tsx** (8 tests) - Lesson title, section header, parts, type badges, mark complete, navigation, sidebar, TOC
+4. **course-sidebar.test.tsx** (8 tests) - Course title, nav links, sections, content label, lessons, active highlighting, progress, sign-in
+5. **admin-dashboard.test.tsx** (6 tests) - Course title, admin label, tab triggers, preview button, overview content, activity feed
+6. **lesson-editor.test.tsx** (6 tests) - Lesson title, section name, part list, type badges, lesson parts heading, sidebar
+7. **messaging.test.tsx** (8 tests) - Header, channels, course channels, DMs, empty state, new message button, chat area, SSE connection
+
+### Key patterns
+- TanStack Router file-based routes: Mock `createFileRoute`, access component via `(mod.Route as any)?.component`
+- Effect Atom hooks: Return static values from `useAtomValue`/`useAtomSet` mocks
+- Branded types: Use `as unknown as Type` for mock data with Effect Schema branded IDs
+- Compound shadcn components: Mock with `Object.assign(Component, { SubComponent })`
+
+### Verification
+- All 52 tests pass: `cd apps/songmaking && npx vitest run`
+- oxlint clean: 0 warnings, 0 errors
+- TypeScript: Only pre-existing server-handler.ts error (not from our changes)
+
+## 2026-02-08 - ethos-17x.10
+- **What was implemented:** Admin save operations - lesson editor persistence, content tab persistence, settings tab persistence
+- **Files changed:**
+  - `packages/course/src/rpc.ts` - Added LessonPartRpc to CourseRpcGroup export
+  - `packages/course/src/features/lesson-part/client/client.ts` - New: LessonPartClient RPC client
+  - `packages/course/src/features/lesson-part/client/atoms.ts` - New: CRUD + reorder mutation atoms
+  - `packages/course/src/features/lesson-part/client/index.ts` - New: barrel export
+  - `packages/course/src/features/lesson/client/atoms.ts` - Added reorderLessonsAtom
+  - `packages/course/src/features/section/client/atoms.ts` - Added reorderSectionsAtom
+  - `apps/songmaking/src/routes/__root.tsx` - Added Toaster component for toast notifications
+  - `apps/songmaking/src/routes/lesson_.$lessonId.edit.tsx` - Wired lesson editor save to RPC (create/update/delete/reorder parts)
+  - `apps/songmaking/src/routes/$courseSlug/admin.tsx` - Wired content tab save (lesson/part CRUD + reorder) and settings tab save (course update/publish/archive)
+- **Learnings:**
+  - LessonPartRpc was included in server-side CourseRpcLayer but missing from client-side CourseRpcGroup export
+  - Feature index.ts files only export domain code; client code must be imported via direct path (`@course/features/*/client/index.js`)
+  - Mutation atoms use `Client.runtime.fn<InputType>()(Effect.fnUntraced(...))` pattern, consumed via `useAtomSet`
+  - Save orchestration order matters: delete first, then create (to get real IDs), then update, then reorder
+  - Sonner toast is already installed in @shadcn but Toaster component needs to be added to root layout
+  - oxlint improved from 66 to 52 errors (cleaned up unused imports in files we touched)
+---
