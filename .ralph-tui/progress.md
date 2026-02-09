@@ -79,3 +79,13 @@ await updateFoo({ id, input });
   - Sonner toast is already installed in @shadcn but Toaster component needs to be added to root layout
   - oxlint improved from 66 to 52 errors (cleaned up unused imports in files we touched)
 ---
+
+## 2026-02-08 - ethos-17x.20
+- Created `CLAUDE.md` at repo root — comprehensive project guide for AI assistants
+- Files changed:
+  - `CLAUDE.md` (new) — Documents monorepo structure, commands, vertical slice architecture, Effect-TS patterns (Schema, Service, RPC, Atom, SQL), database setup, testing conventions, deployment config, UI conventions, and references to @example package READMEs
+- **Learnings:**
+  - CLAUDE.md should reference `@example` package READMEs rather than duplicate their content — keeps documentation DRY and maintainable
+  - Pre-existing typecheck errors in `packages/ui/theme/` are due to missing node_modules in worktrees, not actual code issues
+  - Pre-existing oxlint errors (45 warnings, 237 errors) across the codebase are not related to documentation changes
+---
