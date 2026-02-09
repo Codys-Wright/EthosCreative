@@ -7,22 +7,21 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [
-    // Use root to ensure tsconfig.base.json paths are used from monorepo root
     tsconfigPaths({ root: __dirname }),
   ],
   resolve: {
     alias: [
-      // Package-specific exports first (more specific patterns)
+      // Package-specific exports (exact matches only to avoid prefix collisions)
       {
-        find: '@core/database',
+        find: /^@core\/database$/,
         replacement: resolve(__dirname, 'packages/core/src/database.ts'),
       },
       {
-        find: '@core/server',
+        find: /^@core\/server$/,
         replacement: resolve(__dirname, 'packages/core/src/server.ts'),
       },
       {
-        find: '@core/client',
+        find: /^@core\/client$/,
         replacement: resolve(__dirname, 'packages/core/src/client/index.ts'),
       },
       {
@@ -34,11 +33,11 @@ export default defineConfig({
         replacement: resolve(__dirname, 'packages/core/src/index.ts'),
       },
       {
-        find: '@auth/database',
+        find: /^@auth\/database$/,
         replacement: resolve(__dirname, 'packages/auth/src/database.ts'),
       },
       {
-        find: '@auth/server',
+        find: /^@auth\/server$/,
         replacement: resolve(__dirname, 'packages/auth/src/server.ts'),
       },
       {
@@ -50,11 +49,11 @@ export default defineConfig({
         replacement: resolve(__dirname, 'packages/auth/src/index.ts'),
       },
       {
-        find: '@example/database',
+        find: /^@example\/database$/,
         replacement: resolve(__dirname, 'packages/example/src/database.ts'),
       },
       {
-        find: '@example/server',
+        find: /^@example\/server$/,
         replacement: resolve(__dirname, 'packages/example/src/server.ts'),
       },
       {
@@ -66,11 +65,11 @@ export default defineConfig({
         replacement: resolve(__dirname, 'packages/example/src/index.ts'),
       },
       {
-        find: '@todo/database',
+        find: /^@todo\/database$/,
         replacement: resolve(__dirname, 'packages/todo/src/database.ts'),
       },
       {
-        find: '@todo/server',
+        find: /^@todo\/server$/,
         replacement: resolve(__dirname, 'packages/todo/src/server.ts'),
       },
       {
@@ -82,11 +81,11 @@ export default defineConfig({
         replacement: resolve(__dirname, 'packages/todo/src/index.ts'),
       },
       {
-        find: '@quiz/database',
+        find: /^@quiz\/database$/,
         replacement: resolve(__dirname, 'packages/quiz/src/database.ts'),
       },
       {
-        find: '@quiz/server',
+        find: /^@quiz\/server$/,
         replacement: resolve(__dirname, 'packages/quiz/src/server.ts'),
       },
       {
@@ -98,11 +97,11 @@ export default defineConfig({
         replacement: resolve(__dirname, 'packages/quiz/src/index.ts'),
       },
       {
-        find: '@sse/server',
+        find: /^@sse\/server$/,
         replacement: resolve(__dirname, 'packages/sse/src/server.ts'),
       },
       {
-        find: '@sse/client',
+        find: /^@sse\/client$/,
         replacement: resolve(__dirname, 'packages/sse/src/client.ts'),
       },
       {
@@ -114,15 +113,15 @@ export default defineConfig({
         replacement: resolve(__dirname, 'packages/sse/src/index.ts'),
       },
       {
-        find: '@chat/server',
+        find: /^@chat\/server$/,
         replacement: resolve(__dirname, 'packages/chat/src/server.ts'),
       },
       {
-        find: '@chat/client',
+        find: /^@chat\/client$/,
         replacement: resolve(__dirname, 'packages/chat/src/client.ts'),
       },
       {
-        find: '@chat/components',
+        find: /^@chat\/components$/,
         replacement: resolve(__dirname, 'packages/chat/src/components/index.ts'),
       },
       {
@@ -152,7 +151,7 @@ export default defineConfig({
     ],
   },
   test: {
-    include: ['src/**/*.test.{ts,tsx}', 'packages/**/*.test.{ts,tsx}', 'apps/**/*.test.{ts,tsx}'],
+    include: ['packages/**/*.test.{ts,tsx}'],
     exclude: ['**/node_modules/**', '**/reference/**'],
     environment: 'node',
     globals: true,
