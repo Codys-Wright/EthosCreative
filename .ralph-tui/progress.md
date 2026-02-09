@@ -89,3 +89,18 @@ await updateFoo({ id, input });
   - Pre-existing typecheck errors in `packages/ui/theme/` are due to missing node_modules in worktrees, not actual code issues
   - Pre-existing oxlint errors (45 warnings, 237 errors) across the codebase are not related to documentation changes
 ---
+
+## 2026-02-08 - ethos-17x.4
+- Added unit tests for @artist-types package covering domain, data loading, service, and RPC layers
+- Files created:
+  - `packages/artist-types/src/domain/schema.test.ts` (18 tests) - ArtistTypeId branding, ARTIST_TYPE_IDS validation, isValidArtistTypeId, normalizeArtistTypeId, ArtistTypeNotFoundError, ArtistTypeMetadata schema validation
+  - `packages/artist-types/src/database/data/index.test.ts` (19 tests) - Seed data loading (getAllArtistTypeSeedData, getArtistTypeSeedData, getArtistTypeSeedDataBySlug, getArtistTypeSeedDataByOrder), sync variants, data integrity (unique IDs, unique orders, all required fields)
+  - `packages/artist-types/src/server/live-service.test.ts` (8 tests) - ArtistTypeService list/getById/getBySlug/invalidateCache, error propagation, slug normalization (DB-dependent via testcontainers)
+  - `packages/artist-types/src/server/rpc-live.test.ts` (5 tests) - RPC layer construction, handler routing through service, error propagation (DB-dependent via testcontainers)
+- **Total**: 50 new tests (37 pure unit + 13 DB-dependent via testcontainers)
+- **Learnings:**
+  - Effect Schema `S.Class` validation errors use `"is missing"` text for required fields — not the `"Expected"` pattern from plain schemas
+  - `ArtistTypeService.DefaultWithoutDependencies` can be combined with `ArtistTypesRepo.DefaultWithoutDependencies` and `PgTest` to create a full test layer
+  - The `normalizeArtistTypeId` function has edge cases with partial formats (e.g., "the-visionary" without "-artist" suffix gets double-wrapped) — documented in tests
+  - Pre-existing typecheck errors in artist-types/core/server/runtime.ts (Layer type mismatch) — not from our changes
+---
