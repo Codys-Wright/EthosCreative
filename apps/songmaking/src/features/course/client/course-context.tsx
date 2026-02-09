@@ -11,6 +11,7 @@
 
 import { createContext, useContext, type ReactNode } from "react";
 import { useAtomValue, useAtomSet } from "@effect-atom/atom-react";
+import { useProgressSync } from "./use-progress-sync.js";
 import {
   courseSlugAtom,
   courseAtom,
@@ -62,6 +63,9 @@ export function CourseProvider({ courseSlug, children }: CourseProviderProps) {
   if (currentSlug !== courseSlug) {
     setSlug(courseSlug);
   }
+
+  // Sync progress with server for authenticated users
+  useProgressSync();
 
   return (
     <CourseContext.Provider value={{ slug: courseSlug }}>
