@@ -6,8 +6,8 @@
  */
 
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useAtomValue } from "@effect-atom/atom-react";
-import * as Option from "effect/Option";
+import { useAtomValue, useAtomSet } from "@effect-atom/atom-react";
+import { useState, useEffect, useCallback } from "react";
 import { Badge, Button, Card, Separator } from "@shadcn";
 import {
   BookOpen,
@@ -18,6 +18,7 @@ import {
   Music,
   Mic2,
   Headphones,
+  Lock,
   PenLine,
   Sparkles,
   Star,
@@ -25,17 +26,67 @@ import {
   Award,
   ArrowRight,
   FlaskConical,
+  Loader2,
 } from "lucide-react";
 import {
   progressAtom,
   courseProgressAtom,
-  firstIncompleteLessonAtom,
   sectionProgressAtom,
 } from "../../features/course/client/course-atoms";
 import { useCourse } from "../../features/course/client/course-context";
-import type { Section, Course } from "@course";
+import {
+  checkEnrollmentAtom,
+  enrollSelfAtom,
+} from "@course/features/enrollment/client";
+import type { Section, CourseId } from "@course";
 import { cn } from "@shadcn/lib/utils";
 import { Navbar } from "../../components/navbar";
+
+// =============================================================================
+// Enrollment Hook
+// =============================================================================
+
+function useEnrollment() {
+  const { course, isExample } = useCourse();
+  const checkEnrollment = useAtomSet(checkEnrollmentAtom);
+  const enrollSelf = useAtomSet(enrollSelfAtom);
+  const [isEnrolled, setIsEnrolled] = useState<boolean | null>(null);
+  const [isEnrolling, setIsEnrolling] = useState(false);
+
+  useEffect(() => {
+    if (isExample) {
+      setIsEnrolled(true);
+      return;
+    }
+    checkEnrollment({ courseId: course.id as CourseId })
+      .then((result) => {
+        if (result._tag === "Right") {
+          setIsEnrolled(result.right);
+        } else {
+          // Unauthenticated users are not enrolled
+          setIsEnrolled(false);
+        }
+      })
+      .catch(() => setIsEnrolled(false));
+  }, [course.id, isExample, checkEnrollment]);
+
+  const handleEnroll = useCallback(async () => {
+    setIsEnrolling(true);
+    try {
+      const result = await enrollSelf({
+        courseId: course.id as CourseId,
+        source: "free",
+      });
+      if (result._tag === "Right") {
+        setIsEnrolled(true);
+      }
+    } finally {
+      setIsEnrolling(false);
+    }
+  }, [course.id, enrollSelf]);
+
+  return { isEnrolled, isEnrolling, handleEnroll };
+}
 
 export const Route = createFileRoute("/$courseSlug/")({
   component: CourseOverviewPage,
@@ -45,10 +96,17 @@ export const Route = createFileRoute("/$courseSlug/")({
 // Hero Section
 // =============================================================================
 
-function HeroSection() {
+function HeroSection({
+  isEnrolled,
+  isEnrolling,
+  onEnroll,
+}: {
+  isEnrolled: boolean | null;
+  isEnrolling: boolean;
+  onEnroll: () => void;
+}) {
   const { course, routes, isExample } = useCourse();
   const courseProgress = useAtomValue(courseProgressAtom);
-  const firstIncompleteLesson = useAtomValue(firstIncompleteLessonAtom);
 
   return (
     <div className="relative overflow-hidden">
@@ -213,9 +271,11 @@ function HeroSection() {
 
             {/* CTA Button */}
             <div className="flex flex-wrap gap-4">
-              <Link to={routes.dashboard}>
+              {isEnrolled === false ? (
                 <Button
                   size="lg"
+                  onClick={onEnroll}
+                  disabled={isEnrolling}
                   className={cn(
                     "h-12 px-6 text-base gap-2 shadow-lg",
                     isExample
@@ -223,13 +283,33 @@ function HeroSection() {
                       : "shadow-primary/20"
                   )}
                 >
-                  <PlayCircle className="w-5 h-5" />
-                  {courseProgress.completed > 0
-                    ? "Continue Learning"
-                    : "Start Course"}
-                  <ArrowRight className="w-4 h-4 ml-1" />
+                  {isEnrolling ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <PlayCircle className="w-5 h-5" />
+                  )}
+                  {isEnrolling ? "Enrolling..." : "Enroll Now — Free"}
+                  {!isEnrolling && <ArrowRight className="w-4 h-4 ml-1" />}
                 </Button>
-              </Link>
+              ) : (
+                <Link to={routes.dashboard}>
+                  <Button
+                    size="lg"
+                    className={cn(
+                      "h-12 px-6 text-base gap-2 shadow-lg",
+                      isExample
+                        ? "bg-amber-500 hover:bg-amber-600 shadow-amber-500/20"
+                        : "shadow-primary/20"
+                    )}
+                  >
+                    <PlayCircle className="w-5 h-5" />
+                    {courseProgress.completed > 0
+                      ? "Continue Learning"
+                      : "Start Course"}
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
 
@@ -385,9 +465,11 @@ function WhatYoullLearn() {
 function SectionCard({
   section,
   sectionIndex,
+  isEnrolled,
 }: {
   section: Section;
   sectionIndex: number;
+  isEnrolled: boolean | null;
 }) {
   const { getSectionLessons, routes, isExample } = useCourse();
   const lessons = getSectionLessons(section.id);
@@ -447,24 +529,32 @@ function SectionCard({
         {lessons.map((lesson, lessonIndex) => {
           const progress = progressMap.get(lesson.id);
           const isCompleted = progress?.status === "completed";
+          const isLocked = isEnrolled === false && !lesson.isFree && !lesson.isPreview;
 
-          return (
-            <Link
-              key={lesson.id}
-              to={routes.lesson(lesson.id)}
-              className="flex items-center gap-4 px-5 py-4 hover:bg-muted/50 transition-colors group"
+          const content = (
+            <div
+              className={cn(
+                "flex items-center gap-4 px-5 py-4 transition-colors group",
+                isLocked
+                  ? "opacity-60 cursor-default"
+                  : "hover:bg-muted/50 cursor-pointer"
+              )}
             >
               <div
                 className={cn(
                   "w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0",
-                  isCompleted
+                  isLocked
+                    ? "bg-muted text-muted-foreground"
+                    : isCompleted
                     ? "bg-emerald-500 text-white"
                     : isExample
                     ? "bg-muted text-muted-foreground group-hover:bg-amber-500/10 group-hover:text-amber-600"
                     : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
                 )}
               >
-                {isCompleted ? (
+                {isLocked ? (
+                  <Lock className="w-4 h-4" />
+                ) : isCompleted ? (
                   <CheckCircle2 className="w-4 h-4" />
                 ) : (
                   lessonIndex + 1
@@ -474,9 +564,10 @@ function SectionCard({
                 <span
                   className={cn(
                     "text-sm font-medium transition-colors",
-                    isExample
-                      ? "group-hover:text-amber-600"
-                      : "group-hover:text-primary"
+                    !isLocked &&
+                      (isExample
+                        ? "group-hover:text-amber-600"
+                        : "group-hover:text-primary")
                   )}
                 >
                   {lesson.title}
@@ -486,13 +577,25 @@ function SectionCard({
                     variant="secondary"
                     className="ml-2 text-[10px] px-1.5 py-0"
                   >
-                    Free
+                    Free Preview
                   </Badge>
                 )}
               </div>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                {isLocked ? (
+                  <Lock className="w-4 h-4" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                )}
               </div>
+            </div>
+          );
+
+          return isLocked ? (
+            <div key={lesson.id}>{content}</div>
+          ) : (
+            <Link key={lesson.id} to={routes.lesson(lesson.id)}>
+              {content}
             </Link>
           );
         })}
@@ -505,7 +608,7 @@ function SectionCard({
 // Course Curriculum Section
 // =============================================================================
 
-function CourseCurriculum() {
+function CourseCurriculum({ isEnrolled }: { isEnrolled: boolean | null }) {
   const { course, sections } = useCourse();
 
   return (
@@ -530,6 +633,7 @@ function CourseCurriculum() {
               key={section.id}
               section={section}
               sectionIndex={sectionIndex}
+              isEnrolled={isEnrolled}
             />
           ))}
         </div>
@@ -543,16 +647,20 @@ function CourseCurriculum() {
 // =============================================================================
 
 function CourseOverviewPage() {
-  const { course, routes, isExample } = useCourse();
+  const { routes, isExample } = useCourse();
   const courseProgress = useAtomValue(courseProgressAtom);
-  const firstIncompleteLesson = useAtomValue(firstIncompleteLessonAtom);
+  const { isEnrolled, isEnrolling, handleEnroll } = useEnrollment();
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <HeroSection />
+      <HeroSection
+        isEnrolled={isEnrolled}
+        isEnrolling={isEnrolling}
+        onEnroll={handleEnroll}
+      />
       <WhatYoullLearn />
-      <CourseCurriculum />
+      <CourseCurriculum isEnrolled={isEnrolled} />
 
       {/* Bottom CTA */}
       <div
@@ -565,16 +673,22 @@ function CourseOverviewPage() {
           <h2 className="text-2xl sm:text-3xl font-bold mb-4">
             {isExample
               ? "This is an Example Course"
+              : isEnrolled
+              ? "Ready to Continue Your Journey?"
               : "Ready to Start Your Songwriting Journey?"}
           </h2>
           <p className="text-muted-foreground mb-8">
             {isExample
               ? "Explore the course features and see how the platform works."
+              : isEnrolled
+              ? "Pick up where you left off and keep making progress."
               : "Join thousands of students who have transformed their musical ideas into complete songs."}
           </p>
-          <Link to={routes.dashboard}>
+          {isEnrolled === false ? (
             <Button
               size="lg"
+              onClick={handleEnroll}
+              disabled={isEnrolling}
               className={cn(
                 "h-12 px-8 text-base gap-2 shadow-lg",
                 isExample
@@ -582,13 +696,33 @@ function CourseOverviewPage() {
                   : "shadow-primary/20"
               )}
             >
-              <PlayCircle className="w-5 h-5" />
-              {courseProgress.completed > 0
-                ? "Continue Learning"
-                : "Start Course Now"}
-              <ArrowRight className="w-4 h-4" />
+              {isEnrolling ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <PlayCircle className="w-5 h-5" />
+              )}
+              {isEnrolling ? "Enrolling..." : "Enroll Now — Free"}
+              {!isEnrolling && <ArrowRight className="w-4 h-4" />}
             </Button>
-          </Link>
+          ) : (
+            <Link to={routes.dashboard}>
+              <Button
+                size="lg"
+                className={cn(
+                  "h-12 px-8 text-base gap-2 shadow-lg",
+                  isExample
+                    ? "bg-amber-500 hover:bg-amber-600 shadow-amber-500/20"
+                    : "shadow-primary/20"
+                )}
+              >
+                <PlayCircle className="w-5 h-5" />
+                {courseProgress.completed > 0
+                  ? "Continue Learning"
+                  : "Start Course Now"}
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </div>

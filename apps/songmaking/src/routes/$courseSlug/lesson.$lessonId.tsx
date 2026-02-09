@@ -4,7 +4,7 @@
  * Dynamic lesson viewer that works with any course based on $courseSlug param.
  */
 
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useAtomValue, useAtomSet } from "@effect-atom/atom-react";
 import * as Option from "effect/Option";
 import {
@@ -20,7 +20,6 @@ import {
   ChevronLeft,
   ChevronRight,
   CheckCircle2,
-  Clock,
   PlayCircle,
   FileText,
   HelpCircle,
@@ -29,9 +28,6 @@ import {
   BookOpen,
   ArrowLeft,
   Menu,
-  Home,
-  Music,
-  Sparkles,
   Pencil,
   FlaskConical,
   XCircle,
@@ -53,6 +49,7 @@ import {
   QuizResultsUpdate,
 } from "../../features/course/client/course-atoms";
 import { useCourse } from "../../features/course/client/course-context";
+import { checkEnrollmentAtom } from "@course/features/enrollment/client";
 import { cn } from "@shadcn/lib/utils";
 import * as React from "react";
 
@@ -691,6 +688,43 @@ function LessonNavigation({
 
 function LessonPageWrapper() {
   const { lessonId } = Route.useParams();
+  const { course, routes, isExample, getLessonById } = useCourse();
+  const checkEnrollment = useAtomSet(checkEnrollmentAtom);
+  const [isEnrolled, setIsEnrolled] = React.useState<boolean | null>(null);
+
+  React.useEffect(() => {
+    if (isExample) {
+      setIsEnrolled(true);
+      return;
+    }
+    checkEnrollment({ courseId: course.id as CourseId })
+      .then((result) => {
+        if (result._tag === "Right") {
+          setIsEnrolled(result.right);
+        } else {
+          setIsEnrolled(false);
+        }
+      })
+      .catch(() => setIsEnrolled(false));
+  }, [course.id, isExample, checkEnrollment]);
+
+  // Check if this lesson is accessible without enrollment
+  const lesson = getLessonById(lessonId);
+  const isFreeLesson = lesson?.isFree || lesson?.isPreview;
+
+  // Redirect non-enrolled users away from paid lessons
+  if (isEnrolled === false && !isFreeLesson) {
+    return <Navigate to={routes.home} />;
+  }
+
+  // Loading state (only gate paid lessons)
+  if (isEnrolled === null && !isFreeLesson) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider defaultOpen>

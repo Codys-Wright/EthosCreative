@@ -7,6 +7,7 @@ import {
   Enrollment,
   EnrollmentId,
   EnrollmentNotFoundError,
+  EnrollmentWithUser,
   UpdateEnrollmentInput,
 } from './schema.js';
 import { CourseId } from '../../course/domain/schema.js';
@@ -37,6 +38,11 @@ export class EnrollmentRpc extends RpcGroup.make(
     payload: { courseId: CourseId },
   }),
 
+  Rpc.make('listByCourseWithUsers', {
+    success: S.Array(EnrollmentWithUser),
+    payload: { courseId: CourseId },
+  }),
+
   Rpc.make('listActiveByUser', {
     success: S.Array(Enrollment),
     payload: { userId: UserId },
@@ -58,6 +64,11 @@ export class EnrollmentRpc extends RpcGroup.make(
   Rpc.make('enroll', {
     success: Enrollment,
     payload: { input: CreateEnrollmentInput },
+  }),
+
+  Rpc.make('enrollSelf', {
+    success: Enrollment,
+    payload: { courseId: CourseId, source: S.Literal('free', 'promo') },
   }),
 
   Rpc.make('update', {

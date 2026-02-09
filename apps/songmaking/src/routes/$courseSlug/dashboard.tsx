@@ -7,7 +7,7 @@
  */
 
 import * as React from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useAtomValue, useAtomSet } from "@effect-atom/atom-react";
 import {
   Badge,
@@ -45,6 +45,8 @@ import {
   expandedSectionsAtom,
   ExpandedSectionsUpdate,
 } from "../../features/course/client/course-atoms.js";
+import { checkEnrollmentAtom } from "@course/features/enrollment/client";
+import type { CourseId } from "@course";
 import { cn } from "@shadcn/lib/utils";
 import {
   fakeAnnouncementsAtom,
@@ -1002,6 +1004,40 @@ function DirectMessagesCard() {
 // =============================================================================
 
 function DashboardPageWrapper() {
+  const { course, routes, isExample } = useCourse();
+  const checkEnrollment = useAtomSet(checkEnrollmentAtom);
+  const [isEnrolled, setIsEnrolled] = React.useState<boolean | null>(null);
+
+  React.useEffect(() => {
+    if (isExample) {
+      setIsEnrolled(true);
+      return;
+    }
+    checkEnrollment({ courseId: course.id as CourseId })
+      .then((result) => {
+        if (result._tag === "Right") {
+          setIsEnrolled(result.right);
+        } else {
+          setIsEnrolled(false);
+        }
+      })
+      .catch(() => setIsEnrolled(false));
+  }, [course.id, isExample, checkEnrollment]);
+
+  // Redirect non-enrolled users to course overview
+  if (isEnrolled === false) {
+    return <Navigate to={routes.home} />;
+  }
+
+  // Loading state
+  if (isEnrolled === null) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <SidebarProvider defaultOpen>
       <CourseSidebar />

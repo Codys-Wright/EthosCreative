@@ -4,7 +4,10 @@ import * as RpcClientError from '@effect/rpc/RpcClientError';
 import * as Effect from 'effect/Effect';
 import * as S from 'effect/Schema';
 import { CourseId } from '../../course/domain/schema.js';
-import { CreateEnrollmentInput, Enrollment } from '../domain/index.js';
+import {
+  CreateEnrollmentInput,
+  Enrollment,
+} from '../domain/index.js';
 import { EnrollmentClient } from './client.js';
 
 const EnrollmentsSchema = S.Array(Enrollment);
@@ -58,5 +61,48 @@ export const checkEnrollmentAtom = EnrollmentClient.runtime.fn<{
   Effect.fnUntraced(function* ({ courseId }) {
     const client = yield* EnrollmentClient;
     return yield* client('enrollment_isEnrolled', { courseId });
+  }),
+);
+
+/**
+ * Self-enroll in a course (uses authenticated user's ID)
+ */
+export const enrollSelfAtom = EnrollmentClient.runtime.fn<{
+  courseId: CourseId;
+  source: 'free' | 'promo';
+}>()(
+  Effect.fnUntraced(function* ({ courseId, source }, get) {
+    const client = yield* EnrollmentClient;
+    const result = yield* client('enrollment_enrollSelf', { courseId, source });
+    get.refresh(myEnrollmentsAtom);
+    return result;
+  }),
+);
+
+/**
+ * List enrollments for a course with user details (admin view)
+ */
+export const courseEnrollmentsWithUsersAtom = EnrollmentClient.runtime.fn<{
+  courseId: CourseId;
+}>()(
+  Effect.fnUntraced(function* ({ courseId }) {
+    const client = yield* EnrollmentClient;
+    return yield* client('enrollment_listByCourseWithUsers', { courseId });
+  }),
+);
+
+/**
+ * Cancel/remove an enrollment (admin action)
+ */
+export const cancelEnrollmentAtom = EnrollmentClient.runtime.fn<{
+  enrollmentId: string;
+}>()(
+  Effect.fnUntraced(function* ({ enrollmentId }, get) {
+    const client = yield* EnrollmentClient;
+    const result = yield* client('enrollment_cancel', {
+      id: enrollmentId as any,
+    });
+    get.refresh(myEnrollmentsAtom);
+    return result;
   }),
 );

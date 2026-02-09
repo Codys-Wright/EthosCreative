@@ -21,6 +21,7 @@ export class EnrollmentService extends Effect.Service<EnrollmentService>()(
           repo.findByUserAndCourse(userId, courseId),
         listByUser: (userId: UserId) => repo.findByUser(userId),
         listByCourse: (courseId: CourseId) => repo.findByCourse(courseId),
+        listByCourseWithUsers: (courseId: CourseId) => repo.findByCourseWithUsers(courseId),
         listActiveByUser: (userId: UserId) => repo.findActiveByUser(userId),
         isEnrolled: (userId: UserId, courseId: CourseId) => repo.isEnrolled(userId, courseId),
         enroll: (input: CreateEnrollmentInput) => repo.create(input),
