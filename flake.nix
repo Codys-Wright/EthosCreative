@@ -12,16 +12,15 @@
     devShells = forAllSystems (pkgs: {
       default = pkgs.mkShell {
         packages = with pkgs; [
-          corepack
+          bun
           nodejs_22
-          nodePackages.pnpm
           postgresql
         ];
 
         shellHook = ''
-          echo "Welcome to the Effect Files Example development environment!"
+          echo "Welcome to the Ethos Creative development environment!"
+          echo "Bun: $(bun --version)"
           echo "Node.js: $(node --version)"
-          echo "pnpm: $(pnpm --version)"
           echo "$(psql --version)"
           echo ""
         '';

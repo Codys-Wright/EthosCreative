@@ -1,4 +1,6 @@
-# CLAUDE.md — EthosCreative Monorepo Guide
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Runtime & Tooling
 
@@ -285,11 +287,51 @@ import { Card, Dialog } from "@shadcn";
 </Card>
 ```
 
+### Formatting (Biome)
+
+- Single quotes, JSX double quotes
+- Semicolons always, trailing commas always
+- 2-space indent, 100 char line width
+
+### Effect Import Aliases
+
+The Effect language service renames shadowed globals:
+
+| Effect module | Alias |
+|---|---|
+| `Array` | `Arr` |
+| `Function` | `Func` |
+| `Boolean` | `Bool` |
+| `Number` | `Num` |
+| `String` | `Str` |
+
 ### Imports
 
 - External packages first, then local imports
 - Use `.js` extensions for local imports within packages (TypeScript module resolution)
 - Use `.ts` extensions only for direct file references in apps
+
+## Effect Solutions CLI
+
+Curated best practices and patterns for Effect TypeScript:
+
+```bash
+bunx effect-solutions list              # List all topics
+bunx effect-solutions show <slug...>    # Read topics
+bunx effect-solutions search <term>     # Search topics
+```
+
+Local Effect source is at `~/.local/share/effect-solutions/effect` for API reference.
+
+## btca (Up-to-date Tech Answers)
+
+**Always run `btca` before writing Effect code** — Effect's API evolves rapidly and your training data may be outdated. Query it whenever you're unsure about an Effect API, pattern, or best practice:
+
+```bash
+btca ask -t effect -q "<question>"
+```
+
+Also available for other tech: `svelte`, `tailwindcss`, `opentui`, `runed`, `shiki`
 
 ## Key References
 
