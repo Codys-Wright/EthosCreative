@@ -2,7 +2,7 @@
   "name": "@source",
   "version": "0.0.0",
   "type": "module",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "scripts": {
     "prepare": "husky || true",
     "clean": "node scripts/clean.mjs",
